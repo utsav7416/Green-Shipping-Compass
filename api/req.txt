@@ -1,0 +1,1 @@
+C:\Windows\System32\curl.exe -X POST "http://localhost:5000/predict" -H "Content-Type: application/json" -d "{\"distance\": 1000, \"weight\": 1500, \"containerSize\": 20, \"method\": \"standard\", \"cargoType\": \"general\"}"
