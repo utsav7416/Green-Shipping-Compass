@@ -21,11 +21,7 @@ function About() {
         <section>
           <h2 className="text-xl font-semibold text-green-400 mb-3">What We Offer</h2>
           <ul className="list-disc list-inside space-y-2">
-            <li>Accurate shipping cost calculations based on multiple factors</li>
-            <li>Environmental impact assessment for different shipping methods</li>
-            <li>Comprehensive route planning and optimization</li>
-            <li>Transparent cost breakdown and analysis</li>
-            <li>Eco-friendly shipping alternatives</li>
+            
           </ul>
         </section>
 
