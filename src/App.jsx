@@ -21,7 +21,6 @@ function App() {
             <Route path="/terms" element={<Terms />} />
           </Routes>
         </main>
-        <Footer />
       </div>
     </Router>
   );
