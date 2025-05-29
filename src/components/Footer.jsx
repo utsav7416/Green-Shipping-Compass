@@ -93,11 +93,7 @@ function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-orange-800 pt-8">
-          <p className="text-center text-orange-400">
-            © {new Date().getFullYear()} Green Shipping Compass. All rights reserved.
-          </p>
-        </div>
+        
       </div>
     </footer>
   );
