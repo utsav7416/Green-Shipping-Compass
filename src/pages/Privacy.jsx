@@ -28,7 +28,15 @@ function Privacy() {
           </ul>
         </section>
 
-        
+        <section>
+          <h2 className="text-xl font-semibold text-green-400 mb-3">How We Use Your Information</h2>
+          <ul className="list-disc list-inside space-y-2">
+            <li>To provide accurate shipping cost calculations</li>
+            <li>To improve our services and user experience</li>
+            <li>To analyze usage patterns and optimize our calculator</li>
+            <li>To communicate important updates and changes</li>
+          </ul>
+        </section>
 
         <section>
           <h2 className="text-xl font-semibold text-green-400 mb-3">Data Security</h2>
