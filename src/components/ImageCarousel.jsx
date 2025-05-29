@@ -1,7 +1,8 @@
-
+import Slider from "react-slick";
+import { motion } from "framer-motion";
 
 function ImageCarousel() {
-
+  
   const settings = {
     dots: true,
     infinite: true,
