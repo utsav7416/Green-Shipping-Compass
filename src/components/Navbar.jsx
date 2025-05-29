@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { Transition } from '@headlessui/react';
 
 function Navbar() {
-
+  
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <nav className="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 shadow-lg">
