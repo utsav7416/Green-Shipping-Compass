@@ -68,17 +68,7 @@ function Features() {
       className="bg-gradient-to-b from-green-300 via-sky-100 to-cyan-200 py-20"
     >
       <div className="max-w-7xl mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-14"
-        >
-          <h2 className="text-4xl font-extrabold text-gray-800 mb-4">Why Choose Us</h2>
-          <p className="text-black font-extrabold max-w-2xl mx-auto">
-            Experience the future of shipping with our comprehensive suite of services
-          </p>
-        </motion.div>
+        
 
         <motion.div
           variants={containerVariants}
