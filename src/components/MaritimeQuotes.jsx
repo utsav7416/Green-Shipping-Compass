@@ -1,3 +1,6 @@
+import { motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+
 const quotes = [
   {
     text: "The ocean stirs the heart, inspires the imagination and brings eternal joy to the soul.",
