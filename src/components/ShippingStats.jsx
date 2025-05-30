@@ -4,7 +4,10 @@ import CountUp from "react-countup";
 
 function ShippingStats() {
   
-  
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1
+  });
 
   const stats = [
     {
