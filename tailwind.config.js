@@ -33,6 +33,7 @@ export default {
         }
       },
       backgroundImage: {
+        'gradient-primary': 'linear-gradient(135deg, var(--tw-gradient-stops))',
       },
     },
   },
