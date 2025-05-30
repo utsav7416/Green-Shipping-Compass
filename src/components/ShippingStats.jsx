@@ -1,12 +1,10 @@
 import { useInView } from "react-intersection-observer";
 import { motion } from "framer-motion";
+import CountUp from "react-countup";
 
 function ShippingStats() {
   
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1
-  });
+  
 
   const stats = [
     {
