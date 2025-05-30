@@ -1,4 +1,13 @@
 export const ports = {
+  'Shanghai, China': { lat: 31.2304, lon: 121.4737 },
+  'Singapore': { lat: 1.3521, lon: 103.8198 },
+  'Ningbo-Zhoushan, China': { lat: 29.8683, lon: 121.5440 },
+  'Rotterdam, Netherlands': { lat: 51.9225, lon: 4.4792 },
+  'Guangzhou Harbor, China': { lat: 23.1066, lon: 113.2487 },
+  'Qingdao, China': { lat: 36.0671, lon: 120.3826 },
+  'Busan, South Korea': { lat: 35.1796, lon: 129.0756 },
+  'Hong Kong, China': { lat: 22.3193, lon: 114.1694 },
+  'Tianjin, China': { lat: 39.0842, lon: 117.2009 },
   'Dubai, UAE': { lat: 25.2048, lon: 55.2708 },
   'Los Angeles, USA': { lat: 33.7395, lon: -118.2597 },
   'Hamburg, Germany': { lat: 53.5511, lon: 9.9937 },
