@@ -73,7 +73,9 @@ def predict():
            'totalCost': round(final_price, 2),
            'costs': costs
        })
+   
    except Exception as e:
+       
        print(f"Prediction error: {e}", exc_info=True)
        return jsonify({'error': f"An internal server error occurred: {str(e)}"}), 500
 
