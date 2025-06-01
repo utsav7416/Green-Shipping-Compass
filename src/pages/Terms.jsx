@@ -5,7 +5,9 @@ function Terms() {
         <h1 className="text-4xl font-extrabold text-green-600 mb-2 tracking-tight">
           📜 Terms of Service
         </h1>
-        
+        <p className="text-black font-extrabold max-w-2xl mx-auto text-base">
+          Please review the following terms carefully before using Green Shipping Compass.
+        </p>
       </div>
 
       <div className="bg-gradient-to-br from-green-900 via-slate-900 to-black rounded-2xl shadow-xl p-10 grid grid-cols-1 md:grid-cols-2 gap-10 text-gray-100 backdrop-blur-sm border border-white/10">
