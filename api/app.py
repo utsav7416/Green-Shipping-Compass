@@ -12,6 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 CARGO_TYPES = ['normal', 'fragile', 'perishable', 'hazardous']
+
 CARGO_MULTIPLIERS = {
     'normal': 1.0,
     'fragile': 1.15,
@@ -51,11 +52,13 @@ def train_model():
     joblib.dump(model, 'models/shipping_model.joblib')
     joblib.dump(scaler, 'models/scaler.joblib')
 
+
 train_model()
 model = joblib.load('models/shipping_model.joblib')
 scaler = joblib.load('models/scaler.joblib')
 
 @app.route('/predict', methods=['POST'])
+
 def predict():
     try:
         data = request.get_json()
@@ -75,10 +78,14 @@ def predict():
             'premium': 2.2,
             'eco': 0.85
         }
+
         method = data.get('method', 'standard').lower()
+
         if method not in method_multipliers:
             return jsonify({'error': f"Invalid method. Allowed methods: {list(method_multipliers.keys())}"}), 400
+        
         final_price = base_price * method_multipliers[method]
+        
         costs = {
             'Base Container Cost': round(final_price * 0.3, 2),
             'Distance Cost': round(final_price * 0.25, 2),
