@@ -32,7 +32,7 @@ const cargoTypes = {
   normal: { name: 'Normal', surcharge: 0, icon: '📦', description: 'Standard cargo with no special handling requirements' },
   fragile: { name: 'Fragile', surcharge: 0.15, icon: '🥚', description: 'Requires careful handling and specialized packaging' },
   perishable: { name: 'Perishable', surcharge: 0.25, icon: '🍎', description: 'Temperature-controlled environment for food and organic goods' },
-  hazardous: { name: 'Hazardous', surcharge: 0.4, icon: '⚠️', description: 'Special permits and handling for dangerous materials' }
+  hazardous: { surcharge: 0.4, icon: '⚠️', description: 'Special permits and handling for dangerous materials' }
 };
 
 function Calculator() {
@@ -60,8 +60,8 @@ function Calculator() {
     const dLat = lat2 - lat1;
     const dLon = lon2 - lon1;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1) * Math.cos(lat2) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
+             Math.cos(lat1) * Math.cos(lat2) *
+             Math.sin(dLon/2) * Math.sin(dLon/2);
     
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return Math.round(R * c);
@@ -75,7 +75,7 @@ function Calculator() {
       const distance = calculateDistance(origin, destination);
       const totalWeight = weight * quantity;
   
-      const response = await axios.post('http://localhost:5000/predict', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/predict`, {
         distance: distance,
         weight: totalWeight,
         containerSize: containerSizeMap[containerType],
