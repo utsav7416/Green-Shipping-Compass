@@ -75,7 +75,7 @@ function Calculator() {
       const distance = calculateDistance(origin, destination);
       const totalWeight = weight * quantity;
   
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/predict`, {
+      const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/predict`, {
         distance: distance,
         weight: totalWeight,
         containerSize: containerSizeMap[containerType],
