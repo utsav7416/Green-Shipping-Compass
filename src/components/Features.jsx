@@ -43,7 +43,7 @@ const featuresData = [
     title: "Cost Optimization, Max Value",
     description: "ML-powered pricing for competitive shipping rates, ensuring efficiency and cost-effectiveness.",
     accent: "from-blue-400 to-cyan-500",
-    image: "https://media.istockphoto.com/id/525122989/photo/skyline-of-hong-kong-island-at-night.jpg?s=612x612&w=0&k=20&c=xc_cME_fr3SHbn3Hlpc9bzr4opunBMcLbbSw-9Kjjd0="
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrIdq1a9xM3D-vA2uIS-NmgON3-Hu9n6zhXQ&s"
   },
   {
     icon: "⚡",
