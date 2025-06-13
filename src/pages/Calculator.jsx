@@ -125,6 +125,23 @@ function Calculator() {
     visible: { opacity: 1, y: 0 }
   };
 
+  const portImages = [
+    'https://images.unsplash.com/photo-1549490218-c9183491f24f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://images.unsplash.com/photo-1616788295627-72433e50668b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://images.unsplash.com/photo-1627914092776-e88383a8b27f?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://images.unsplash.com/photo-1579737107706-e7e899b80302?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDBwYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  ];
+
+  const [currentPortImageIndex, setCurrentPortImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentPortImageIndex((prevIndex) => (prevIndex + 1) % portImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+
   return (
     <div className="w-full bg-gradient-to-br from-blue-300 via-green-200 to-amber-200">
       <ImageCarousel />
@@ -161,34 +178,41 @@ function Calculator() {
           className="bg-amber-100 p-8 rounded-xl shadow-2xl mb-8 border border-amber-200"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-50 to-amber-50 p-8 rounded-xl shadow-lg border border-green-100">
-              <h2 className="text-3xl font-bold text-primary-700 mb-6 flex items-center">
-                <span className="mr-3 text-4xl">🌍</span> Global Port Selection
-              </h2>
-              <div className="space-y-7">
-                <div>
-                  <label className="block text-lg font-bold text-gray-800 mb-3">Origin Port</label>
-                  <select
-                    value={origin}
-                    onChange={(e) => setOrigin(e.target.value)}
-                    className="block w-full px-4 py-3 text-lg border-green-400 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 rounded-xl shadow-sm bg-white text-gray-900"
-                  >
-                    {Object.keys(ports).map(port => (
-                      <option key={port} value={port}>{port}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-lg font-bold text-gray-800 mb-3">Destination Port</label>
-                  <select
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    className="block w-full px-4 py-3 text-lg border-green-400 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 rounded-xl shadow-sm bg-white text-gray-900"
-                  >
-                    {Object.keys(ports).map(port => (
-                      <option key={port} value={port}>{port}</option>
-                    ))}
-                  </select>
+            <motion.div variants={containerAnimation} className="relative bg-gradient-to-br from-green-50 to-amber-50 p-8 rounded-xl shadow-lg border border-green-100 overflow-hidden">
+              <img
+                src={portImages[currentPortImageIndex]}
+                alt="Port Background"
+                className="absolute inset-0 w-full h-full object-cover opacity-30"
+              />
+              <div className="relative z-10">
+                <h2 className="text-3xl font-bold text-primary-700 mb-6 flex items-center">
+                  <span className="mr-3 text-4xl">🌍</span> Global Port Selection
+                </h2>
+                <div className="space-y-7">
+                  <div>
+                    <label className="block text-lg font-bold text-gray-800 mb-3">Origin Port</label>
+                    <select
+                      value={origin}
+                      onChange={(e) => setOrigin(e.target.value)}
+                      className="block w-full px-4 py-3 text-lg border-green-400 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 rounded-xl shadow-sm bg-white text-gray-900"
+                    >
+                      {Object.keys(ports).map(port => (
+                        <option key={port} value={port}>{port}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-lg font-bold text-gray-800 mb-3">Destination Port</label>
+                    <select
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      className="block w-full px-4 py-3 text-lg border-green-400 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 rounded-xl shadow-sm bg-white text-gray-900"
+                    >
+                      {Object.keys(ports).map(port => (
+                        <option key={port} value={port}>{port}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -211,13 +235,13 @@ function Calculator() {
                           containerType === type
                             ? 'bg-blue-200 border-blue-600 shadow-xl text-blue-900'
                             : 'bg-white border-gray-200 hover:bg-amber-100 hover:border-primary-400 text-gray-800'
-                        } flex flex-col items-center justify-center`}
+                        } flex flex-col items-center justify-start`}
                       >
                         <div className="text-4xl mb-2">{details.icon}</div>
                         <div className="font-extrabold text-xl mb-1">{type}</div>
                         <div className="text-lg font-medium text-gray-700 mb-2">{details.capacity}m³</div>
-                        <p className="text-sm text-gray-600 leading-tight">{details.description}</p>
-                        <ul className="text-xs text-gray-500 list-disc list-inside mt-2">
+                        <p className="text-sm text-gray-600 leading-tight flex-grow">{details.description}</p>
+                        <ul className="text-xs text-gray-500 list-disc list-inside mt-2 text-left w-full">
                           {details.features.map((feature, index) => (
                             <li key={index}>{feature}</li>
                           ))}
@@ -341,7 +365,7 @@ function Calculator() {
             {loading ? (
               <div className="flex items-center text-primary-700">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-4 border-primary-700 mr-4"></div>
-                <span>Calculating Your Eco-Friendly Shipping Cost...</span>
+                <span>Calculating quote, hold on...</span>
               </div>
             ) : (
               <motion.span
@@ -351,7 +375,7 @@ function Calculator() {
                 transition={{ duration: 0.6, type: "spring", damping: 10, stiffness: 100 }}
                 className="text-primary-800"
               >
-                Estimated Total Cost: <span className="text-green-700">${totalCost.toFixed(2)}</span>
+                {method === 'eco' ? 'Estimated Eco-Friendly Cost:' : 'Estimated Total Cost:'} <span className="text-green-700">${totalCost.toFixed(2)}</span>
               </motion.span>
             )}
           </h2>
