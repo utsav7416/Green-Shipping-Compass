@@ -24,30 +24,30 @@ const containerSizeMap = {
 };
 
 const containerTypes = {
-  '20ft': { 
-    capacity: 33.2, 
-    base_cost: 1500, 
-    icon: '📦', 
+  '20ft': {
+    capacity: 33.2,
+    base_cost: 1500,
+    icon: '📦',
     features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'],
     description: 'Perfect for smaller shipments and general cargo. The 20ft container is the most economical choice for businesses starting their international trade journey.',
     dimensions: '20′ × 8′ × 8′6″',
     maxWeight: '28,230 kg',
     advantages: ['Lower shipping costs', 'Easier to handle', 'Widely available', 'Perfect for LCL shipments']
   },
-  '40ft': { 
-    capacity: 67.6, 
-    base_cost: 2800, 
-    icon: '🚛', 
+  '40ft': {
+    capacity: 67.6,
+    base_cost: 2800,
+    icon: '🚛',
     features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'],
     description: 'The industry standard for most international shipments. Offers excellent value for money with double the capacity of a 20ft container.',
     dimensions: '40′ × 8′ × 8′6″',
     maxWeight: '30,480 kg',
     advantages: ['Best value per cubic meter', 'Industry standard', 'Suitable for most cargo types', 'Efficient loading']
   },
-  '40ft-hc': { 
-    capacity: 76.3, 
-    base_cost: 3200, 
-    icon: '🏭', 
+  '40ft-hc': {
+    capacity: 76.3,
+    base_cost: 3200,
+    icon: '🏭',
     features: ['Extra height', 'Maximum space', 'Specialized cargo'],
     description: 'High cube container with an extra foot of height, perfect for lightweight but voluminous cargo and specialized equipment.',
     dimensions: '40′ × 8′ × 9′6″',
@@ -60,7 +60,7 @@ const cargoTypes = {
   normal: { name: 'Normal', surcharge: 0, icon: '📦', description: 'Standard cargo with no special handling requirements' },
   fragile: { name: 'Fragile', surcharge: 0.15, icon: '🥚', description: 'Requires careful handling and specialized packaging' },
   perishable: { name: 'Perishable', surcharge: 0.25, icon: '🍎', description: 'Temperature-controlled environment for food and organic goods' },
-  hazardous: { surcharge: 0.4, icon: '⚠️', description: 'Special permits and handling for dangerous materials' }
+  hazardous: { name: 'Hazardous', surcharge: 0.4, icon: '⚠️', description: 'Special permits and handling for dangerous materials' }
 };
 
 function Calculator() {
@@ -88,9 +88,9 @@ function Calculator() {
     const dLat = lat2 - lat1;
     const dLon = lon2 - lon1;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-             Math.cos(lat1) * Math.cos(lat2) *
-             Math.sin(dLon/2) * Math.sin(dLon/2);
-    
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return Math.round(R * c);
   };
@@ -99,22 +99,22 @@ function Calculator() {
     try {
       setLoading(true);
       setError(null);
-  
+
       const distance = calculateDistance(origin, destination);
       const totalWeight = weight * quantity;
-  
+
       const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/predict`, {
         distance: distance,
         weight: totalWeight,
         containerSize: containerSizeMap[containerType],
         method: method,
-        cargoType: cargoType  
+        cargoType: cargoType
       });
-  
+
       const baseCosts = response.data.costs;
       const baseTotalCost = response.data.totalCost;
       const surcharge = cargoTypes[cargoType.toLowerCase()].surcharge;
-  
+
       if (surcharge > 0) {
         baseCosts['Cargo Type Surcharge'] = baseTotalCost * surcharge;
         const adjustedTotalCost = baseTotalCost * (1 + surcharge);
@@ -124,7 +124,7 @@ function Calculator() {
         setCosts(baseCosts);
         setTotalCost(baseTotalCost);
       }
-  
+
     } catch (err) {
       setError('Failed to calculate shipping cost. Please try again.');
       console.error('API Error:', err);
@@ -132,16 +132,14 @@ function Calculator() {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchPricing();
   }, [origin, destination, weight, quantity, method, containerType, cargoType]);
-  
-  
+
 
   const distance = calculateDistance(origin, destination);
   const totalWeight = weight * quantity;
-  const co2Emissions = (distance * totalWeight * 0.0395) / 1000;
 
   const progressData = [
     { name: 'Origin Port', cost: costs['Base Container Cost'] || 0, label: 'Departure' },
@@ -160,7 +158,7 @@ function Calculator() {
     <div className="w-full bg-gradient-to-br from-blue-300 via-green-200 to-amber-200">
       <ImageCarousel />
       <ShippingStats />
-      
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -251,7 +249,7 @@ function Calculator() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-lg font-black text-gray-700 mb-4">Cargo Type</label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -276,7 +274,7 @@ function Calculator() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-lg font-black text-gray-700 mb-2">
                     Weight per Item: {weight} kg
@@ -327,14 +325,14 @@ function Calculator() {
             <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center">
               <span className="mr-2">📋</span> Selected Container Information
             </h2>
-            <div className="bg-gradient-to-br from-blue-50 to-green-50 p-6 rounded-lg border-2 border-blue-200 shadow-lg">
+            <div className="bg-gradient-to-br from-orange-50 to-blue-50 p-6 rounded-lg border-2 border-blue-200 shadow-lg">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-2xl font-black text-primary-600 mb-4 flex items-center">
                     {containerTypes[containerType].icon} {containerType} Container
                   </h3>
                   <p className="text-gray-700 font-bold mb-4">{containerTypes[containerType].description}</p>
-                  
+
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-2 bg-white rounded-lg">
                       <span className="font-black text-primary-600">Dimensions:</span>
@@ -350,7 +348,7 @@ function Calculator() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="text-xl font-black text-primary-600 mb-4">Key Advantages</h4>
                   <div className="space-y-2">
@@ -367,7 +365,7 @@ function Calculator() {
                       </motion.div>
                     ))}
                   </div>
-                  
+
                   <div className="mt-4 p-4 bg-amber-100 rounded-lg border-l-4 border-amber-500">
                     <h5 className="font-black text-amber-700 mb-2">Pro Tip:</h5>
                     <p className="text-amber-700 font-bold text-sm">
@@ -415,7 +413,7 @@ function Calculator() {
           className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
         >
           <h2 className="text-4xl font-black text-primary-600 mb-8 flex items-center justify-center">
-            <span className="mr-2">💰</span> 
+            <span className="mr-2">💰</span>
             {loading ? (
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mr-3"></div>
@@ -433,12 +431,14 @@ function Calculator() {
               </motion.span>
             )}
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🛣️</span> Route Details
               </h3>
+              {/* Image 1: San Francisco Skyline */}
+              <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg mb-4 object-cover h-40 w-full" />
               <div className="space-y-3 text-md">
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
                   <span className="text-primary-600 font-black">From:</span>
@@ -458,11 +458,13 @@ function Calculator() {
                 </div>
               </div>
             </motion.div>
-            
+
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">📊</span> Shipping Details
               </h3>
+              {/* Image 2: Singapore Cityscape */}
+              <img src="https://media.istockphoto.com/id/1939500219/photo/singapore-cityscape-at-night-twilight-drone-flight-panorama.jpg?s=612x612&w=0&k=20&c=WzBoQ0MoFPfwXVjICcjSGJHUOWlCvARaDIbhBK7hBig=" alt="Singapore Cityscape" className="rounded-lg mb-4 object-cover h-40 w-full" />
               <div className="space-y-3 text-md">
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
                   <span className="text-primary-600 font-black">Method:</span>
@@ -482,7 +484,7 @@ function Calculator() {
                 </div>
               </div>
             </motion.div>
-            
+
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🌱</span> Environmental Impact
