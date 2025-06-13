@@ -26,54 +26,155 @@ function MaritimeQuotes() {
   });
 
   return (
-    <div
-      ref={ref}
-      className="bg-gradient-to-b from-green-300 via-sky-100 to-cyan-200 py-20"
-    >
-      <div className="max-w-7xl mx-auto px-4 text-center mb-16">
-        <motion.h2
-          initial={{ opacity: 0, y: -20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1 }}
-          className="text-3xl md:text-4xl font-semibold text-gray-800"
-        >
-          Voices of the Sea 🌊
-        </motion.h2>
-        <p className="text-md font-bold text-black mt-3 max-w-xl mx-auto">
-          Let these maritime words drift through your thoughts like a calming tide.
-        </p>
+    <div className="relative bg-gradient-to-b from-green-300 via-sky-100 to-cyan-200 py-24 overflow-hidden">
+      <div className="absolute inset-0">
+        <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+          <motion.path
+            d="M0,300 Q250,200 500,300 T1000,300 L1000,0 L0,0 Z"
+            fill="rgba(255,255,255,0.1)"
+            initial={{ pathLength: 0 }}
+            animate={inView ? { pathLength: 1 } : {}}
+            transition={{ duration: 2, ease: "easeInOut" }}
+          />
+          <motion.path
+            d="M0,400 Q250,350 500,400 T1000,400 L1000,1000 L0,1000 Z"
+            fill="rgba(255,255,255,0.05)"
+            initial={{ pathLength: 0 }}
+            animate={inView ? { pathLength: 1 } : {}}
+            transition={{ duration: 2.5, ease: "easeInOut", delay: 0.3 }}
+          />
+        </svg>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
-        transition={{ duration: 1 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-10 px-4"
-      >
-        {quotes.map((quote, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 40 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: index * 0.2 }}
-            className="relative p-8 rounded-2xl shadow-lg bg-gradient-to-br from-blue-100 to-blue-200 border border-gray-200 hover:shadow-xl transition-shadow duration-300"
-          >
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-300 to-orange-400 rounded-t-2xl" />
+      <div className="relative max-w-6xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-center mb-20"
+        >
+          <div className="inline-block">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+              Voices of the Sea
+              <motion.span
+                className="inline-block ml-3 text-5xl"
+                animate={{
+                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                🌊
+              </motion.span>
+            </h2>
+            <motion.div
+              className="h-1 bg-gradient-to-r from-transparent via-sky-400 to-transparent rounded-full"
+              initial={{ width: 0 }}
+              animate={inView ? { width: "300px" } : {}}
+              transition={{ duration: 1.5, delay: 0.5 }}
+            />
+          </div>
+          <p className="text-md font-bold text-black mt-6 max-w-xl mx-auto leading-relaxed">
+            Let these maritime words drift through your thoughts like a calming tide.
+          </p>
+        </motion.div>
 
-            <div className="mb-6">
-              <img
-                src={quote.image}
-                alt={`Image for ${quote.author}`}
-                className="mx-auto rounded-xl border border-gray-300 shadow-md w-32 h-32 object-cover"
-              />
-            </div>
+        <div ref={ref} className="space-y-24">
+          {quotes.map((quote, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
+              animate={inView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 1, delay: index * 0.4, ease: "easeOut" }}
+              className={`flex items-center gap-12 ${
+                index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
+              } ${index === 1 ? 'md:px-16' : ''}`}
+            >
+              <motion.div
+                className="flex-shrink-0"
+                whileHover={{ scale: 1.05, rotate: index % 2 === 0 ? 2 : -2 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/30 to-blue-500/30 rounded-full blur-xl scale-110" />
+                  <img
+                    src={quote.image}
+                    alt={`${quote.author}`}
+                    className="relative w-36 h-36 md:w-48 md:h-48 rounded-full object-cover border-4 border-white/50 shadow-2xl"
+                  />
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border-2 border-white shadow-lg" />
+                </div>
+              </motion.div>
 
-            <div className="text-5xl text-amber-400 mb-6 leading-none">“</div>
-            <p className="text-lg text-gray-800 mb-6 italic leading-relaxed">{quote.text}</p>
-            <p className="text-sm text-gray-700 font-semibold text-right">— {quote.author}</p>
-          </motion.div>
-        ))}
-      </motion.div>
+              <div className="flex-1 relative">
+                <motion.div
+                  className="absolute -top-8 -left-4 text-8xl text-sky-300/40 font-serif"
+                  initial={{ scale: 0, rotate: -20 }}
+                  animate={inView ? { scale: 1, rotate: 0 } : {}}
+                  transition={{ duration: 0.6, delay: index * 0.4 + 0.3 }}
+                >
+                  "
+                </motion.div>
+                
+                <div className="relative bg-white/30 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/40 shadow-xl">
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent rounded-3xl" />
+                  
+                  <motion.p
+                    className="relative text-lg md:text-xl text-gray-800 leading-relaxed mb-8 font-medium"
+                    initial={{ opacity: 0 }}
+                    animate={inView ? { opacity: 1 } : {}}
+                    transition={{ duration: 1, delay: index * 0.4 + 0.6 }}
+                  >
+                    {quote.text}
+                  </motion.p>
+                  
+                  <motion.div
+                    className={`relative flex items-center ${
+                      index % 2 === 0 ? 'justify-end' : 'justify-start'
+                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={inView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.8, delay: index * 0.4 + 0.8 }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-px bg-gradient-to-r from-sky-400 to-teal-500" />
+                      <span className="text-gray-700 font-semibold text-sm md:text-base">
+                        {quote.author}
+                      </span>
+                    </div>
+                  </motion.div>
+                </div>
+
+                <motion.div
+                  className="absolute -bottom-4 -right-4 text-6xl text-sky-300/40 font-serif"
+                  initial={{ scale: 0, rotate: 20 }}
+                  animate={inView ? { scale: 1, rotate: 0 } : {}}
+                  transition={{ duration: 0.6, delay: index * 0.4 + 0.9 }}
+                >
+                  "
+                </motion.div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div
+          className="mt-20 text-center"
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 2 }}
+        >
+          <div className="inline-flex items-center space-x-2 text-gray-600 text-sm">
+            <div className="w-2 h-2 bg-sky-400 rounded-full animate-pulse" />
+            <span>Maritime wisdom spanning centuries</span>
+            <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
