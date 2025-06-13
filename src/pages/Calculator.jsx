@@ -219,6 +219,11 @@ function Calculator() {
                     ))}
                   </select>
                 </div>
+                <div className="flex flex-col space-y-4 pt-4">
+                  <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                  <img src="https://media.istockphoto.com/id/1939500219/photo/singapore-cityscape-at-night-twilight-drone-flight-panorama.jpg?s=612x612&w=0&k=20&c=WzBoQ0MoFPfwXVjICcjSGJHUOWlCvARaDIbhBK7hBig=" alt="Singapore Cityscape" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrCvLvcDShNz2179ooFCEjiqF_ZefMHkiwCA&s" alt="Shipping Container" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                </div>
               </div>
             </motion.div>
 
@@ -325,7 +330,7 @@ function Calculator() {
             <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center">
               <span className="mr-2">📋</span> Selected Container Information
             </h2>
-            <div className="bg-gradient-to-br from-orange-50 to-blue-50 p-6 rounded-lg border-2 border-blue-200 shadow-lg">
+            <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-lg border-2 border-blue-200 shadow-lg">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-2xl font-black text-primary-600 mb-4 flex items-center">
@@ -437,8 +442,6 @@ function Calculator() {
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🛣️</span> Route Details
               </h3>
-              {/* Image 1: San Francisco Skyline */}
-              <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg mb-4 object-cover h-40 w-full" />
               <div className="space-y-3 text-md">
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
                   <span className="text-primary-600 font-black">From:</span>
@@ -463,8 +466,6 @@ function Calculator() {
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">📊</span> Shipping Details
               </h3>
-              {/* Image 2: Singapore Cityscape */}
-              <img src="https://media.istockphoto.com/id/1939500219/photo/singapore-cityscape-at-night-twilight-drone-flight-panorama.jpg?s=612x612&w=0&k=20&c=WzBoQ0MoFPfwXVjICcjSGJHUOWlCvARaDIbhBK7hBig=" alt="Singapore Cityscape" className="rounded-lg mb-4 object-cover h-40 w-full" />
               <div className="space-y-3 text-md">
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
                   <span className="text-primary-600 font-black">Method:</span>
@@ -549,9 +550,9 @@ function Calculator() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
+                    <XAxis dataKey="name" stroke="#6b7280" tickLine={false} axisLine={false} />
+                    <YAxis stroke="#6b7280" tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
                     <Legend />
                     <Area
                       type="monotone"
@@ -560,6 +561,7 @@ function Calculator() {
                       stroke="#22c55e"
                       fillOpacity={1}
                       fill="url(#costGradient)"
+                      activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
