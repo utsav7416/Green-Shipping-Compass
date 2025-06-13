@@ -23,16 +23,16 @@ const containerSizeMap = {
 };
 
 const containerTypes = {
-  '20ft': { capacity: 33.2, base_cost: 1500, icon: '📦', description: 'A standard 20-foot container, perfect for smaller shipments and general cargo. It offers a good balance of capacity and cost-efficiency.', features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'] },
-  '40ft': { capacity: 67.6, base_cost: 2800, icon: '🚛', description: 'A versatile 40-foot container, offering double the capacity of a 20ft unit. Suited for larger volumes of goods and bulk items, providing better value per cubic meter.', features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'] },
-  '40ft-hc': { capacity: 76.3, base_cost: 3200, icon: '🏭', description: 'The 40-foot high cube container provides extra height, maximizing vertical space. It\'s ideal for oversized or specialized cargo that requires additional clearance.', features: ['Extra height', 'Maximum space', 'Specialized cargo'] },
+  '20ft': { capacity: 33.2, base_cost: 1500, icon: '📦', description: 'A standard 20-foot container, perfect for smaller shipments and general cargo.', features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'] },
+  '40ft': { capacity: 67.6, base_cost: 2800, icon: '🚛', description: 'A versatile 40-foot container, offering double the capacity of a 20ft unit.', features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'] },
+  '40ft-hc': { capacity: 76.3, base_cost: 3200, icon: '🏭', description: 'The 40-foot high cube container provides extra height, maximizing vertical space.', features: ['Extra height', 'Maximum space', 'Specialized cargo'] },
 };
 
 const cargoTypes = {
   normal: { name: 'Normal', surcharge: 0, icon: '📦', description: 'Standard cargo with no special handling requirements' },
   fragile: { name: 'Fragile', surcharge: 0.15, icon: '🥚', description: 'Requires careful handling and specialized packaging' },
   perishable: { name: 'Perishable', surcharge: 0.25, icon: '🍎', description: 'Temperature-controlled environment for food and organic goods' },
-  hazardous: { surcharge: 0.4, icon: '⚠️', description: 'Special permits and handling for dangerous materials' }
+  hazardous: { name: 'Hazardous', surcharge: 0.4, icon: '⚠️', description: 'Special permits and handling for dangerous materials' }
 };
 
 function Calculator() {
@@ -67,10 +67,10 @@ function Calculator() {
   };
 
   const fetchPricing = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
+    try {
       const distance = calculateDistance(origin, destination);
       const totalWeight = weight * quantity;
 
@@ -126,10 +126,12 @@ function Calculator() {
   };
 
   const portImages = [
-    'https://images.unsplash.com/photo-1549490218-c9183491f24f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1616788295627-72433e50668b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1627914092776-e88383a8b27f?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1579737107706-e7e899b80302?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDBwYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://media.istockphoto.com/id/497181811/photo/puerto-madero.jpg?s=612x612&w=0&k=20&c=QLfY5-Bp9q0YSlA1QpRaQLBCyteDEm4zflZRS5dWKQ4=',
+    'https://media.istockphoto.com/id/1466443199/photo/miami-florida.jpg?s=612x612&w=0&k=20&c=_K9m08XBBOrOWh4wI6qlIfPyZjsHkGgXKqTUdxbAg_g=',
+    'https://media.istockphoto.com/id/1283626786/photo/container-ship-sailing-in-ocean-at-sunset-logistic-import-export.jpg?s=612x612&w=0&k=20&c=X7dGj1zH2Xl-L0f074_0Z_uW2u-zX1d8n-S0-B4pQ4o=',
+    'https://media.istockphoto.com/id/1179679199/photo/cargo-ship-leaving-port-at-sunrise-container-ship-in-import-export-port-and-shipping-of.jpg?s=612x612&w=0&k=20&c=qY6H5W7a6Q7W0Q7yJ6F6Z6W6G6Q6Y6V6O6S6X6G6W6U=',
+    'https://media.istockphoto.com/id/1089938804/photo/industrial-port-at-dusk.jpg?s=612x612&w=0&k=20&c=9w0P9y4L6W6_3Y3X0W0P9H5G5V3M2S1V7C8C7V6F0O=',
+    'https://media.istockphoto.com/id/1138814578/photo/container-ship-at-port-in-the-morning.jpg?s=612x612&w=0&k=20&c=S_8j6W6G3F7J8Y7Y3W8E9O0P1Q7E9W0Y5L0J2Q7X0P='
   ];
 
   const [currentPortImageIndex, setCurrentPortImageIndex] = useState(0);
@@ -139,11 +141,11 @@ function Calculator() {
       setCurrentPortImageIndex((prevIndex) => (prevIndex + 1) % portImages.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [portImages.length]);
 
 
   return (
-    <div className="w-full bg-gradient-to-br from-blue-300 via-green-200 to-amber-200">
+    <div className="w-full bg-gradient-to-br from-blue-100 via-green-50 to-amber-50">
       <ImageCarousel />
       <ShippingStats />
 
@@ -240,12 +242,14 @@ function Calculator() {
                         <div className="text-4xl mb-2">{details.icon}</div>
                         <div className="font-extrabold text-xl mb-1">{type}</div>
                         <div className="text-lg font-medium text-gray-700 mb-2">{details.capacity}m³</div>
-                        <p className="text-sm text-gray-600 leading-tight flex-grow">{details.description}</p>
-                        <ul className="text-xs text-gray-500 list-disc list-inside mt-2 text-left w-full">
-                          {details.features.map((feature, index) => (
-                            <li key={index}>{feature}</li>
-                          ))}
-                        </ul>
+                        <div className="flex-grow flex flex-col justify-between">
+                          <p className="text-sm text-gray-600 leading-tight mb-2">{details.description}</p>
+                          <ul className="text-xs text-gray-500 list-disc list-inside text-left w-full">
+                            {details.features.map((feature, index) => (
+                              <li key={index}>{feature}</li>
+                            ))}
+                          </ul>
+                        </div>
                       </motion.button>
                     ))}
                   </div>
@@ -365,7 +369,7 @@ function Calculator() {
             {loading ? (
               <div className="flex items-center text-primary-700">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-4 border-primary-700 mr-4"></div>
-                <span>Calculating quote, hold on...</span>
+                <span>{method === 'eco' ? 'Calculating your eco-friendly shipping cost...' : 'Calculating quote, hold on...'}</span>
               </div>
             ) : (
               <motion.span
