@@ -73,10 +73,10 @@ const conversionRates = {
 };
 
 function Calculator() {
-
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
-  const [origin, setOrigin] = useState('Dubai, UAE');
-  const [destination, setDestination] = useState('Singapore');
+  // Initialize state from localStorage or default values
+  const [origin, setOrigin] = useState(() => localStorage.getItem('selectedOrigin') || 'Dubai, UAE');
+  const [destination, setDestination] = useState(() => localStorage.getItem('selectedDestination') || 'Singapore');
   const [weight, setWeight] = useState(200);
   const [quantity, setQuantity] = useState(1);
   const [method, setMethod] = useState('standard');
@@ -88,6 +88,15 @@ function Calculator() {
   const [error, setError] = useState(null);
   const [currency, setCurrency] = useState('USD');
   const [carbonFootprint, setCarbonFootprint] = useState(0);
+
+  // Persist origin and destination to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('selectedOrigin', origin);
+  }, [origin]);
+
+  useEffect(() => {
+    localStorage.setItem('selectedDestination', destination);
+  }, [destination]);
 
   const calculateDistance = (origin, destination) => {
     const R = 6371;
@@ -151,7 +160,6 @@ function Calculator() {
   useEffect(() => {
     fetchPricing();
   }, [origin, destination, weight, quantity, method, containerType, cargoType]);
-
 
   const distance = calculateDistance(origin, destination);
   const totalWeight = weight * quantity;
@@ -480,7 +488,6 @@ function Calculator() {
             </div>
           </div>
 
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
               <h3 className="font-black text-xl mb-4 flex items-center">
@@ -567,22 +574,23 @@ function Calculator() {
                   <span className="font-bold text-blue-700">{carbonFootprint.toFixed(2)} kg CO2e</span>
                 </div>
 
-
                 {method !== 'eco' && (
-                  <div className="mt-4">
+                  <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+                    <p className="text-sm font-semibold text-green-800 mb-3">
+                      💡 Make an impact! Choose Eco-friendly shipping to significantly reduce your carbon footprint.
+                    </p>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setMethod('eco')}
-                      className="w-full py-2 bg-green-1000 text-black font-black rounded-lg hover:bg-green-600 transition-colors"
+                      className="w-full py-3 bg-green-700 text-white font-black rounded-lg hover:bg-green-600 transition-colors shadow-md text-lg"
                     >
-                      Switch to Eco-Friendly
+                      🌱 Switch to Eco-Friendly Now!
                     </motion.button>
                   </div>
                 )}
               </div>
             </motion.div>
-
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
