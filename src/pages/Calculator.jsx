@@ -19,16 +19,12 @@ const shippingMethods = {
 };
 
 const containerSizeMap = {
-  '20ft': 20,
-  '40ft': 40,
-  '40ft-hc': 45
+  '20ft': 20, '40ft': 40, '40ft-hc': 45
 };
 
 const containerTypes = {
   '20ft': {
-    capacity: 33.2,
-    base_cost: 1500,
-    icon: '📦',
+    capacity: 33.2, base_cost: 1500, icon: '📦',
     features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'],
     description: 'Perfect for smaller shipments and general cargo. The 20ft container is the most economical choice for businesses starting their international trade journey.',
     dimensions: '20′ × 8′ × 8′6″',
@@ -36,9 +32,7 @@ const containerTypes = {
     advantages: ['Lower shipping costs', 'Easier to handle', 'Widely available', 'Perfect for LCL shipments']
   },
   '40ft': {
-    capacity: 67.6,
-    base_cost: 2800,
-    icon: '🚛',
+    capacity: 67.6, base_cost: 2800, icon: '🚛',
     features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'],
     description: 'The industry standard for most international shipments. Offers excellent value for money with double the capacity of a 20ft container.',
     dimensions: '40′ × 8′ × 8′6″',
@@ -46,9 +40,7 @@ const containerTypes = {
     advantages: ['Best value per cubic meter', 'Industry standard', 'Suitable for most cargo types', 'Efficient loading']
   },
   '40ft-hc': {
-    capacity: 76.3,
-    base_cost: 3200,
-    icon: '🏭',
+    capacity: 76.3, base_cost: 3200, icon: '🏭',
     features: ['Extra height', 'Maximum space', 'Specialized cargo'],
     description: 'High cube container with an extra foot of height, perfect for lightweight but voluminous cargo and specialized equipment.',
     dimensions: '40′ × 8′ × 9′6″',
@@ -438,25 +430,15 @@ function Calculator() {
                 <div>
                   <label className="block text-lg font-black text-gray-700 mb-2">Select Quantity</label>
                   <div className="flex items-center space-x-4">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold"
-                    >
-                      -
-                    </button>
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">-</button>
                     <input
                       type="number"
                       min="1"
                       value={quantity === 0 ? '' : quantity}
                       onChange={handleQuantityChange}
-                      className="block w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg"
+                      className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg"
                     />
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold"
-                    >
-                      +
-                    </button>
+                    <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">+</button>
                   </div>
                 </div>
               </div>
@@ -640,21 +622,14 @@ function Calculator() {
               </div>
             </motion.div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
-                <h3 className="font-black text-xl mb-4 flex items-center text-center">
-                  <span className="mr-2">♻️</span> Container Optimization
-                </h3>
-                <p className="text-gray-700 font-bold mb-4 text-center">
-                  Visualize and optimize container space with our conceptual color-coded heat maps.
-                  Efficient loading reduces emissions and costs!
-                </p>
-                <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
-                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+Load+Error"; }}
-                    alt="Container Optimization"
-                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
-                />
-            </motion.div>
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center overflow-hidden">
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
+              onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/000000/FFFFFF?text=Image+Load+Error"; }}
+              alt="Image"
+              className="object-cover w-full h-full"
+            />
+          </motion.div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
@@ -665,23 +640,15 @@ function Calculator() {
               <div className="space-y-3">
                 <div className="flex items-center mb-2">
                   <span className="text-primary-600 mr-2 font-black">Eco Rating:</span>
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <motion.span
-                        key={i}
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={`text-xl ${
-                          i < currentEcoRating
-                            ? 'text-green-500'
-                            : 'text-gray-300'
-                        }`}
-                      >
-                        ★
-                      </motion.span>
-                    ))}
-                  </div>
+                  {[...Array(5)].map((_, i) => (
+                    <motion.span
+                      key={i}
+                      initial={{opacity:0,scale:0}}
+                      animate={{opacity:1,scale:1}}
+                      transition={{delay:i*0.1}}
+                      className={`text-xl ${i<currentEcoRating?'text-green-500':'text-gray-300'}`}
+                    >★</motion.span>
+                  ))}
                 </div>
 
                 <div className="flex items-start justify-between p-3 bg-green-100 rounded-lg border border-green-200">
@@ -736,7 +703,7 @@ function Calculator() {
               </h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={progressData}>
+                  <AreaChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                     <defs>
                       <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
@@ -744,19 +711,35 @@ function Calculator() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                    <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: "Progression Stage", position: "insideBottom", offset: 0, fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                    <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
-                    <Legend />
-                    <Area
-                      type="monotone"
-                      dataKey="cost"
-                      name={`Cumulative Cost (${currentSymbol})`}
-                      stroke="#22c55e"
-                      fillOpacity={1}
-                      fill="url(#costGradient)"
-                      activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
+
+                    <XAxis
+                      dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
+                      interval={0} angle={-30} textAnchor="end" height={60}
                     />
+                    <YAxis
+                      stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
+                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }}
+                    />
+
+                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
+                    <Legend
+                      wrapperStyle={{ paddingTop: '60px' }}
+                      content={({ payload }) => (
+                        <div style={{ textAlign: 'center' }}>
+                          <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 'bold', color: '#333' }}>Progression Stage</p>
+                          <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+                            {payload.map((entry, index) => (
+                              <li key={`item-${index}`} style={{ display: 'inline-block', marginRight: '10px', color: entry.color }}>
+                                <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: entry.color, marginRight: '5px', borderRadius: '50%' }}></span>
+                                {entry.value}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    />
+                   <Area type="monotone" dataKey="cost" name={`Cumulative Cost (${currentSymbol})`} stroke="#22c55e" fillOpacity={1} fill="url(#costGradient)" activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -792,33 +775,15 @@ function Calculator() {
           </div>
 
           <div className="text-center mt-8">
-            <PDFDownloadLink
-              document={<QuotePdfDocument quoteData={{
-                origin,
-                destination,
-                containerType,
-                totalWeight,
-                method,
-                carbonFootprint,
-                costs: convertedCosts,
-                totalCost: convertedTotalCost,
-                currentSymbol,
-                shippingMethods,
-              }} />}
-              fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0, 10)}.pdf`}
-            >
-              {({ blob, url, loading, error }) => (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg"
-                  disabled={loading}
-                >
-                  {loading ? 'Generating PDF...' : 'Download PDF Quote'}
-                </motion.button>
-              )}
-            </PDFDownloadLink>
-          </div>
+          <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
+            {({loading})=>(
+              <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
+                {loading?'Generating PDF...':'Download PDF Quote'}
+              </motion.button>
+            )}
+          </PDFDownloadLink>
+        </div>
+
         </motion.div>
       </div>
 
