@@ -45,9 +45,9 @@ const pdfStyles = StyleSheet.create({
   page: { flexDirection: 'column', backgroundColor: '#f8fafc', padding: 30, fontFamily: 'Helvetica' },
   header: { marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cbd5e1', paddingBottom: 10 },
   title: { fontSize: 24, textAlign: 'center', color: '#16a34a', fontWeight: 'bold' },
-  section: { marginBottom: 20, padding: 15, backgroundColor: '#ffffff', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  heading: { fontSize: 18, marginBottom: 15, fontWeight: 'bold', color: '#16a34a', borderBottomWidth: 1, borderBottomColor: '#d1d5db', paddingBottom: 8 },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }, // Increased marginBottom
+  section: { marginBottom: 20, padding: 10, backgroundColor: '#ffffff', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  heading: { fontSize: 18, marginBottom: 10, fontWeight: 'bold', color: '#16a34a', borderBottomWidth: 1, borderBottomColor: '#d1d5db', paddingBottom: 5 },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
   detailLabel: { fontSize: 12, color: '#4b5563', fontWeight: 'bold' },
   detailValue: { fontSize: 12, color: '#1f2937' },
   totalCostRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#d1d5db' },
@@ -218,8 +218,10 @@ function Calculator() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }} className="text-center mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-8"
         >
           <h1 className="text-5xl font-black text-primary-600 mb-4">Green Shipping Compass</h1>
           <p className="text-black text-xl font-bold">Calculate eco-friendly shipping costs with real-time container and route optimization.</p>
@@ -236,8 +238,13 @@ function Calculator() {
           </motion.div>
         )}
 
-        <motion.div ref={ref} initial="hidden" animate={inView ? "visible" : "hidden"}
-          variants={containerAnimation} transition={{ duration: 0.5 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
+        <motion.div
+          ref={ref}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          variants={containerAnimation}
+          transition={{ duration: 0.5 }}
+          className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg">
@@ -287,8 +294,13 @@ function Calculator() {
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(containerTypes).map(([type, details]) => (
                       <SelectButton
-                        key={type} value={type} currentValue={containerType} onClick={setContainerType}
-                        icon={details.icon} mainLabel={type} subLabel={`${details.capacity}m³`}
+                        key={type}
+                        value={type}
+                        currentValue={containerType}
+                        onClick={setContainerType}
+                        icon={details.icon}
+                        mainLabel={type}
+                        subLabel={`${details.capacity}m³`}
                       />
                     ))}
                   </div>
@@ -299,8 +311,13 @@ function Calculator() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(cargoTypes).map(([type, details]) => (
                       <SelectButton
-                        key={type} value={type} currentValue={cargoType} onClick={setCargoType}
-                        icon={details.icon} mainLabel={details.name} hasSurcharge={details.surcharge}
+                        key={type}
+                        value={type}
+                        currentValue={cargoType}
+                        onClick={setCargoType}
+                        icon={details.icon}
+                        mainLabel={details.name}
+                        hasSurcharge={details.surcharge}
                       />
                     ))}
                   </div>
@@ -431,8 +448,10 @@ function Calculator() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
         >
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-black text-primary-600 flex items-center">
@@ -444,8 +463,11 @@ function Calculator() {
                 </div>
               ) : (
                 <motion.span
-                  key={convertedTotalCost} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }} className="font-black"
+                  key={convertedTotalCost}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="font-black"
                 >
                   Estimated Cost: {currentSymbol}{convertedTotalCost.toFixed(2)}
                 </motion.span>
@@ -537,10 +559,18 @@ function Calculator() {
                   <span className="text-primary-600 mr-2 font-black">Eco Rating:</span>
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <motion.span key={i} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} 
-                      transition={{ delay: i * 0.1 }} 
-                      className={`text-xl ${i < currentEcoRating ? 'text-green-500' : 'text-gray-300'}`}>
-                          ★
+                      <motion.span
+                        key={i}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`text-xl ${
+                          i < currentEcoRating
+                            ? 'text-green-500'
+                            : 'text-gray-300'
+                        }`}
+                      >
+                        ★
                       </motion.span>
                     ))}
                   </div>
@@ -563,7 +593,9 @@ function Calculator() {
                       💡 Make an impact! Choose Eco-friendly shipping to significantly reduce your carbon footprint.
                     </p>
                     <motion.button
-                      whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod('eco')}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setMethod('eco')}
                       className="w-full py-3 bg-green-700 text-white font-black rounded-lg hover:bg-green-600 transition-colors shadow-md text-lg"
                     >
                       🌱 Switch to Eco-Friendly Now!
@@ -574,18 +606,18 @@ function Calculator() {
             </motion.div>
 
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
-              <img
-                src="https://www.freightnews.co.za/sites/default/files/styles/article-large/public/images/article/202409/4greenshipping.png?itok=QK4nCT9N"
-                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/320x220/000000/FFFFFF?text=Image"; }}
-                alt="Image"
-                className="rounded-lg object-cover w-full max-w-[280px] h-auto shadow-md"
-              />
-              <img
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
-                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/320x220/000000/FFFFFF?text=Image"; }}
-                alt="Image"
-                className="rounded-lg object-cover w-full max-w-[280px] h-auto shadow-md"
-              />
+                <img
+                    src="https://www.freightnews.co.za/sites/default/files/styles/article-large/public/images/article/202409/4greenshipping.png?itok=QK4nCT9N"
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+1+Load+Error"; }}
+                    alt="Green Shipping Image 1"
+                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
+                />
+                <img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+2+Load+Error"; }}
+                    alt="Green Shipping Image 2"
+                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
+                />
             </motion.div>
           </div>
 
@@ -596,7 +628,7 @@ function Calculator() {
               </h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
+                  <AreaChart data={progressData}>
                     <defs>
                       <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
@@ -604,37 +636,18 @@ function Calculator() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-
-                    <XAxis
-                      dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
-                      interval={0} angle={-30} textAnchor="end" height={60}
-                    />
-                    <YAxis
-                      stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
-                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }}
-                    />
-
-                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`}
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
-                    <Legend
-                      wrapperStyle={{ paddingTop: '40px' }}
-                      content={({ payload }) => (
-                        <div style={{ textAlign: 'center' }}>
-                          <p style={{ margin: '0 0 5px', fontSize: '12px', fontWeight: 'bold', color: '#333' }}>Progression Stage</p>
-                          <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
-                            {payload.map((entry, index) => (
-                              <li key={`item-${index}`} style={{ display: 'inline-block', marginRight: '10px', color: entry.color }}>
-                                <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: entry.color, marginRight: '5px', borderRadius: '50%' }}></span>
-                                {entry.value}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    />
+                    <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: "Progression Stage", position: "insideBottom", offset: 0, fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                    <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
+                    <Legend />
                     <Area
-                      type="monotone" dataKey="cost" name={`Cumulative Cost (${currentSymbol})`} stroke="#22c55e"
-                      fillOpacity={1} fill="url(#costGradient)" activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
+                      type="monotone"
+                      dataKey="cost"
+                      name={`Cumulative Cost (${currentSymbol})`}
+                      stroke="#22c55e"
+                      fillOpacity={1}
+                      fill="url(#costGradient)"
+                      activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -648,7 +661,10 @@ function Calculator() {
               <div className="space-y-4">
                 {Object.entries(convertedCosts).map(([key, value], index) => (
                   <motion.div
-                    key={key} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }}
+                    key={key}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
                     className="flex justify-between items-center p-3 bg-gradient-to-r from-green-100 to-amber-100 rounded-lg hover:shadow-md"
                   >
                     <span className="font-black">{key}</span>
@@ -656,7 +672,8 @@ function Calculator() {
                   </motion.div>
                 ))}
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className="flex justify-between items-center p-4 bg-blue-100 rounded-lg font-black text-xl"
                 >
                   <span>Total Cost</span>
@@ -676,10 +693,12 @@ function Calculator() {
             >
               {({ loading }) => (
                 <motion.button
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg"
+                  disabled={loading}
                 >
-                  {loading ? 'Generating PDF...' : 'Download PDF of Quote'}
+                  {loading ? 'Generating PDF...' : 'Download PDF Quote'}
                 </motion.button>
               )}
             </PDFDownloadLink>
