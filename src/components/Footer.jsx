@@ -39,6 +39,9 @@ function Footer() {
                 <Link to="/about" className="text-orange-300 hover:text-green-500">About Us</Link>
               </li>
               <li>
+                <Link to="/faq" className="text-orange-300 hover:text-green-500">FAQs</Link>
+              </li>
+              <li>
                 <Link to="/privacy" className="text-orange-300 hover:text-green-500">Privacy Policy</Link>
               </li>
               <li>
