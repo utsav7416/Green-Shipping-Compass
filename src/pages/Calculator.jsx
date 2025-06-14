@@ -522,21 +522,14 @@ function Calculator() {
               </div>
             </motion.div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
-                <h3 className="font-black text-xl mb-4 flex items-center text-center">
-                  <span className="mr-2">♻️</span> Container Optimization
-                </h3>
-                <p className="text-gray-700 font-bold mb-4 text-center">
-                  Visualize and optimize container space with our conceptual color-coded heat maps.
-                  Efficient loading reduces emissions and costs!
-                </p>
-                <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
-                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+Load+Error"; }}
-                    alt="Container Optimization"
-                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
-                />
-            </motion.div>
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center overflow-hidden">
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
+              onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/000000/FFFFFF?text=Image+Load+Error"; }}
+              alt="Image"
+              className="object-cover w-full h-full"
+            />
+          </motion.div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
@@ -586,18 +579,18 @@ function Calculator() {
             </motion.div>
 
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
-                <img
-                    src="https://www.freightnews.co.za/sites/default/files/styles/article-large/public/images/article/202409/4greenshipping.png?itok=QK4nCT9N"
-                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+1+Load+Error"; }}
-                    alt="Green Shipping Image 1"
-                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
-                />
-                <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
-                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+2+Load+Error"; }}
-                    alt="Green Shipping Image 2"
-                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
-                />
+              <img
+                src="https://www.freightnews.co.za/sites/default/files/styles/article-large/public/images/article/202409/4greenshipping.png?itok=QK4nCT9N"
+                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/320x220/000000/FFFFFF?text=Image"; }}
+                alt="Image"
+                className="rounded-lg object-cover w-full max-w-[280px] h-auto shadow-md"
+              />
+              <img
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
+                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/320x220/000000/FFFFFF?text=Image"; }}
+                alt="Image"
+                className="rounded-lg object-cover w-full max-w-[280px] h-auto shadow-md"
+              />
             </motion.div>
           </div>
 
@@ -615,10 +608,17 @@ function Calculator() {
                         <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                    <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: "Progression Stage", position: "insideBottom", offset: 0, fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                    <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />  
+
+                    <XAxis
+                      dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
+                      label={{ value: "Progression Stage", position: "insideBottom", offset: 15, fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                    <YAxis
+                      stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
+                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                    
+                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} 
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
                     <Legend />
                     <Area
                       type="monotone"
@@ -673,12 +673,10 @@ function Calculator() {
             >
               {({ loading }) => (
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg"
-                  disabled={loading}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}
                 >
-                  {loading ? 'Generating PDF...' : 'Download PDF Quote'}
+                  {loading ? 'Generating PDF...' : 'Download PDF of Quote'}
                 </motion.button>
               )}
             </PDFDownloadLink>
