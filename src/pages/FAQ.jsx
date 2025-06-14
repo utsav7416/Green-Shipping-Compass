@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, ChevronDown, ChevronUp, Clock, FileText, Globe, Truck } from 'lucide-react';
 
 function FAQ() {
+    
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedItems, setExpandedItems] = useState({});
 
