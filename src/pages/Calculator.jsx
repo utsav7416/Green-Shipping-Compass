@@ -608,18 +608,21 @@ function Calculator() {
                         <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />  
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
 
                     <XAxis
                       dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
-                      label={{ value: "Progression Stage", position: "insideBottom", offset: 15, fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                      interval={0} angle={-30} textAnchor="end" height={60}
+                      label={{ value: "Progression Stage", position: "insideBottom", offset: 40, fill: '#333', fontSize: 12, fontWeight: 'bold' }}
+                    />
                     <YAxis
                       stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
-                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                    
-                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} 
+                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }}
+                    />
+
+                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`}
                     contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
-                    <Legend />
+                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
                     <Area
                       type="monotone"
                       dataKey="cost"

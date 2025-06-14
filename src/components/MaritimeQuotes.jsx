@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-
 import { useInView } from "react-intersection-observer";
 
 const quotes = [
@@ -21,166 +20,76 @@ const quotes = [
 ];
 
 function MaritimeQuotes() {
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1
-  });
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
 
   return (
-    <div className="relative bg-gradient-to-b from-green-300 via-sky-100 to-cyan-200 py-16 overflow-hidden">
+    <div className="relative bg-gradient-to-b from-green-300 via-sky-100 to-cyan-200 py-12 overflow-hidden">
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-cyan-300/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-sky-200/15 rounded-full blur-2xl" />
+        <div className="absolute top-1/4 left-1/3 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/4 w-64 h-64 bg-cyan-300/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/4 w-52 h-52 bg-sky-200/15 rounded-full blur-2xl" />
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={inView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
-        >
-          <motion.div
-            initial={{ rotateX: -90 }}
-            animate={inView ? { rotateX: 0 } : {}}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="inline-block"
-          >
-            <h2 className="text-4xl md:text-5xl font-semibold text-gray-800 mb-4">
+      <div className="relative max-w-5xl mx-auto px-4">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={inView ? { opacity: 1, scale: 1 } : {}} transition={{ duration: 0.8 }} className="text-center mb-8">
+          <motion.div initial={{ rotateX: -90 }} animate={inView ? { rotateX: 0 } : {}} transition={{ duration: 1, delay: 0.3 }} className="inline-block">
+            <h2 className="text-3xl md:text-4xl font-semibold text-gray-800 mb-2">
               Voices of the Sea 🌊
             </h2>
           </motion.div>
-          <p className="text-md font-bold text-black max-w-xl mx-auto">
+          <p className="text-sm font-bold text-black max-w-md mx-auto">
             Let these maritime words drift through your thoughts like a calming tide.
           </p>
         </motion.div>
 
-        <div ref={ref} className="space-y-20">
+        <div ref={ref} className="space-y-12">
           {quotes.map((quote, index) => (
             <motion.div
               key={index}
-              initial={{ 
-                opacity: 0, 
-                x: index % 2 === 0 ? -100 : 100,
-                rotateY: index % 2 === 0 ? -15 : 15 
-              }}
-              animate={inView ? { 
-                opacity: 1, 
-                x: 0,
-                rotateY: 0 
-              } : {}}
-              transition={{ 
-                duration: 1.2, 
-                delay: index * 0.4,
-                ease: [0.25, 0.46, 0.45, 0.94]
-              }}
-              className={`flex items-center gap-12 ${
-                index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
-              } max-w-5xl mx-auto`}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -80 : 80, rotateY: index % 2 === 0 ? -10 : 10 }}
+              animate={inView ? { opacity: 1, x: 0, rotateY: 0 } : {}}
+              transition={{ duration: 1, delay: index * 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className={`flex items-center gap-8 ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'} max-w-4xl mx-auto`}
             >
-              <motion.div
-                whileHover={{ scale: 1.05, rotateZ: 2 }}
-                transition={{ duration: 0.3 }}
-                className="relative flex-shrink-0"
-              >
-                <div className="absolute -inset-4 bg-gradient-to-br from-white/30 to-transparent rounded-3xl blur-xl" />
-                <div className="relative w-40 h-40 md:w-48 md:h-48">
-                  <img
-                    src={quote.image}
-                    alt={`${quote.author}`}
-                    className="w-full h-full object-cover rounded-2xl shadow-2xl"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10 rounded-2xl" />
-                  <motion.div
-                    animate={{ 
-                      scale: [1, 1.02, 1],
-                      opacity: [0.3, 0.6, 0.3]
-                    }}
-                    transition={{ 
-                      duration: 4, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    className="absolute -inset-2 bg-gradient-to-br from-cyan-300/30 to-blue-400/30 rounded-3xl blur-lg"
-                  />
+              <motion.div whileHover={{ scale: 1.03, rotateZ: 1 }} transition={{ duration: 0.3 }} className="relative flex-shrink-0">
+                <div className="absolute -inset-3 bg-gradient-to-br from-white/30 to-transparent rounded-2xl blur-xl" />
+                <div className="relative w-32 h-32 md:w-40 md:h-40">
+                  <img src={quote.image} alt={`${quote.author}`} className="w-full h-full object-cover rounded-xl shadow-xl" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10 rounded-xl" />
+                  <motion.div animate={{ scale: [1, 1.01, 1], opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="absolute -inset-1.5 bg-gradient-to-br from-cyan-300/30 to-blue-400/30 rounded-2xl blur-md" />
                 </div>
               </motion.div>
 
-              <div className="flex-1 space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={inView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.8, delay: index * 0.4 + 0.3 }}
-                  className="relative"
-                >
-                  <div className="absolute -left-6 -top-4 text-8xl text-white/20 font-serif select-none">"</div>
-                  <blockquote className="text-xl md:text-2xl text-gray-800 font-medium leading-relaxed italic relative z-10 pl-8">
+              <div className="flex-1 space-y-4">
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: index * 0.3 + 0.2 }} className="relative">
+                  <div className="absolute -left-4 -top-2 text-6xl text-white/20 font-serif select-none">"</div>
+                  <blockquote className="text-lg md:text-xl text-gray-800 font-medium leading-relaxed italic relative z-10 pl-6">
                     {quote.text}
                   </blockquote>
-                  <div className="absolute -right-4 -bottom-4 text-8xl text-white/20 font-serif select-none rotate-180">"</div>
+                  <div className="absolute -right-2 -bottom-2 text-6xl text-white/20 font-serif select-none rotate-180">"</div>
                 </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-                  animate={inView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.6, delay: index * 0.4 + 0.6 }}
-                  className={`flex items-center gap-4 ${
-                    index % 2 === 0 ? 'justify-start' : 'justify-end'
-                  }`}
-                >
-                  <div className="w-12 h-px bg-gradient-to-r from-transparent to-gray-400" />
-                  <cite className="not-italic text-lg text-gray-700 font-semibold">
+                <motion.div initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.5, delay: index * 0.3 + 0.4 }} className={`flex items-center gap-3 ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+                  <div className="w-10 h-px bg-gradient-to-r from-transparent to-gray-400" />
+                  <cite className="not-italic text-base text-gray-700 font-semibold">
                     {quote.author}
                   </cite>
-                  <div className="w-12 h-px bg-gradient-to-l from-transparent to-gray-400" />
+                  <div className="w-10 h-px bg-gradient-to-l from-transparent to-gray-400" />
                 </motion.div>
 
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={inView ? { scaleX: 1 } : {}}
-                  transition={{ duration: 1, delay: index * 0.4 + 0.8 }}
-                  className={`h-0.5 bg-gradient-to-r from-cyan-300 to-blue-400 rounded-full ${
-                    index % 2 === 0 ? 'origin-left' : 'origin-right'
-                  }`}
-                  style={{ width: '60%' }}
-                />
+                <motion.div initial={{ scaleX: 0 }} animate={inView ? { scaleX: 1 } : {}} transition={{ duration: 0.8, delay: index * 0.3 + 0.6 }} className={`h-0.5 bg-gradient-to-r from-cyan-300 to-blue-400 rounded-full ${index % 2 === 0 ? 'origin-left' : 'origin-right'}`} style={{ width: '50%' }} />
               </div>
             </motion.div>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1, delay: 2 }}
-          className="text-center mt-20"
-        >
-          <div className="inline-flex items-center space-x-3 bg-white/20 backdrop-blur-sm rounded-full px-8 py-4 border border-white/30">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="text-2xl"
-            >
-              ⚓
-            </motion.div>
-            <span className="text-gray-800 font-medium">
+        <motion.div initial={{ opacity: 0, y: 40 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.9, delay: 1.5 }} className="text-center mt-16">
+          <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} className="text-xl">⚓</motion.div>
+            <span className="text-gray-800 font-medium text-sm">
               Wisdom from the depths of maritime history
             </span>
-            <motion.div
-              animate={{ 
-                y: [0, -5, 0],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ 
-                duration: 3, 
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="text-2xl"
-            >
-              🌊
-            </motion.div>
+            <motion.div animate={{ y: [0, -3, 0], rotate: [0, 3, -3, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }} className="text-xl">🌊</motion.div>
           </div>
         </motion.div>
       </div>
