@@ -72,28 +72,6 @@ function FAQ() {
         {
           question: 'What additional costs should I expect?',
           answer: 'Additional costs may include: Terminal handling charges, Customs brokerage fees, Duty and taxes, Storage/demurrage fees, Inspection fees, Late documentation penalties, Currency adjustment factors, Security surcharges, Peak season premiums.'
-        },
-        {
-          question: 'How can I reduce shipping costs?',
-          answer: 'Cost reduction strategies: Consolidate shipments to achieve better rates, Choose slower transit options, Optimize packaging to reduce volume, Book during off-peak seasons, Negotiate annual contracts for regular shipments, Use FCL instead of LCL when volume justifies, Compare multiple carriers and routes.'
-        }
-      ]
-    },
-    {
-      category: 'Container Types',
-      icon: <Truck className="w-5 h-5" />,
-      items: [
-        {
-          question: 'What container types are available?',
-          answer: 'Common container types: 20ft Standard (33 CBM), 40ft Standard (67 CBM), 40ft High Cube (76 CBM), 20ft/40ft Refrigerated (Reefer), Open Top containers, Flat Rack containers, Tank containers for liquids. Choose based on cargo type, volume, and special requirements.'
-        },
-        {
-          question: 'When should I use FCL vs LCL?',
-          answer: 'Use FCL (Full Container Load) when: You have enough cargo to fill most of a container, Need faster transit times, Shipping fragile/valuable goods, Want better control over handling. Use LCL (Less than Container Load) when: Cargo volume is small, Cost is primary concern, Flexible on timing.'
-        },
-        {
-          question: 'What are container weight limits?',
-          answer: 'Standard weight limits: 20ft container: Max gross weight 24,000 kg (payload ~21,600 kg), 40ft container: Max gross weight 30,480 kg (payload ~26,680 kg). Actual limits may vary by shipping line and route. Always verify weight restrictions with your carrier and consider road weight limits in origin/destination countries.'
         }
       ]
     }
