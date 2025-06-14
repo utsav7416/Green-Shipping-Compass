@@ -9,6 +9,7 @@ import MaritimeQuotes from '../components/MaritimeQuotes';
 import ShippingStats from '../components/ShippingStats';
 import Features from '../components/Features';
 import axios from 'axios';
+import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
 const shippingMethods = {
   standard: { name: 'Standard', days: '20-25 days', rate: 1, icon: '🚢', description: 'Reliable and cost-effective shipping solution', carbonMultiplier: 1.0, ecoRating: 3 },
@@ -197,6 +198,130 @@ function Calculator() {
 
   const currentEcoRating = shippingMethods[method].ecoRating;
 
+  const handleQuantityChange = (e) => {
+    const value = e.target.value;
+    if (value === '' || value === '0') {
+      setQuantity(0);
+    } else {
+      setQuantity(parseInt(value, 10));
+    }
+  };
+
+  const QuotePdfDocument = ({ quoteData }) => (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Green Shipping Compass - Shipping Quote</Text>
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.heading}>Quote Details</Text>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Date:</Text>
+            <Text style={styles.detailValue}>{new Date().toLocaleDateString()}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Origin:</Text>
+            <Text style={styles.detailValue}>{quoteData.origin}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Destination:</Text>
+            <Text style={styles.detailValue}>{quoteData.destination}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Container Type:</Text>
+            <Text style={styles.detailValue}>{quoteData.containerType}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Total Weight:</Text>
+            <Text style={styles.detailValue}>{quoteData.totalWeight} kg</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Shipping Method:</Text>
+            <Text style={styles.detailValue}>{shippingMethods[quoteData.method].name}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Estimated Delivery:</Text>
+            <Text style={styles.detailValue}>{shippingMethods[quoteData.method].days}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Carbon Footprint:</Text>
+            <Text style={styles.detailValue}>{quoteData.carbonFootprint.toFixed(2)} kg CO2e</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.heading}>Cost Breakdown</Text>
+          {Object.entries(quoteData.costs).map(([key, value]) => (
+            <View key={key} style={styles.detailRow}>
+              <Text style={styles.detailLabel}>{key}:</Text>
+              <Text style={styles.detailValue}>{quoteData.currentSymbol}{value.toFixed(2)}</Text>
+            </View>
+          ))}
+          <View style={styles.totalCostRow}>
+            <Text style={styles.totalCostLabel}>Total Estimated Cost:</Text>
+            <Text style={styles.totalCostValue}>{quoteData.currentSymbol}{quoteData.totalCost.toFixed(2)}</Text>
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Green Shipping Compass | Committed to sustainable logistics.
+          </Text>
+          <Text style={styles.footerText}>
+            Contact: info@greenshippingcompass.com | Website: www.greenshippingcompass.com
+          </Text>
+        </View>
+      </Page>
+    </Document>
+  );
+
+  const styles = StyleSheet.create({
+    page: {
+      flexDirection: 'column', backgroundColor: '#f8fafc', padding: 30, fontFamily: 'Helvetica',
+    },
+    header: {
+      marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cbd5e1',paddingBottom: 10,
+    },
+    title: {
+      fontSize: 24, textAlign: 'center', color: '#16a34a', fontWeight: 'bold',
+    },
+    section: {
+      marginBottom: 20, padding: 10, backgroundColor: '#ffffff',borderRadius: 8,borderWidth: 1,
+      borderColor: '#e2e8f0',shadowColor: '#000',shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,shadowRadius: 4,elevation: 2,
+    },
+    heading: {
+      fontSize: 18,marginBottom: 10,fontWeight: 'bold',color: '#16a34a',borderBottomWidth: 1,
+      borderBottomColor: '#d1d5db',paddingBottom: 5,
+    },
+    detailRow: {
+      flexDirection: 'row',justifyContent: 'space-between',marginBottom: 5,
+    },
+    detailLabel: {
+      fontSize: 12,color: '#4b5563',fontWeight: 'bold',
+    },
+    detailValue: {
+      fontSize: 12,color: '#1f2937',
+    },
+    totalCostRow: {
+      flexDirection: 'row',justifyContent: 'space-between',marginTop: 10,
+      paddingTop: 10,borderTopWidth: 1,borderTopColor: '#d1d5db',
+    },
+    totalCostLabel: {
+      fontSize: 14,fontWeight: 'bold',color: '#16a34a',
+    },
+    totalCostValue: {
+      fontSize: 14,fontWeight: 'bold',color: '#1f2937',
+    },
+    footer: {
+      position: 'absolute',bottom: 30,left: 30,right: 30,textAlign: 'center',
+      borderTopWidth: 1,borderTopColor: '#cbd5e1',paddingTop: 10,
+    },
+    footerText: {
+      fontSize: 9,color: '#6b7280',marginBottom: 3,
+    },
+  });
+
   return (
     <div className="w-full bg-gradient-to-br from-blue-300 via-green-200 to-amber-200">
       <ImageCarousel />
@@ -342,7 +467,7 @@ function Calculator() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-lg font-black text-gray-700 mb-2">Quantity</label>
+                  <label className="block text-lg font-black text-gray-700 mb-2">Select Quantity</label>
                   <div className="flex items-center space-x-4">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -353,9 +478,9 @@ function Calculator() {
                     <input
                       type="number"
                       min="1"
-                      value={quantity}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
-                      className="block w-20 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg"
+                      value={quantity === 0 ? '' : quantity}
+                      onChange={handleQuantityChange}
+                      className="block w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg"
                     />
                     <button
                       onClick={() => setQuantity(quantity + 1)}
@@ -486,7 +611,7 @@ function Calculator() {
                 id="currency-select"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="block w-full pl-3 pr-10 py-3 text-base font-bold border-blue-300 focus:outline-none focus:ring-blue-100 focus:border-blue-100 rounded-lg shadow-sm bg-blue-50"
+                className="block w-full pl-3 pr-10 py-3 text-base font-bold border-blue-500 focus:outline-none focus:ring-blue-200 focus:border-blue-200 rounded-lg shadow-lg bg-blue-100 text-blue-800"
               >
                 {Object.entries(conversionRates).map(([key, value]) => (
                   <option key={key} value={key}>
@@ -497,8 +622,8 @@ function Calculator() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🛣️</span> Route Details
               </h3>
@@ -522,7 +647,7 @@ function Calculator() {
               </div>
             </motion.div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">📊</span> Shipping Details
               </h3>
@@ -545,9 +670,27 @@ function Calculator() {
                 </div>
               </div>
             </motion.div>
+
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
+              <h3 className="font-black text-xl mb-4 flex items-center">
+                <span className="mr-2">♻️</span> Container Optimization
+              </h3>
+              <p className="text-gray-700 font-bold mb-4">
+                Utilize our color-coded heat maps (conceptual) to visualize unused container volume,
+                helping you optimize space and reduce shipping costs.
+                Efficient loading contributes to lower emissions!
+              </p>
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <img src="https://placehold.co/200x120/a8dadc/1d3557?text=Heat+Map+Placeholder" alt="Heat Map Placeholder" className="rounded-lg shadow-md w-full h-auto object-cover max-w-[200px]" />
+                <p className="text-sm text-gray-600 font-semibold">
+                  (Visual representation of volume utilization)
+                </p>
+              </div>
+            </motion.div>
           </div>
 
-          <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-full mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🌱</span> Environmental Impact
               </h3>
@@ -602,6 +745,22 @@ function Calculator() {
               </div>
             </motion.div>
 
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
+                <img
+                    src="https://www.freightnews.co.za/sites/default/files/styles/article-large/public/images/article/202409/4greenshipping.png?itok=QK4nCT9N"
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+1+Load+Error"; }}
+                    alt="Green Shipping Image 1"
+                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
+                />
+                <img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+2+Load+Error"; }}
+                    alt="Green Shipping Image 2"
+                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
+                />
+            </motion.div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
             <motion.div variants={containerAnimation} className="bg-amber-100 p-6 rounded-lg shadow-md">
               <h3 className="font-black text-xl mb-6 flex items-center">
@@ -616,9 +775,9 @@ function Calculator() {
                         <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" stroke="#6b7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6b7280" tickLine={false} axisLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                    <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: "Progression Stage", position: "insideBottom", offset: 0, fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                    <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
                     <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
                     <Legend />
                     <Area
@@ -662,6 +821,35 @@ function Calculator() {
                 </motion.div>
               </div>
             </motion.div>
+          </div>
+
+          <div className="text-center mt-8">
+            <PDFDownloadLink
+              document={<QuotePdfDocument quoteData={{
+                origin,
+                destination,
+                containerType,
+                totalWeight,
+                method,
+                carbonFootprint,
+                costs: convertedCosts,
+                totalCost: convertedTotalCost,
+                currentSymbol,
+                shippingMethods,
+              }} />}
+              fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0, 10)}.pdf`}
+            >
+              {({ blob, url, loading, error }) => (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg"
+                  disabled={loading}
+                >
+                  {loading ? 'Generating PDF...' : 'Download PDF Quote'}
+                </motion.button>
+              )}
+            </PDFDownloadLink>
           </div>
         </motion.div>
       </div>
