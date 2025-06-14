@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -18,43 +17,12 @@ const shippingMethods = {
   eco: { name: 'Eco-friendly', days: '25-30 days', rate: 0.85, icon: '🌱', description: 'Reduced carbon footprint shipping option', carbonMultiplier: 0.6, ecoRating: 5 },
 };
 
-const containerSizeMap = {
-  '20ft': 20,
-  '40ft': 40,
-  '40ft-hc': 45
-};
+const containerSizeMap = { '20ft': 20, '40ft': 40, '40ft-hc': 45 };
 
 const containerTypes = {
-  '20ft': {
-    capacity: 33.2,
-    base_cost: 1500,
-    icon: '📦',
-    features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'],
-    description: 'Perfect for smaller shipments and general cargo. The 20ft container is the most economical choice for businesses starting their international trade journey.',
-    dimensions: '20′ × 8′ × 8′6″',
-    maxWeight: '28,230 kg',
-    advantages: ['Lower shipping costs', 'Easier to handle', 'Widely available', 'Perfect for LCL shipments']
-  },
-  '40ft': {
-    capacity: 67.6,
-    base_cost: 2800,
-    icon: '🚛',
-    features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'],
-    description: 'The industry standard for most international shipments. Offers excellent value for money with double the capacity of a 20ft container.',
-    dimensions: '40′ × 8′ × 8′6″',
-    maxWeight: '30,480 kg',
-    advantages: ['Best value per cubic meter', 'Industry standard', 'Suitable for most cargo types', 'Efficient loading']
-  },
-  '40ft-hc': {
-    capacity: 76.3,
-    base_cost: 3200,
-    icon: '🏭',
-    features: ['Extra height', 'Maximum space', 'Specialized cargo'],
-    description: 'High cube container with an extra foot of height, perfect for lightweight but voluminous cargo and specialized equipment.',
-    dimensions: '40′ × 8′ × 9′6″',
-    maxWeight: '30,480 kg',
-    advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture & textiles', 'Premium cargo solution']
-  },
+  '20ft': { capacity: 33.2, base_cost: 1500, icon: '📦', description: 'Perfect for smaller shipments and general cargo. The 20ft container is the most economical choice for businesses starting their international trade journey.', dimensions: '20′ × 8′ × 8′6″', maxWeight: '28,230 kg', advantages: ['Lower shipping costs', 'Easier to handle', 'Widely available', 'Perfect for LCL shipments'] },
+  '40ft': { capacity: 67.6, base_cost: 2800, icon: '🚛', description: 'The industry standard for most international shipments. Offers excellent value for money with double the capacity of a 20ft container.', dimensions: '40′ × 8′ × 8′6″', maxWeight: '30,480 kg', advantages: ['Best value per cubic meter', 'Industry standard', 'Suitable for most cargo types', 'Efficient loading'] },
+  '40ft-hc': { capacity: 76.3, base_cost: 3200, icon: '🏭', description: 'High cube container with an extra foot of height, perfect for lightweight but voluminous cargo and specialized equipment.', dimensions: '40′ × 8′ × 9′6″', maxWeight: '30,480 kg', advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture & textiles', 'Premium cargo solution'] },
 };
 
 const cargoTypes = {
@@ -72,6 +40,60 @@ const conversionRates = {
   CNY: { symbol: '¥', name: 'Chinese Yuan', rate: 7.150 },
   GBP: { symbol: '£', name: 'British Pound', rate: 0.790 },
 };
+
+const pdfStyles = StyleSheet.create({
+  page: { flexDirection: 'column', backgroundColor: '#f8fafc', padding: 30, fontFamily: 'Helvetica' },
+  header: { marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cbd5e1', paddingBottom: 10 },
+  title: { fontSize: 24, textAlign: 'center', color: '#16a34a', fontWeight: 'bold' },
+  section: { marginBottom: 20, padding: 15, backgroundColor: '#ffffff', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  heading: { fontSize: 18, marginBottom: 15, fontWeight: 'bold', color: '#16a34a', borderBottomWidth: 1, borderBottomColor: '#d1d5db', paddingBottom: 8 },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }, // Increased marginBottom
+  detailLabel: { fontSize: 12, color: '#4b5563', fontWeight: 'bold' },
+  detailValue: { fontSize: 12, color: '#1f2937' },
+  totalCostRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#d1d5db' },
+  totalCostLabel: { fontSize: 14, fontWeight: 'bold', color: '#16a34a' },
+  totalCostValue: { fontSize: 14, fontWeight: 'bold', color: '#1f2937' },
+  footer: { position: 'absolute', bottom: 30, left: 30, right: 30, textAlign: 'center', borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 10 },
+  footerText: { fontSize: 9, color: '#6b7280', marginBottom: 3 },
+});
+
+const QuotePdfDocument = ({ quoteData }) => (
+  <Document>
+    <Page size="A4" style={pdfStyles.page}>
+      <View style={pdfStyles.header}>
+        <Text style={pdfStyles.title}>Green Shipping Compass - Shipping Quote</Text>
+      </View>
+      <View style={pdfStyles.section}>
+        <Text style={pdfStyles.heading}>Quote Details</Text>
+        <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Date:</Text><Text style={pdfStyles.detailValue}>{new Date().toLocaleDateString()}</Text></View>
+        <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Origin:</Text><Text style={pdfStyles.detailValue}>{quoteData.origin}</Text></View>
+        <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Destination:</Text><Text style={pdfStyles.detailValue}>{quoteData.destination}</Text></View>
+        <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Container Type:</Text><Text style={pdfStyles.detailValue}>{quoteData.containerType}</Text></View>
+        <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Total Weight:</Text><Text style={pdfStyles.detailValue}>{quoteData.totalWeight} kg</Text></View>
+        <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Shipping Method:</Text><Text style={pdfStyles.detailValue}>{quoteData.shippingMethods[quoteData.method].name}</Text></View>
+        <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Estimated Delivery:</Text><Text style={pdfStyles.detailValue}>{quoteData.shippingMethods[quoteData.method].days}</Text></View>
+        <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Carbon Footprint:</Text><Text style={pdfStyles.detailValue}>{quoteData.carbonFootprint.toFixed(2)} kg CO2e</Text></View>
+      </View>
+      <View style={pdfStyles.section}>
+        <Text style={pdfStyles.heading}>Cost Breakdown</Text>
+        {Object.entries(quoteData.costs).map(([key, value]) => (
+          <View key={key} style={pdfStyles.detailRow}>
+            <Text style={pdfStyles.detailLabel}>{key}:</Text>
+            <Text style={pdfStyles.detailValue}>{quoteData.currentSymbol}{value.toFixed(2)}</Text>
+          </View>
+        ))}
+        <View style={pdfStyles.totalCostRow}>
+          <Text style={pdfStyles.totalCostLabel}>Total Estimated Cost:</Text>
+          <Text style={pdfStyles.totalCostValue}>{quoteData.currentSymbol}{quoteData.totalCost.toFixed(2)}</Text>
+        </View>
+      </View>
+      <View style={pdfStyles.footer}>
+        <Text style={pdfStyles.footerText}>Green Shipping Compass | Committed to sustainable logistics.</Text>
+        <Text style={pdfStyles.footerText}>Contact: info@greenshippingcompass.com | Website: www.greenshippingcompass.com</Text>
+      </View>
+    </Page>
+  </Document>
+);
 
 function Calculator() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
@@ -92,35 +114,17 @@ function Calculator() {
   const [currency, setCurrency] = useState('USD');
   const [carbonFootprint, setCarbonFootprint] = useState(0);
 
-  useEffect(() => {
-    localStorage.setItem('selectedOrigin', origin);
-  }, [origin]);
-
-  useEffect(() => {
-    localStorage.setItem('selectedDestination', destination);
-  }, [destination]);
-
-  useEffect(() => {
-    localStorage.setItem('selectedQuantity', quantity.toString());
-  }, [quantity]);
-
-  useEffect(() => {
-    localStorage.setItem('selectedContainerType', containerType);
-  }, [containerType]);
+  useEffect(() => { localStorage.setItem('selectedOrigin', origin); }, [origin]);
+  useEffect(() => { localStorage.setItem('selectedDestination', destination); }, [destination]);
+  useEffect(() => { localStorage.setItem('selectedQuantity', quantity.toString()); }, [quantity]);
+  useEffect(() => { localStorage.setItem('selectedContainerType', containerType); }, [containerType]);
 
   const calculateDistance = (origin, destination) => {
     const R = 6371;
-    const lat1 = ports[origin].lat * Math.PI / 180;
-    const lat2 = ports[destination].lat * Math.PI / 180;
-    const lon1 = ports[origin].lon * Math.PI / 180;
-    const lon2 = ports[destination].lon * Math.PI / 180;
-
-    const dLat = lat2 - lat1;
-    const dLon = lon2 - lon1;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1) * Math.cos(lat2) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
+    const [lat1, lon1] = [ports[origin].lat, ports[origin].lon].map(deg => deg * Math.PI / 180);
+    const [lat2, lon2] = [ports[destination].lat, ports[destination].lon].map(deg => deg * Math.PI / 180);
+    const [dLat, dLon] = [lat2 - lat1, lon2 - lon1];
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   };
@@ -134,11 +138,11 @@ function Calculator() {
       const totalWeight = weight * quantity;
 
       const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/predict`, {
-        distance: distance,
+        distance,
         weight: totalWeight,
         containerSize: containerSizeMap[containerType],
-        method: method,
-        cargoType: cargoType
+        method,
+        cargoType
       });
 
       const baseCosts = response.data.costs;
@@ -147,18 +151,13 @@ function Calculator() {
 
       if (surcharge > 0) {
         baseCosts['Cargo Type Surcharge'] = baseTotalCost * surcharge;
-        const adjustedTotalCost = baseTotalCost * (1 + surcharge);
         setCosts(baseCosts);
-        setTotalCost(adjustedTotalCost);
+        setTotalCost(baseTotalCost * (1 + surcharge));
       } else {
         setCosts(baseCosts);
         setTotalCost(baseTotalCost);
       }
-
-      const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
-      const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
-      setCarbonFootprint(adjustedCarbon);
-
+      setCarbonFootprint((distance * totalWeight * 0.0001) / containerSizeMap[containerType] * shippingMethods[method].carbonMultiplier);
     } catch (err) {
       setError('Failed to calculate shipping cost. Please try again.');
       console.error('API Error:', err);
@@ -173,14 +172,9 @@ function Calculator() {
 
   const distance = calculateDistance(origin, destination);
   const totalWeight = weight * quantity;
+  const { rate: currentRate, symbol: currentSymbol } = conversionRates[currency];
 
-  const currentRate = conversionRates[currency].rate;
-  const currentSymbol = conversionRates[currency].symbol;
-
-  const convertedCosts = Object.fromEntries(
-    Object.entries(costs).map(([key, value]) => [key, value * currentRate])
-  );
-
+  const convertedCosts = Object.fromEntries(Object.entries(costs).map(([key, value]) => [key, value * currentRate]));
   const convertedTotalCost = totalCost * currentRate;
 
   const progressData = [
@@ -191,136 +185,31 @@ function Calculator() {
     { name: 'Destination', cost: totalCost * currentRate || 0, label: 'Arrival' }
   ];
 
-  const containerAnimation = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
+  const containerAnimation = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
   const currentEcoRating = shippingMethods[method].ecoRating;
 
   const handleQuantityChange = (e) => {
     const value = e.target.value;
-    if (value === '' || value === '0') {
-      setQuantity(0);
-    } else {
-      setQuantity(parseInt(value, 10));
-    }
+    setQuantity(value === '' || value === '0' ? 0 : parseInt(value, 10));
   };
 
-  const QuotePdfDocument = ({ quoteData }) => (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Green Shipping Compass - Shipping Quote</Text>
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.heading}>Quote Details</Text>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Date:</Text>
-            <Text style={styles.detailValue}>{new Date().toLocaleDateString()}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Origin:</Text>
-            <Text style={styles.detailValue}>{quoteData.origin}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Destination:</Text>
-            <Text style={styles.detailValue}>{quoteData.destination}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Container Type:</Text>
-            <Text style={styles.detailValue}>{quoteData.containerType}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Total Weight:</Text>
-            <Text style={styles.detailValue}>{quoteData.totalWeight} kg</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Shipping Method:</Text>
-            <Text style={styles.detailValue}>{shippingMethods[quoteData.method].name}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Estimated Delivery:</Text>
-            <Text style={styles.detailValue}>{shippingMethods[quoteData.method].days}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Carbon Footprint:</Text>
-            <Text style={styles.detailValue}>{quoteData.carbonFootprint.toFixed(2)} kg CO2e</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.heading}>Cost Breakdown</Text>
-          {Object.entries(quoteData.costs).map(([key, value]) => (
-            <View key={key} style={styles.detailRow}>
-              <Text style={styles.detailLabel}>{key}:</Text>
-              <Text style={styles.detailValue}>{quoteData.currentSymbol}{value.toFixed(2)}</Text>
-            </View>
-          ))}
-          <View style={styles.totalCostRow}>
-            <Text style={styles.totalCostLabel}>Total Estimated Cost:</Text>
-            <Text style={styles.totalCostValue}>{quoteData.currentSymbol}{quoteData.totalCost.toFixed(2)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Green Shipping Compass | Committed to sustainable logistics.
-          </Text>
-          <Text style={styles.footerText}>
-            Contact: info@greenshippingcompass.com | Website: www.greenshippingcompass.com
-          </Text>
-        </View>
-      </Page>
-    </Document>
+  const SelectButton = ({ value, currentValue, onClick, icon, mainLabel, subLabel, hasSurcharge }) => (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => onClick(value)}
+      className={`p-4 rounded-lg text-center transition duration-300 ${
+        currentValue === value
+          ? 'bg-blue-100 border-2 border-green-1000 shadow-lg'
+          : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'
+      }`}
+    >
+      <div className="text-2xl mb-2">{icon}</div>
+      <div className="font-black">{mainLabel}</div>
+      {subLabel && <div className="text-sm font-bold text-black">{subLabel}</div>}
+      {hasSurcharge && <div className="text-sm font-bold text-red-500">+{hasSurcharge * 100}% surcharge</div>}
+    </motion.button>
   );
-
-  const styles = StyleSheet.create({
-    page: {
-      flexDirection: 'column', backgroundColor: '#f8fafc', padding: 30, fontFamily: 'Helvetica',
-    },
-    header: {
-      marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cbd5e1',paddingBottom: 10,
-    },
-    title: {
-      fontSize: 24, textAlign: 'center', color: '#16a34a', fontWeight: 'bold',
-    },
-    section: {
-      marginBottom: 20, padding: 10, backgroundColor: '#ffffff',borderRadius: 8,borderWidth: 1,
-      borderColor: '#e2e8f0',shadowColor: '#000',shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,shadowRadius: 4,elevation: 2,
-    },
-    heading: {
-      fontSize: 18,marginBottom: 10,fontWeight: 'bold',color: '#16a34a',borderBottomWidth: 1,
-      borderBottomColor: '#d1d5db',paddingBottom: 5,
-    },
-    detailRow: {
-      flexDirection: 'row',justifyContent: 'space-between',marginBottom: 5,
-    },
-    detailLabel: {
-      fontSize: 12,color: '#4b5563',fontWeight: 'bold',
-    },
-    detailValue: {
-      fontSize: 12,color: '#1f2937',
-    },
-    totalCostRow: {
-      flexDirection: 'row',justifyContent: 'space-between',marginTop: 10,
-      paddingTop: 10,borderTopWidth: 1,borderTopColor: '#d1d5db',
-    },
-    totalCostLabel: {
-      fontSize: 14,fontWeight: 'bold',color: '#16a34a',
-    },
-    totalCostValue: {
-      fontSize: 14,fontWeight: 'bold',color: '#1f2937',
-    },
-    footer: {
-      position: 'absolute',bottom: 30,left: 30,right: 30,textAlign: 'center',
-      borderTopWidth: 1,borderTopColor: '#cbd5e1',paddingTop: 10,
-    },
-    footerText: {
-      fontSize: 9,color: '#6b7280',marginBottom: 3,
-    },
-  });
 
   return (
     <div className="w-full bg-gradient-to-br from-blue-300 via-green-200 to-amber-200">
@@ -329,10 +218,8 @@ function Calculator() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-8"
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }} className="text-center mb-8"
         >
           <h1 className="text-5xl font-black text-primary-600 mb-4">Green Shipping Compass</h1>
           <p className="text-black text-xl font-bold">Calculate eco-friendly shipping costs with real-time container and route optimization.</p>
@@ -349,13 +236,8 @@ function Calculator() {
           </motion.div>
         )}
 
-        <motion.div
-          ref={ref}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={containerAnimation}
-          transition={{ duration: 0.5 }}
-          className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
+        <motion.div ref={ref} initial="hidden" animate={inView ? "visible" : "hidden"}
+          variants={containerAnimation} transition={{ duration: 0.5 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg">
@@ -404,21 +286,10 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Container Type</label>
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(containerTypes).map(([type, details]) => (
-                      <motion.button
-                        key={type}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setContainerType(type)}
-                        className={`p-4 rounded-lg text-center transition duration-300 ${
-                          containerType === type
-                            ? 'bg-blue-100 border-2 border-green-1000 shadow-lg'
-                            : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'
-                        }`}
-                      >
-                        <div className="text-2xl mb-2">{details.icon}</div>
-                        <div className="font-black">{type}</div>
-                        <div className="text-sm font-bold text-black">{details.capacity}m³</div>
-                      </motion.button>
+                      <SelectButton
+                        key={type} value={type} currentValue={containerType} onClick={setContainerType}
+                        icon={details.icon} mainLabel={type} subLabel={`${details.capacity}m³`}
+                      />
                     ))}
                   </div>
                 </div>
@@ -427,23 +298,10 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Cargo Type</label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(cargoTypes).map(([type, details]) => (
-                      <motion.button
-                        key={type}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setCargoType(type)}
-                        className={`p-4 rounded-lg text-center transition duration-300 ${
-                          cargoType === type
-                            ? 'bg-blue-100 border-2 border-green-1000 shadow-lg'
-                            : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'
-                        }`}
-                      >
-                        <div className="text-2xl mb-2">{details.icon}</div>
-                        <div className="font-black">{details.name}</div>
-                        {details.surcharge > 0 && (
-                          <div className="text-sm font-bold text-red-500">+{details.surcharge * 100}% surcharge</div>
-                        )}
-                      </motion.button>
+                      <SelectButton
+                        key={type} value={type} currentValue={cargoType} onClick={setCargoType}
+                        icon={details.icon} mainLabel={details.name} hasSurcharge={details.surcharge}
+                      />
                     ))}
                   </div>
                 </div>
@@ -558,22 +416,15 @@ function Calculator() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {Object.entries(shippingMethods).map(([key, value]) => (
-                <motion.button
+                <SelectButton
                   key={key}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setMethod(key)}
-                  className={`p-6 rounded-lg text-center transition duration-300 ${
-                    method === key
-                      ? 'bg-blue-100 border-2 border-green-1000 shadow-lg transform scale-105'
-                      : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{value.icon}</div>
-                  <div className="font-black text-lg">{value.name}</div>
-                  <div className="text-md font-bold text-black mb-2">{value.days}</div>
-                  <div className="text-sm font-bold text-black">{value.description}</div>
-                </motion.button>
+                  value={key}
+                  currentValue={method}
+                  onClick={setMethod}
+                  icon={value.icon}
+                  mainLabel={value.name}
+                  subLabel={value.days}
+                />
               ))}
             </div>
           </motion.div>
@@ -671,26 +522,25 @@ function Calculator() {
               </div>
             </motion.div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
-              <h3 className="font-black text-xl mb-4 flex items-center">
-                <span className="mr-2">♻️</span> Container Optimization
-              </h3>
-              <p className="text-gray-700 font-bold mb-4">
-                Utilize our color-coded heat maps (conceptual) to visualize unused container volume,
-                helping you optimize space and reduce shipping costs.
-                Efficient loading contributes to lower emissions!
-              </p>
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <img src="https://placehold.co/200x120/a8dadc/1d3557?text=Heat+Map+Placeholder" alt="Heat Map Placeholder" className="rounded-lg shadow-md w-full h-auto object-cover max-w-[200px]" />
-                <p className="text-sm text-gray-600 font-semibold">
-                  (Visual representation of volume utilization)
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
+                <h3 className="font-black text-xl mb-4 flex items-center text-center">
+                  <span className="mr-2">♻️</span> Container Optimization
+                </h3>
+                <p className="text-gray-700 font-bold mb-4 text-center">
+                  Visualize and optimize container space with our conceptual color-coded heat maps.
+                  Efficient loading reduces emissions and costs!
                 </p>
-              </div>
+                <img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+Load+Error"; }}
+                    alt="Container Optimization"
+                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
+                />
             </motion.div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🌱</span> Environmental Impact
               </h3>
@@ -699,18 +549,10 @@ function Calculator() {
                   <span className="text-primary-600 mr-2 font-black">Eco Rating:</span>
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <motion.span
-                        key={i}
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={`text-xl ${
-                          i < currentEcoRating
-                            ? 'text-green-500'
-                            : 'text-gray-300'
-                        }`}
-                      >
-                        ★
+                      <motion.span key={i} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} 
+                      transition={{ delay: i * 0.1 }} 
+                      className={`text-xl ${i < currentEcoRating ? 'text-green-500' : 'text-gray-300'}`}>
+                          ★
                       </motion.span>
                     ))}
                   </div>
@@ -733,9 +575,7 @@ function Calculator() {
                       💡 Make an impact! Choose Eco-friendly shipping to significantly reduce your carbon footprint.
                     </p>
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setMethod('eco')}
+                      whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod('eco')}
                       className="w-full py-3 bg-green-700 text-white font-black rounded-lg hover:bg-green-600 transition-colors shadow-md text-lg"
                     >
                       🌱 Switch to Eco-Friendly Now!
@@ -824,22 +664,14 @@ function Calculator() {
           </div>
 
           <div className="text-center mt-8">
-            <PDFDownloadLink
-              document={<QuotePdfDocument quoteData={{
-                origin,
-                destination,
-                containerType,
-                totalWeight,
-                method,
-                carbonFootprint,
-                costs: convertedCosts,
-                totalCost: convertedTotalCost,
-                currentSymbol,
-                shippingMethods,
+            <PDFDownloadLink document={
+              <QuotePdfDocument quoteData={{
+                origin, destination, containerType, totalWeight, method, carbonFootprint,
+                costs: convertedCosts, totalCost: convertedTotalCost, currentSymbol, shippingMethods,
               }} />}
               fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0, 10)}.pdf`}
             >
-              {({ blob, url, loading, error }) => (
+              {({ loading }) => (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
