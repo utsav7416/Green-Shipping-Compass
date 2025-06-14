@@ -74,7 +74,6 @@ const conversionRates = {
 
 function Calculator() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
-  // Initialize state from localStorage or default values
   const [origin, setOrigin] = useState(() => localStorage.getItem('selectedOrigin') || 'Dubai, UAE');
   const [destination, setDestination] = useState(() => localStorage.getItem('selectedDestination') || 'Singapore');
   const [weight, setWeight] = useState(200);
@@ -89,7 +88,6 @@ function Calculator() {
   const [currency, setCurrency] = useState('USD');
   const [carbonFootprint, setCarbonFootprint] = useState(0);
 
-  // Persist origin and destination to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('selectedOrigin', origin);
   }, [origin]);
@@ -488,8 +486,8 @@ function Calculator() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🛣️</span> Route Details
               </h3>
@@ -513,7 +511,7 @@ function Calculator() {
               </div>
             </motion.div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">📊</span> Shipping Details
               </h3>
@@ -536,8 +534,9 @@ function Calculator() {
                 </div>
               </div>
             </motion.div>
+          </div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
+          <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-full mt-8">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🌱</span> Environmental Impact
               </h3>
@@ -591,9 +590,8 @@ function Calculator() {
                 )}
               </div>
             </motion.div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
             <motion.div variants={containerAnimation} className="bg-amber-100 p-6 rounded-lg shadow-md">
               <h3 className="font-black text-xl mb-6 flex items-center">
                 <span className="mr-2">📈</span> Cost Progression
