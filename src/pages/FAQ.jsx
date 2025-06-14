@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Search, ChevronDown, ChevronUp, Clock, FileText, Globe, Truck } from 'lucide-react';
 
 function FAQ() {
-    
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedItems, setExpandedItems] = useState({});
 
@@ -105,8 +104,7 @@ function FAQ() {
     return faqData.map(category => ({
       ...category,
       items: category.items.filter(item => 
-        item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.answer.toLowerCase().includes(searchTerm.toLowerCase())
+        item.question.toLowerCase().includes(searchTerm.toLowerCase())
       )
     })).filter(category => category.items.length > 0);
   }, [searchTerm]);
@@ -130,7 +128,6 @@ function FAQ() {
         </p>
       </div>
 
-      {/* Search Bar */}
       <div className="mb-8 max-w-2xl mx-auto">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -144,7 +141,6 @@ function FAQ() {
         </div>
       </div>
 
-      {/* FAQ Content */}
       <div className="bg-gradient-to-br from-orange-900 via-zinc-900 to-black rounded-2xl shadow-xl p-10 text-gray-100 backdrop-blur-sm border border-white/10">
         {filteredFAQ.length === 0 ? (
           <div className="text-center py-8">
@@ -202,29 +198,6 @@ function FAQ() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Quick Tips */}
-      <div className="mt-12 bg-green-50 rounded-xl p-6 border border-green-200">
-        <h3 className="text-xl font-semibold text-green-800 mb-4">💡 Quick Tips</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="font-medium text-green-700 mb-1">Documentation</p>
-            <p className="text-green-600">Always prepare documents 2-3 days before shipment departure</p>
-          </div>
-          <div>
-            <p className="font-medium text-green-700 mb-1">Cost Optimization</p>
-            <p className="text-green-600">Book shipments 2-3 weeks in advance for better rates</p>
-          </div>
-          <div>
-            <p className="font-medium text-green-700 mb-1">Transit Times</p>
-            <p className="text-green-600">Add 3-5 days buffer for customs clearance and inland transport</p>
-          </div>
-          <div>
-            <p className="font-medium text-green-700 mb-1">Peak Seasons</p>
-            <p className="text-green-600">Avoid shipping during Chinese New Year and pre-Christmas rush</p>
-          </div>
-        </div>
       </div>
     </div>
   );

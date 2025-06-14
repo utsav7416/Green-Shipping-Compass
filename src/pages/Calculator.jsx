@@ -11,10 +11,10 @@ import Features from '../components/Features';
 import axios from 'axios';
 
 const shippingMethods = {
-  standard: { name: 'Standard', days: '20-25 days', rate: 1, icon: '🚢', description: 'Reliable and cost-effective shipping solution' },
-  express: { name: 'Express', days: '14-16 days', rate: 1.5, icon: '⚡', description: 'Faster delivery for time-sensitive cargo' },
-  premium: { name: 'Premium', days: '7-10 days', rate: 2.2, icon: '✨', description: 'Priority handling and guaranteed delivery' },
-  eco: { name: 'Eco-friendly', days: '25-30 days', rate: 0.85, icon: '🌱', description: 'Reduced carbon footprint shipping option' },
+  standard: { name: 'Standard', days: '20-25 days', rate: 1, icon: '🚢', description: 'Reliable and cost-effective shipping solution', carbonMultiplier: 1.0, ecoRating: 3 },
+  express: { name: 'Express', days: '14-16 days', rate: 1.5, icon: '⚡', description: 'Faster delivery for time-sensitive cargo', carbonMultiplier: 1.8, ecoRating: 1 },
+  premium: { name: 'Premium', days: '7-10 days', rate: 2.2, icon: '✨', description: 'Priority handling and guaranteed delivery', carbonMultiplier: 2.5, ecoRating: 1 },
+  eco: { name: 'Eco-friendly', days: '25-30 days', rate: 0.85, icon: '🌱', description: 'Reduced carbon footprint shipping option', carbonMultiplier: 0.6, ecoRating: 5 },
 };
 
 const containerSizeMap = {
@@ -87,6 +87,7 @@ function Calculator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currency, setCurrency] = useState('USD');
+  const [carbonFootprint, setCarbonFootprint] = useState(0);
 
   const calculateDistance = (origin, destination) => {
     const R = 6371;
@@ -135,6 +136,10 @@ function Calculator() {
         setTotalCost(baseTotalCost);
       }
 
+      const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
+      const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
+      setCarbonFootprint(adjustedCarbon);
+
     } catch (err) {
       setError('Failed to calculate shipping cost. Please try again.');
       console.error('API Error:', err);
@@ -172,6 +177,8 @@ function Calculator() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  const currentEcoRating = shippingMethods[method].ecoRating;
 
   return (
     <div className="w-full bg-gradient-to-br from-blue-300 via-green-200 to-amber-200">
@@ -219,7 +226,7 @@ function Calculator() {
                   <select
                     value={origin}
                     onChange={(e) => setOrigin(e.target.value)}
-                    className="block w-full pl-3 pr-10 py-3 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg shadow-sm"
+                    className="block w-full pl-3 pr-10 py-3 text-base font-bold border-blue-300 focus:outline-none focus:ring-blue-100 focus:border-blue-100 rounded-lg shadow-sm bg-blue-50"
                   >
                     {Object.keys(ports).map(port => (
                       <option key={port} value={port}>{port}</option>
@@ -231,7 +238,7 @@ function Calculator() {
                   <select
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
-                    className="block w-full pl-3 pr-10 py-3 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg shadow-sm"
+                    className="block w-full pl-3 pr-10 py-3 text-base font-bold border-blue-300 focus:outline-none focus:ring-blue-100 focus:border-blue-100 rounded-lg shadow-sm bg-blue-50"
                   >
                     {Object.keys(ports).map(port => (
                       <option key={port} value={port}>{port}</option>
@@ -462,7 +469,7 @@ function Calculator() {
                 id="currency-select"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="block w-full pl-3 pr-10 py-3 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg shadow-sm"
+                className="block w-full pl-3 pr-10 py-3 text-base font-bold border-blue-300 focus:outline-none focus:ring-blue-100 focus:border-blue-100 rounded-lg shadow-sm bg-blue-50"
               >
                 {Object.entries(conversionRates).map(([key, value]) => (
                   <option key={key} value={key}>
@@ -538,7 +545,7 @@ function Calculator() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.1 }}
                         className={`text-xl ${
-                          i < Math.round((1 - shippingMethods[method].rate * 0.2) * 5)
+                          i < currentEcoRating
                             ? 'text-green-500'
                             : 'text-gray-300'
                         }`}
@@ -554,6 +561,12 @@ function Calculator() {
                     Choosing sustainable shipping methods helps preserve marine ecosystems, reduce emissions, and protect our planet for future generations. 🌍🌊
                   </span>
                 </div>
+
+                <div className="flex items-center justify-between p-3 bg-blue-100 rounded-lg border border-blue-200">
+                  <span className="font-black text-blue-700">Carbon Footprint:</span>
+                  <span className="font-bold text-blue-700">{carbonFootprint.toFixed(2)} kg CO2e</span>
+                </div>
+
 
                 {method !== 'eco' && (
                   <div className="mt-4">
