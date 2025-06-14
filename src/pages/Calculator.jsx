@@ -431,10 +431,8 @@ function Calculator() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
         >
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-black text-primary-600 flex items-center">
@@ -446,11 +444,8 @@ function Calculator() {
                 </div>
               ) : (
                 <motion.span
-                  key={convertedTotalCost}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="font-black"
+                  key={convertedTotalCost} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }} className="font-black"
                 >
                   Estimated Cost: {currentSymbol}{convertedTotalCost.toFixed(2)}
                 </motion.span>
@@ -601,7 +596,7 @@ function Calculator() {
               </h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={progressData} margin={{ top: 10, right: 30, left: 0, bottom: 100 }}>
+                  <AreaChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
                     <defs>
                       <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
@@ -609,28 +604,37 @@ function Calculator() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+
                     <XAxis
                       dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
-                      interval={0} angle={-45} textAnchor="end" height={100} tickMargin={15}
+                      interval={0} angle={-30} textAnchor="end" height={60}
                     />
                     <YAxis
                       stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
-                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: 'insideLeft', fill: '#333', fontSize: 12, fontWeight: 'bold' }}
+                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }}
                     />
-                    <Tooltip
-                      formatter={(value) => `${currentSymbol}${value.toFixed(2)}`}
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }}
-                      labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }}
+
+                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
+                    <Legend
+                      wrapperStyle={{ paddingTop: '40px' }}
+                      content={({ payload }) => (
+                        <div style={{ textAlign: 'center' }}>
+                          <p style={{ margin: '0 0 5px', fontSize: '12px', fontWeight: 'bold', color: '#333' }}>Progression Stage</p>
+                          <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+                            {payload.map((entry, index) => (
+                              <li key={`item-${index}`} style={{ display: 'inline-block', marginRight: '10px', color: entry.color }}>
+                                <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: entry.color, marginRight: '5px', borderRadius: '50%' }}></span>
+                                {entry.value}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     />
-                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
                     <Area
-                      type="monotone"
-                      dataKey="cost"
-                      name={`Cumulative Cost (${currentSymbol})`}
-                      stroke="#22c55e"
-                      fillOpacity={1}
-                      fill="url(#costGradient)"
-                      activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
+                      type="monotone" dataKey="cost" name={`Cumulative Cost (${currentSymbol})`} stroke="#22c55e"
+                      fillOpacity={1} fill="url(#costGradient)" activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -644,10 +648,7 @@ function Calculator() {
               <div className="space-y-4">
                 {Object.entries(convertedCosts).map(([key, value], index) => (
                   <motion.div
-                    key={key}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    key={key} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }}
                     className="flex justify-between items-center p-3 bg-gradient-to-r from-green-100 to-amber-100 rounded-lg hover:shadow-md"
                   >
                     <span className="font-black">{key}</span>
@@ -655,8 +656,7 @@ function Calculator() {
                   </motion.div>
                 ))}
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   className="flex justify-between items-center p-4 bg-blue-100 rounded-lg font-black text-xl"
                 >
                   <span>Total Cost</span>
