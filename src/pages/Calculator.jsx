@@ -77,9 +77,12 @@ function Calculator() {
   const [origin, setOrigin] = useState(() => localStorage.getItem('selectedOrigin') || 'Dubai, UAE');
   const [destination, setDestination] = useState(() => localStorage.getItem('selectedDestination') || 'Singapore');
   const [weight, setWeight] = useState(200);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(() => {
+    const storedQty = localStorage.getItem('selectedQuantity');
+    return storedQty ? Number(storedQty) : 1;
+  });
   const [method, setMethod] = useState('standard');
-  const [containerType, setContainerType] = useState('20ft');
+  const [containerType, setContainerType] = useState(() => localStorage.getItem('selectedContainerType') || '20ft');
   const [cargoType, setCargoType] = useState('normal');
   const [costs, setCosts] = useState({});
   const [totalCost, setTotalCost] = useState(0);
@@ -95,6 +98,14 @@ function Calculator() {
   useEffect(() => {
     localStorage.setItem('selectedDestination', destination);
   }, [destination]);
+
+  useEffect(() => {
+    localStorage.setItem('selectedQuantity', quantity.toString());
+  }, [quantity]);
+
+  useEffect(() => {
+    localStorage.setItem('selectedContainerType', containerType);
+  }, [containerType]);
 
   const calculateDistance = (origin, destination) => {
     const R = 6371;
@@ -486,7 +497,7 @@ function Calculator() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🛣️</span> Route Details
