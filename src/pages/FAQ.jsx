@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, ChevronDown, ChevronUp, Clock, FileText, Globe, Truck } from 'lucide-react';
 
 function FAQ() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedItems, setExpandedItems] = useState({});
+  const [visibleSections, setVisibleSections] = useState([]);
 
   const faqData = [
     {
@@ -98,6 +99,18 @@ function FAQ() {
     }
   ];
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      faqData.forEach((_, index) => {
+        setTimeout(() => {
+          setVisibleSections(prev => [...prev, index]);
+        }, index * 200);
+      });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const filteredFAQ = useMemo(() => {
     if (!searchTerm) return faqData;
     
@@ -119,16 +132,16 @@ function FAQ() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-16">
-      <div className="text-center mb-12">
+      <div className="text-center mb-12 opacity-0 animate-fade-in-up" style={{animation: 'fadeInUp 0.8s ease-out forwards'}}>
         <h1 className="text-4xl font-extrabold text-green-600 mb-2 tracking-tight">
-          📋 Shipping FAQ
+          📋 Shipping Frequently Asked Questions
         </h1>
         <p className="text-black font-extrabold max-w-2xl mx-auto text-base">
           Find quick answers to common questions about transit times, documentation, incoterms, and shipping costs.
         </p>
       </div>
 
-      <div className="mb-8 max-w-2xl mx-auto">
+      <div className="mb-8 max-w-2xl mx-auto opacity-0" style={{animation: 'fadeInUp 0.8s ease-out 0.2s forwards'}}>
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
@@ -136,12 +149,12 @@ function FAQ() {
             placeholder="Search FAQ... (e.g., 'transit times', 'bill of lading', 'incoterms')"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-700 bg-white shadow-lg"
+            className="w-full pl-12 pr-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-700 bg-white shadow-lg transition-all duration-300 hover:shadow-xl focus:scale-105"
           />
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-orange-900 via-zinc-900 to-black rounded-2xl shadow-xl p-10 text-gray-100 backdrop-blur-sm border border-white/10">
+      <div className="bg-gradient-to-br from-orange-900 via-zinc-900 to-black rounded-2xl shadow-xl p-10 text-gray-100 backdrop-blur-sm border border-white/10 opacity-0" style={{animation: 'fadeInUp 0.8s ease-out 0.4s forwards'}}>
         {filteredFAQ.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-xl text-gray-300">No FAQ items found matching your search.</p>
@@ -150,12 +163,19 @@ function FAQ() {
         ) : (
           <div className="space-y-8">
             {filteredFAQ.map((category, categoryIndex) => (
-              <section key={categoryIndex}>
-                <div className="flex items-center mb-6">
-                  <div className="text-green-400 mr-3">
+              <section 
+                key={categoryIndex}
+                className={`transform transition-all duration-700 ${
+                  visibleSections.includes(categoryIndex)
+                    ? 'translate-y-0 opacity-100'
+                    : 'translate-y-8 opacity-0'
+                }`}
+              >
+                <div className="flex items-center mb-6 group">
+                  <div className="text-green-400 mr-3 transform transition-transform duration-300 group-hover:scale-110">
                     {category.icon}
                   </div>
-                  <h2 className="text-2xl font-semibold text-green-400">
+                  <h2 className="text-2xl font-semibold text-green-400 transition-colors duration-300 group-hover:text-green-300">
                     {category.category}
                   </h2>
                 </div>
@@ -166,30 +186,34 @@ function FAQ() {
                     const isExpanded = expandedItems[key];
                     
                     return (
-                      <div key={itemIndex} className="border border-white/10 rounded-lg overflow-hidden bg-black/20">
+                      <div key={itemIndex} className="border border-white/10 rounded-lg overflow-hidden bg-black/20 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:border-green-400/30">
                         <button
                           onClick={() => toggleExpanded(categoryIndex, itemIndex)}
-                          className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors"
+                          className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-all duration-300"
                         >
-                          <h3 className="text-lg font-medium text-white pr-4">
+                          <h3 className="text-xl font-medium text-white pr-4 transition-colors duration-300 hover:text-green-300">
                             {item.question}
                           </h3>
-                          {isExpanded ? (
-                            <ChevronUp className="w-5 h-5 text-green-400 flex-shrink-0" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-green-400 flex-shrink-0" />
-                          )}
+                          <div className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                            {isExpanded ? (
+                              <ChevronUp className="w-5 h-5 text-green-400 flex-shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-5 h-5 text-green-400 flex-shrink-0" />
+                            )}
+                          </div>
                         </button>
                         
-                        {isExpanded && (
+                        <div className={`transition-all duration-500 ease-in-out ${
+                          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                        } overflow-hidden`}>
                           <div className="px-6 pb-6">
                             <div className="border-t border-white/10 pt-4">
-                              <p className="text-gray-300 leading-relaxed">
+                              <p className="text-gray-300 leading-relaxed text-lg">
                                 {item.answer}
                               </p>
                             </div>
                           </div>
-                        )}
+                        </div>
                       </div>
                     );
                   })}
@@ -199,6 +223,19 @@ function FAQ() {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
