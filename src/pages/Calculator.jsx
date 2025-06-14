@@ -703,7 +703,7 @@ function Calculator() {
               </h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <AreaChart data={progressData}>
                     <defs>
                       <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
@@ -711,35 +711,19 @@ function Calculator() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-
-                    <XAxis
-                      dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
-                      interval={0} angle={-30} textAnchor="end" height={60}
+                    <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: "Progression Stage", position: "insideBottom", offset: 0, fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                    <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="cost"
+                      name={`Cumulative Cost (${currentSymbol})`}
+                      stroke="#22c55e"
+                      fillOpacity={1}
+                      fill="url(#costGradient)"
+                      activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
                     />
-                    <YAxis
-                      stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }}
-                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }}
-                    />
-
-                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`}
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
-                    <Legend
-                      wrapperStyle={{ paddingTop: '60px' }}
-                      content={({ payload }) => (
-                        <div style={{ textAlign: 'center' }}>
-                          <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 'bold', color: '#333' }}>Progression Stage</p>
-                          <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
-                            {payload.map((entry, index) => (
-                              <li key={`item-${index}`} style={{ display: 'inline-block', marginRight: '10px', color: entry.color }}>
-                                <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: entry.color, marginRight: '5px', borderRadius: '50%' }}></span>
-                                {entry.value}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    />
-                   <Area type="monotone" dataKey="cost" name={`Cumulative Cost (${currentSymbol})`} stroke="#22c55e" fillOpacity={1} fill="url(#costGradient)" activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
