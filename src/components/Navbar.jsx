@@ -28,6 +28,9 @@ function Navbar() {
             <Link to="/about" className="text-white hover:text-secondary-200 px-3 py-2 rounded-md text-lg font-medium transition duration-150 ease-in-out hover:bg-white/10">
               About
             </Link>
+            <Link to="/faq" className="text-white hover:text-secondary-200 px-3 py-2 rounded-md text-lg font-medium transition duration-150 ease-in-out hover:bg-white/10">
+              FAQ
+            </Link>
             <Link to="/privacy" className="text-white hover:text-secondary-200 px-3 py-2 rounded-md text-lg font-medium transition duration-150 ease-in-out hover:bg-white/10">
               Privacy
             </Link>
@@ -72,6 +75,9 @@ function Navbar() {
             </Link>
             <Link to="/about" className="block text-white hover:text-secondary-200 px-3 py-2 rounded-md text-base font-medium">
               About
+            </Link>
+            <Link to="/faq" className="block text-white hover:text-secondary-200 px-3 py-2 rounded-md text-base font-medium">
+              FAQ
             </Link>
             <Link to="/privacy" className="block text-white hover:text-secondary-200 px-3 py-2 rounded-md text-base font-medium">
               Privacy

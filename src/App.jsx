@@ -5,6 +5,7 @@ import Calculator from './pages/Calculator';
 import About from './pages/About';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import FAQ from './pages/FAQ';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -17,6 +18,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Calculator />} />
             <Route path="/about" element={<About />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
           </Routes>

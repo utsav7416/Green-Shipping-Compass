@@ -63,6 +63,15 @@ const cargoTypes = {
   hazardous: { name: 'Hazardous', surcharge: 0.4, icon: '⚠️', description: 'Special permits and handling for dangerous materials' }
 };
 
+const conversionRates = {
+  USD: { symbol: '$', name: 'US Dollar', rate: 1.000 },
+  EUR: { symbol: '€', name: 'Euro', rate: 0.920 },
+  INR: { symbol: '₹', name: 'Indian Rupee', rate: 82.500 },
+  AED: { symbol: 'د.إ', name: 'UAE Dirham', rate: 3.672 },
+  CNY: { symbol: '¥', name: 'Chinese Yuan', rate: 7.150 },
+  GBP: { symbol: '£', name: 'British Pound', rate: 0.790 },
+};
+
 function Calculator() {
 
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
@@ -77,6 +86,7 @@ function Calculator() {
   const [totalCost, setTotalCost] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currency, setCurrency] = useState('USD');
 
   const calculateDistance = (origin, destination) => {
     const R = 6371;
@@ -87,11 +97,11 @@ function Calculator() {
 
     const dLat = lat2 - lat1;
     const dLon = lon2 - lon1;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1) * Math.cos(lat2) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1) * Math.cos(lat2) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   };
 
@@ -141,12 +151,21 @@ function Calculator() {
   const distance = calculateDistance(origin, destination);
   const totalWeight = weight * quantity;
 
+  const currentRate = conversionRates[currency].rate;
+  const currentSymbol = conversionRates[currency].symbol;
+
+  const convertedCosts = Object.fromEntries(
+    Object.entries(costs).map(([key, value]) => [key, value * currentRate])
+  );
+
+  const convertedTotalCost = totalCost * currentRate;
+
   const progressData = [
-    { name: 'Origin Port', cost: costs['Base Container Cost'] || 0, label: 'Departure' },
-    { name: 'Documentation', cost: totalCost * 0.3 || 0, label: 'Processing' },
-    { name: 'Customs', cost: totalCost * 0.6 || 0, label: 'Clearance' },
-    { name: 'Transit', cost: totalCost * 0.8 || 0, label: 'Shipping' },
-    { name: 'Destination', cost: totalCost || 0, label: 'Arrival' }
+    { name: 'Origin Port', cost: (costs['Base Container Cost'] || 0) * currentRate, label: 'Departure' },
+    { name: 'Documentation', cost: totalCost * 0.3 * currentRate || 0, label: 'Processing' },
+    { name: 'Customs', cost: totalCost * 0.6 * currentRate || 0, label: 'Clearance' },
+    { name: 'Transit', cost: totalCost * 0.8 * currentRate || 0, label: 'Shipping' },
+    { name: 'Destination', cost: totalCost * currentRate || 0, label: 'Arrival' }
   ];
 
   const containerAnimation = {
@@ -417,25 +436,43 @@ function Calculator() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
         >
-          <h2 className="text-4xl font-black text-primary-600 mb-8 flex items-center justify-center">
-            <span className="mr-2">💰</span>
-            {loading ? (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mr-3"></div>
-                <span className="font-black">Calculating...</span>
-              </div>
-            ) : (
-              <motion.span
-                key={totalCost}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="font-black"
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-4xl font-black text-primary-600 flex items-center">
+              <span className="mr-2">💰</span>
+              {loading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mr-3"></div>
+                  <span className="font-black">Calculating...</span>
+                </div>
+              ) : (
+                <motion.span
+                  key={convertedTotalCost}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="font-black"
+                >
+                  Estimated Cost: {currentSymbol}{convertedTotalCost.toFixed(2)}
+                </motion.span>
+              )}
+            </h2>
+            <div>
+              <label htmlFor="currency-select" className="sr-only">Choose Currency</label>
+              <select
+                id="currency-select"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="block w-full pl-3 pr-10 py-3 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg shadow-sm"
               >
-                Estimated Cost: ${totalCost.toFixed(2)}
-              </motion.span>
-            )}
-          </h2>
+                {Object.entries(conversionRates).map(([key, value]) => (
+                  <option key={key} value={key}>
+                    {value.name} ({value.symbol} {key})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
@@ -552,12 +589,12 @@ function Calculator() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" stroke="#6b7280" tickLine={false} axisLine={false} />
                     <YAxis stroke="#6b7280" tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
+                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
                     <Legend />
                     <Area
                       type="monotone"
                       dataKey="cost"
-                      name="Cumulative Cost ($)"
+                      name={`Cumulative Cost (${currentSymbol})`}
                       stroke="#22c55e"
                       fillOpacity={1}
                       fill="url(#costGradient)"
@@ -573,7 +610,7 @@ function Calculator() {
                 <span className="mr-2">💵</span> Cost Breakdown
               </h3>
               <div className="space-y-4">
-                {Object.entries(costs).map(([key, value], index) => (
+                {Object.entries(convertedCosts).map(([key, value], index) => (
                   <motion.div
                     key={key}
                     initial={{ opacity: 0, x: -20 }}
@@ -582,7 +619,7 @@ function Calculator() {
                     className="flex justify-between items-center p-3 bg-gradient-to-r from-green-100 to-amber-100 rounded-lg hover:shadow-md"
                   >
                     <span className="font-black">{key}</span>
-                    <span className="font-black">${value.toFixed(2)}</span>
+                    <span className="font-black">{currentSymbol}{value.toFixed(2)}</span>
                   </motion.div>
                 ))}
                 <motion.div
@@ -591,7 +628,7 @@ function Calculator() {
                   className="flex justify-between items-center p-4 bg-blue-100 rounded-lg font-black text-xl"
                 >
                   <span>Total Cost</span>
-                  <span>${totalCost.toFixed(2)}</span>
+                  <span>{currentSymbol}{convertedTotalCost.toFixed(2)}</span>
                 </motion.div>
               </div>
             </motion.div>
