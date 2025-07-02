@@ -3,12 +3,11 @@ import { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { ports } from '../data/ports';
-import ImageCarousel from '../components/ImageCarousel';
-import MaritimeQuotes from '../components/MaritimeQuotes';
-import ShippingStats from '../components/ShippingStats';
-import Features from '../components/Features';
-import WeatherPortInfo from '../components/WeatherPortInfo';
+import { ports } from './data/ports';
+import ImageCarousel from './components/ImageCarousel';
+import MaritimeQuotes from './components/MaritimeQuotes';
+import ShippingStats from './components/ShippingStats';
+import Features from './components/Features';
 import axios from 'axios';
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
@@ -78,6 +77,7 @@ function Calculator() {
   const [method, setMethod] = useState('standard');
   const [containerType, setContainerType] = useState(() => localStorage.getItem('selectedContainerType') || '20ft');
   const [cargoType, setCargoType] = useState('normal');
+  const [temperatureControl, setTemperatureControl] = useState(false);
   const [costs, setCosts] = useState({});
   const [totalCost, setTotalCost] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -126,27 +126,35 @@ function Calculator() {
       const distance = calculateDistance(origin, destination);
       const totalWeight = weight * quantity;
 
-      const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/predict`, {
-        distance: distance,
-        weight: totalWeight,
-        containerSize: containerSizeMap[containerType],
-        method: method,
-        cargoType: cargoType
-      });
+      const baseCosts = {
+        'Base Container Cost': containerTypes[containerType].base_cost,
+        'Ocean Freight': distance * 0.5,
+        'Port Handling': totalWeight * 2.5,
+        'Documentation': 350,
+        'Insurance': totalWeight * 0.8,
+        'Fuel Surcharge': distance * 0.3
+      };
 
-      const baseCosts = response.data.costs;
-      const baseTotalCost = response.data.totalCost;
-      const surcharge = cargoTypes[cargoType.toLowerCase()].surcharge;
+      let adjustedCosts = { ...baseCosts };
+      let baseTotalCost = Object.values(baseCosts).reduce((sum, cost) => sum + cost, 0);
 
-      if (surcharge > 0) {
-        baseCosts['Cargo Type Surcharge'] = baseTotalCost * surcharge;
-        const adjustedTotalCost = baseTotalCost * (1 + surcharge);
-        setCosts(baseCosts);
-        setTotalCost(adjustedTotalCost);
-      } else {
-        setCosts(baseCosts);
-        setTotalCost(baseTotalCost);
+      const methodRate = shippingMethods[method].rate;
+      baseTotalCost *= methodRate;
+
+      const cargoSurcharge = cargoTypes[cargoType].surcharge;
+      if (cargoSurcharge > 0) {
+        adjustedCosts['Cargo Type Surcharge'] = baseTotalCost * cargoSurcharge;
+        baseTotalCost *= (1 + cargoSurcharge);
       }
+
+      if (temperatureControl) {
+        const tempSurcharge = baseTotalCost * 0.35;
+        adjustedCosts['Temperature Control'] = tempSurcharge;
+        baseTotalCost += tempSurcharge;
+      }
+
+      setCosts(adjustedCosts);
+      setTotalCost(baseTotalCost);
 
       const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
       const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
@@ -154,7 +162,7 @@ function Calculator() {
 
     } catch (err) {
       setError('Failed to calculate shipping cost. Please try again.');
-      console.error('API Error:', err);
+      console.error('Calculation Error:', err);
     } finally {
       setLoading(false);
     }
@@ -162,13 +170,14 @@ function Calculator() {
 
   useEffect(() => {
     fetchPricing();
-  }, [origin, destination, weight, quantity, method, containerType, cargoType]);
+  }, [origin, destination, weight, quantity, method, containerType, cargoType, temperatureControl]);
 
   const distance = calculateDistance(origin, destination);
   const totalWeight = weight * quantity;
 
   const currentRate = conversionRates[currency].rate;
   const currentSymbol = conversionRates[currency].symbol;
+
   const convertedCosts = Object.fromEntries(
     Object.entries(costs).map(([key, value]) => [key, value * currentRate])
   );
@@ -230,6 +239,10 @@ function Calculator() {
           <View style={pdfStyles.detailRow}>
             <Text style={pdfStyles.detailLabel}>Shipping Method:</Text>
             <Text style={pdfStyles.detailValue}>{shippingMethods[quoteData.method].name}</Text>
+          </View>
+          <View style={pdfStyles.detailRow}>
+            <Text style={pdfStyles.detailLabel}>Temperature Control:</Text>
+            <Text style={pdfStyles.detailValue}>{quoteData.temperatureControl ? 'Yes' : 'No'}</Text>
           </View>
           <View style={pdfStyles.detailRow}>
             <Text style={pdfStyles.detailLabel}>Estimated Delivery:</Text>
@@ -349,9 +362,9 @@ function Calculator() {
                   </select>
                 </div>
                 <div className="flex flex-col space-y-4 pt-4">
-                  <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
-                  <img src="https://media.istockphoto.com/id/1939500219/photo/singapore-cityscape-at-night-twilight-drone-flight-panorama.jpg?s=612x612&w=0&k=20&c=WzBoQ0MoFPfwXVjICcjSGJHUOWlCvARaDIbhBK7hBig=" alt="Singapore Cityscape" className="rounded-lg object-cover w-full h-40 shadow-md" />
-                  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrCvLvcDShNz2179ooFCEjiqF_ZefMHkiwCA&s" alt="Shipping Container" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                  <img src="https://images.pexels.com/photos/1486974/pexels-photo-1486974.jpeg?auto=compress&cs=tinysrgb&w=600" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                  <img src="https://images.pexels.com/photos/2346091/pexels-photo-2346091.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Singapore Cityscape" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                  <img src="https://images.pexels.com/photos/1117210/pexels-photo-1117210.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Shipping Container" className="rounded-lg object-cover w-full h-40 shadow-md" />
                 </div>
               </div>
             </motion.div>
@@ -409,6 +422,33 @@ function Calculator() {
                   </div>
                 </div>
 
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={temperatureControl}
+                        onChange={(e) => setTemperatureControl(e.target.checked)}
+                        className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                      <div className="flex-1">
+                        <div className="text-lg font-black text-gray-700 flex items-center">
+                          <span className="mr-2">🌡️</span>
+                          My shipment requires temperature control
+                        </div>
+                        <div className="text-sm font-bold text-gray-600 mt-1">
+                          For fresh seafood, fruits, vegetables, chilled beverages, dairy products, medical injections, pharmaceuticals, vaccines, frozen foods, ice cream, meat products, and other temperature-sensitive cargo
+                        </div>
+                        {temperatureControl && (
+                          <div className="text-sm font-bold text-blue-600 mt-2">
+                            +35% surcharge for refrigerated container service
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-lg font-black text-gray-700 mb-2">
                     Weight per Item: {weight} kg
@@ -456,6 +496,7 @@ function Calculator() {
                     {containerTypes[containerType].icon} {containerType} Container
                   </h3>
                   <p className="text-gray-700 font-bold mb-4">{containerTypes[containerType].description}</p>
+
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-2 bg-white rounded-lg">
                       <span className="font-black text-primary-600">Dimensions:</span>
@@ -528,8 +569,6 @@ function Calculator() {
             </div>
           </motion.div>
         </motion.div>
-
-        <WeatherPortInfo />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -613,6 +652,10 @@ function Calculator() {
                   <span className="font-bold">{cargoTypes[cargoType].name}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
+                  <span className="text-primary-600 font-black">Temperature Control:</span>
+                  <span className="font-bold">{temperatureControl ? 'Yes' : 'No'}</span>
+                </div>
+                <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
                   <span className="text-primary-600 font-black">Delivery:</span>
                   <span className="font-bold">{shippingMethods[method].days}</span>
                 </div>
@@ -624,13 +667,13 @@ function Calculator() {
             </motion.div>
 
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center overflow-hidden">
-              <img
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
-                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/000000/FFFFFF?text=Image+Load+Error"; }}
-                alt="Image"
-                className="object-cover w-full h-full"
-              />
-            </motion.div>
+            <img
+              src="https://images.pexels.com/photos/1108572/pexels-photo-1108572.jpeg?auto=compress&cs=tinysrgb&w=400"
+              onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/000000/FFFFFF?text=Image+Load+Error"; }}
+              alt="Container Ship"
+              className="object-cover w-full h-full rounded-lg"
+            />
+          </motion.div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
@@ -683,15 +726,15 @@ function Calculator() {
 
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
                 <img
-                    src="https://www.freightnews.co.za/sites/default/files/styles/article-large/public/images/article/202409/4greenshipping.png?itok=QK4nCT9N"
+                    src="https://images.pexels.com/photos/1117210/pexels-photo-1117210.jpeg?auto=compress&cs=tinysrgb&w=400"
                     onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+1+Load+Error"; }}
-                    alt="Green Shipping Image 1"
+                    alt="Green Shipping"
                     className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
                 />
                 <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
+                    src="https://images.pexels.com/photos/906982/pexels-photo-906982.jpeg?auto=compress&cs=tinysrgb&w=400"
                     onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+2+Load+Error"; }}
-                    alt="Green Shipping Image 2"
+                    alt="Sustainable Logistics"
                     className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
                 />
             </motion.div>
@@ -760,14 +803,14 @@ function Calculator() {
           </div>
 
           <div className="text-center mt-8">
-            <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
-              {({loading})=>(
-                <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
-                  {loading?'Generating PDF...':'Download PDF Quote'}
-                </motion.button>
-              )}
-            </PDFDownloadLink>
-          </div>
+          <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,temperatureControl,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
+            {({loading})=>(
+              <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
+                {loading?'Generating PDF...':'Download PDF Quote'}
+              </motion.button>
+            )}
+          </PDFDownloadLink>
+        </div>
 
         </motion.div>
       </div>
