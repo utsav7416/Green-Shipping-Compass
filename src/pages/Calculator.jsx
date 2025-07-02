@@ -64,7 +64,7 @@ const conversionRates = {
   GBP: { symbol: '£', name: 'British Pound', rate: 0.790 },
 };
 
-const customsData2025 = {
+const customsData = {
  'Dubai, UAE': { dutyRate: 0.05, restrictions: ['alcohol', 'pork products'], processing: '1-3 days' },
  'Singapore': { dutyRate: 0.00, restrictions: ['chewing gum', 'tobacco products'], processing: '1-2 days' },
  'Shanghai, China': { dutyRate: 0.10, restrictions: ['media content', 'chemicals'], processing: '3-5 days' },
