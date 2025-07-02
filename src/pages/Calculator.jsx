@@ -8,6 +8,7 @@ import ImageCarousel from '../components/ImageCarousel';
 import MaritimeQuotes from '../components/MaritimeQuotes';
 import ShippingStats from '../components/ShippingStats';
 import Features from '../components/Features';
+import WeatherPortInfo from '../components/WeatherPortInfo';
 import axios from 'axios';
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
@@ -168,7 +169,6 @@ function Calculator() {
 
   const currentRate = conversionRates[currency].rate;
   const currentSymbol = conversionRates[currency].symbol;
-
   const convertedCosts = Object.fromEntries(
     Object.entries(costs).map(([key, value]) => [key, value * currentRate])
   );
@@ -456,7 +456,6 @@ function Calculator() {
                     {containerTypes[containerType].icon} {containerType} Container
                   </h3>
                   <p className="text-gray-700 font-bold mb-4">{containerTypes[containerType].description}</p>
-
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-2 bg-white rounded-lg">
                       <span className="font-black text-primary-600">Dimensions:</span>
@@ -529,6 +528,8 @@ function Calculator() {
             </div>
           </motion.div>
         </motion.div>
+
+        <WeatherPortInfo />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -623,13 +624,13 @@ function Calculator() {
             </motion.div>
 
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center overflow-hidden">
-            <img
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
-              onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/000000/FFFFFF?text=Image+Load+Error"; }}
-              alt="Image"
-              className="object-cover w-full h-full"
-            />
-          </motion.div>
+              <img
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
+                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/000000/FFFFFF?text=Image+Load+Error"; }}
+                alt="Image"
+                className="object-cover w-full h-full"
+              />
+            </motion.div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
@@ -759,14 +760,14 @@ function Calculator() {
           </div>
 
           <div className="text-center mt-8">
-          <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
-            {({loading})=>(
-              <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
-                {loading?'Generating PDF...':'Download PDF Quote'}
-              </motion.button>
-            )}
-          </PDFDownloadLink>
-        </div>
+            <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
+              {({loading})=>(
+                <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
+                  {loading?'Generating PDF...':'Download PDF Quote'}
+                </motion.button>
+              )}
+            </PDFDownloadLink>
+          </div>
 
         </motion.div>
       </div>
