@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { ports } from './data/ports';
-import ImageCarousel from './components/ImageCarousel';
-import MaritimeQuotes from './components/MaritimeQuotes';
-import ShippingStats from './components/ShippingStats';
-import Features from './components/Features';
+import { ports } from '../data/ports';
+import ImageCarousel from '../components/ImageCarousel';
+import MaritimeQuotes from '../components/MaritimeQuotes';
+import ShippingStats from '../components/ShippingStats';
+import Features from '../components/Features';
 import axios from 'axios';
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
