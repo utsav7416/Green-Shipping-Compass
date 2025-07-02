@@ -8,7 +8,6 @@ import ImageCarousel from '../components/ImageCarousel';
 import MaritimeQuotes from '../components/MaritimeQuotes';
 import ShippingStats from '../components/ShippingStats';
 import Features from '../components/Features';
-import axios from 'axios';
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
 const shippingMethods = {
@@ -65,6 +64,19 @@ const conversionRates = {
   GBP: { symbol: '£', name: 'British Pound', rate: 0.790 },
 };
 
+const customsData2025 = {
+ 'Dubai, UAE': { dutyRate: 0.05, restrictions: ['alcohol', 'pork products'], processing: '1-3 days' },
+ 'Singapore': { dutyRate: 0.00, restrictions: ['chewing gum', 'tobacco products'], processing: '1-2 days' },
+ 'Shanghai, China': { dutyRate: 0.10, restrictions: ['media content', 'chemicals'], processing: '3-5 days' },
+ 'Los Angeles, USA': { dutyRate: 0.062, restrictions: ['food items', 'textiles'], processing: '2-5 days' },
+ 'Rotterdam, Netherlands': { dutyRate: 0.048, restrictions: ['chemicals', 'weapons'], processing: '1-3 days' },
+ 'Hamburg, Germany': { dutyRate: 0.048, restrictions: ['chemicals', 'weapons'], processing: '1-3 days' },
+ 'Mumbai, India': { dutyRate: 0.15, restrictions: ['gold', 'electronics'], processing: '3-7 days' },
+ 'New York, USA': { dutyRate: 0.062, restrictions: ['food items', 'textiles'], processing: '2-5 days' },
+ 'Hong Kong': { dutyRate: 0.00, restrictions: ['tobacco', 'alcohol'], processing: '1-2 days' },
+ 'Antwerp, Belgium': { dutyRate: 0.048, restrictions: ['chemicals', 'weapons'], processing: '1-3 days' }
+};
+
 function Calculator() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [origin, setOrigin] = useState(() => localStorage.getItem('selectedOrigin') || 'Dubai, UAE');
@@ -84,6 +96,9 @@ function Calculator() {
   const [error, setError] = useState(null);
   const [currency, setCurrency] = useState('USD');
   const [carbonFootprint, setCarbonFootprint] = useState(0);
+  const [cargoValue, setCargoValue] = useState(10000);
+  const [insuranceCost, setInsuranceCost] = useState(0);
+  const [customsDuty, setCustomsDuty] = useState(0);
 
   useEffect(() => {
     localStorage.setItem('selectedOrigin', origin);
@@ -118,6 +133,18 @@ function Calculator() {
     return Math.round(R * c);
   };
 
+  const calculateInsurance = () => {
+    const baseRate = 0.002;
+    const cargoTypeMultiplier = cargoType === 'hazardous' ? 2.5 : cargoType === 'fragile' ? 1.8 : cargoType === 'perishable' ? 1.5 : 1.0;
+    
+    return cargoValue * baseRate * cargoTypeMultiplier;
+  };
+
+  const calculateCustomsDuty = () => {
+    const destData = customsData[destination] || { dutyRate: 0.08 };
+    return cargoValue * destData.dutyRate;
+  };
+
   const fetchPricing = async () => {
     try {
       setLoading(true);
@@ -131,7 +158,7 @@ function Calculator() {
         'Ocean Freight': distance * 0.5,
         'Port Handling': totalWeight * 2.5,
         'Documentation': 350,
-        'Insurance': totalWeight * 0.8,
+        'Insurance': 350,
         'Fuel Surcharge': distance * 0.3
       };
 
@@ -153,8 +180,17 @@ function Calculator() {
         baseTotalCost += tempSurcharge;
       }
 
+      const insurance = calculateInsurance();
+      const customs = calculateCustomsDuty();
+      
+      adjustedCosts['Comprehensive Insurance'] = insurance;
+      adjustedCosts['Customs Duty'] = customs;
+      baseTotalCost += insurance + customs;
+
       setCosts(adjustedCosts);
       setTotalCost(baseTotalCost);
+      setInsuranceCost(insurance);
+      setCustomsDuty(customs);
 
       const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
       const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
@@ -170,7 +206,7 @@ function Calculator() {
 
   useEffect(() => {
     fetchPricing();
-  }, [origin, destination, weight, quantity, method, containerType, cargoType, temperatureControl]);
+  }, [origin, destination, weight, quantity, method, containerType, cargoType, temperatureControl, cargoValue]);
 
   const distance = calculateDistance(origin, destination);
   const totalWeight = weight * quantity;
@@ -192,20 +228,12 @@ function Calculator() {
     { name: 'Destination', cost: totalCost * currentRate || 0, label: 'Arrival' }
   ];
 
-  const containerAnimation = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
+  const containerAnimation = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
   const currentEcoRating = shippingMethods[method].ecoRating;
 
   const handleQuantityChange = (e) => {
     const value = e.target.value;
-    if (value === '' || value === '0') {
-      setQuantity(0);
-    } else {
-      setQuantity(parseInt(value, 10));
-    }
+    if (value === '' || value === '0') { setQuantity(0); } else { setQuantity(parseInt(value, 10)); }
   };
 
   const QuotePdfDocument = ({ quoteData }) => (
@@ -216,42 +244,15 @@ function Calculator() {
         </View>
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.heading}>Quote Details</Text>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Date:</Text>
-            <Text style={pdfStyles.detailValue}>{new Date().toLocaleDateString()}</Text>
-          </View>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Origin:</Text>
-            <Text style={pdfStyles.detailValue}>{quoteData.origin}</Text>
-          </View>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Destination:</Text>
-            <Text style={pdfStyles.detailValue}>{quoteData.destination}</Text>
-          </View>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Container Type:</Text>
-            <Text style={pdfStyles.detailValue}>{quoteData.containerType}</Text>
-          </View>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Total Weight:</Text>
-            <Text style={pdfStyles.detailValue}>{quoteData.totalWeight} kg</Text>
-          </View>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Shipping Method:</Text>
-            <Text style={pdfStyles.detailValue}>{shippingMethods[quoteData.method].name}</Text>
-          </View>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Temperature Control:</Text>
-            <Text style={pdfStyles.detailValue}>{quoteData.temperatureControl ? 'Yes' : 'No'}</Text>
-          </View>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Estimated Delivery:</Text>
-            <Text style={pdfStyles.detailValue}>{shippingMethods[quoteData.method].days}</Text>
-          </View>
-          <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Carbon Footprint:</Text>
-            <Text style={pdfStyles.detailValue}>{quoteData.carbonFootprint.toFixed(2)} kg CO2e</Text>
-          </View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Date:</Text><Text style={pdfStyles.detailValue}>{new Date().toLocaleDateString()}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Origin:</Text><Text style={pdfStyles.detailValue}>{quoteData.origin}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Destination:</Text><Text style={pdfStyles.detailValue}>{quoteData.destination}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Container Type:</Text><Text style={pdfStyles.detailValue}>{quoteData.containerType}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Total Weight:</Text><Text style={pdfStyles.detailValue}>{quoteData.totalWeight} kg</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Shipping Method:</Text><Text style={pdfStyles.detailValue}>{shippingMethods[quoteData.method].name}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Temperature Control:</Text><Text style={pdfStyles.detailValue}>{quoteData.temperatureControl ? 'Yes' : 'No'}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Estimated Delivery:</Text><Text style={pdfStyles.detailValue}>{shippingMethods[quoteData.method].days}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Carbon Footprint:</Text><Text style={pdfStyles.detailValue}>{quoteData.carbonFootprint.toFixed(2)} kg CO2e</Text></View>
         </View>
 
         <View style={pdfStyles.section}>
@@ -269,12 +270,49 @@ function Calculator() {
         </View>
 
         <View style={pdfStyles.footer}>
-          <Text style={pdfStyles.footerText}>
-            Green Shipping Compass | Committed to sustainable logistics.
-          </Text>
-          <Text style={pdfStyles.footerText}>
-            Contact: info@greenshippingcompass.com | Website: www.greenshippingcompass.com
-          </Text>
+          <Text style={pdfStyles.footerText}>Green Shipping Compass | Committed to sustainable logistics.</Text>
+          <Text style={pdfStyles.footerText}>Contact: info@greenshippingcompass.com | Website: www.greenshippingcompass.com</Text>
+        </View>
+      </Page>
+    </Document>
+  );
+
+  const InsuranceComplianceDocument = ({ data }) => (
+    <Document>
+      <Page size="A4" style={pdfStyles.page}>
+        <View style={pdfStyles.header}>
+          <Text style={pdfStyles.title}>Insurance & Compliance Documentation</Text>
+        </View>
+        
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.heading}>Insurance Coverage Details</Text>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Cargo Value:</Text><Text style={pdfStyles.detailValue}>{data.currentSymbol}{data.cargoValue.toLocaleString()}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Insurance Premium:</Text><Text style={pdfStyles.detailValue}>{data.currentSymbol}{data.insuranceCost.toFixed(2)}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Coverage Type:</Text><Text style={pdfStyles.detailValue}>All Risk Marine Insurance</Text></View>
+        </View>
+
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.heading}>Customs & Regulatory Compliance</Text>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Destination Duty Rate:</Text><Text style={pdfStyles.detailValue}>{((customsData[data.destination]?.dutyRate || 0.08) * 100).toFixed(1)}%</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Estimated Customs Duty:</Text><Text style={pdfStyles.detailValue}>{data.currentSymbol}{data.customsDuty.toFixed(2)}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Processing Time:</Text><Text style={pdfStyles.detailValue}>{customsData[data.destination]?.processing || '2-4 days'}</Text></View>
+          <View style={pdfStyles.detailRow}><Text style={pdfStyles.detailLabel}>Restricted Items:</Text><Text style={pdfStyles.detailValue}>{customsData[data.destination]?.restrictions?.join(', ') || 'Standard restrictions apply'}</Text></View>
+        </View>
+
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.heading}>Required Documentation</Text>
+          <Text style={pdfStyles.detailValue}>• Commercial Invoice</Text>
+          <Text style={pdfStyles.detailValue}>• Packing List</Text>
+          <Text style={pdfStyles.detailValue}>• Bill of Lading</Text>
+          <Text style={pdfStyles.detailValue}>• Certificate of Origin</Text>
+          <Text style={pdfStyles.detailValue}>• Insurance Certificate</Text>
+          <Text style={pdfStyles.detailValue}>• Import/Export Permits (if required)</Text>
+          {data.cargoType === 'hazardous' && <Text style={pdfStyles.detailValue}>• Dangerous Goods Declaration</Text>}
+          {data.temperatureControl && <Text style={pdfStyles.detailValue}>• Temperature Control Certificate</Text>}
+        </View>
+
+        <View style={pdfStyles.footer}>
+          <Text style={pdfStyles.footerText}>This document is for informational purposes only. Please consult with customs authorities for specific requirements.</Text>
         </View>
       </Page>
     </Document>
@@ -362,9 +400,9 @@ function Calculator() {
                   </select>
                 </div>
                 <div className="flex flex-col space-y-4 pt-4">
-                  <img src="https://images.pexels.com/photos/1486974/pexels-photo-1486974.jpeg?auto=compress&cs=tinysrgb&w=600" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
-                  <img src="https://images.pexels.com/photos/2346091/pexels-photo-2346091.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Singapore Cityscape" className="rounded-lg object-cover w-full h-40 shadow-md" />
-                  <img src="https://images.pexels.com/photos/1117210/pexels-photo-1117210.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Shipping Container" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                  <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                  <img src="https://media.istockphoto.com/id/1939500219/photo/singapore-cityscape-at-night-twilight-drone-flight-panorama.jpg?s=612x612&w=0&k=20&c=WzBoQ0MoFPfwXVjICcjSGJHUOWlCvARaDIbhBK7hBig=" alt="Singapore Cityscape" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrCvLvcDShNz2179ooFCEjiqF_ZefMHkiwCA&s" alt="Shipping Container" className="rounded-lg object-cover w-full h-40 shadow-md" />
                 </div>
               </div>
             </motion.div>
@@ -450,40 +488,91 @@ function Calculator() {
                 </div>
 
                 <div>
-                  <label className="block text-lg font-black text-gray-700 mb-2">
-                    Weight per Item: {weight} kg
-                  </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="1000"
-                    value={weight}
-                    onChange={(e) => setWeight(Number(e.target.value))}
-                    className="w-full h-2 bg-primary-200 rounded-lg appearance-none cursor-pointer"
-                  />
+                  <label className="block text-lg font-black text-gray-700 mb-2">Cargo Value: {currentSymbol}{cargoValue.toLocaleString()}</label>
+                  <input type="range" min="1000" max="100000" step="1000" value={cargoValue} onChange={(e) => setCargoValue(Number(e.target.value))} className="w-full h-2 bg-primary-200 rounded-lg appearance-none cursor-pointer" />
+                  <div className="flex justify-between text-sm font-bold text-black mt-1">
+                    <span>{currentSymbol}1,000</span>
+                    <span>{currentSymbol}50,000</span>
+                    <span>{currentSymbol}100,000</span>
+                  </div>
+                  </div>
+
+                  <div>
+                  <label className="block text-lg font-black text-gray-700 mb-2">Weight per Item: {weight} kg</label>
+                  <input type="range" min="1" max="1000" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="w-full h-2 bg-primary-200 rounded-lg appearance-none cursor-pointer" />
                   <div className="flex justify-between text-sm font-bold text-black mt-1">
                     <span>1 kg</span>
                     <span>500 kg</span>
                     <span>1000 kg</span>
                   </div>
-                </div>
-                <div>
+                  </div>
+                  <div>
                   <label className="block text-lg font-black text-gray-700 mb-2">Select Quantity</label>
                   <div className="flex items-center space-x-4">
                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">-</button>
-                    <input
-                      type="number"
-                      min="1"
-                      value={quantity === 0 ? '' : quantity}
-                      onChange={handleQuantityChange}
-                      className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg"
-                    />
+                    <input type="number" min="1" value={quantity === 0 ? '' : quantity} onChange={handleQuantityChange} className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg" />
                     <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">+</button>
                   </div>
-                </div>
+                  </div>
               </div>
             </motion.div>
           </div>
+
+          <motion.div variants={containerAnimation} className="mt-8">
+            <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center">
+              <span className="mr-2">🛡️</span> Insurance & Risk Assessment
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-lg border-2 border-blue-200 shadow-lg">
+                <h3 className="text-xl font-black text-primary-600 mb-4">Insurance Coverage</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-gray-700">Premium:</span>
+                    <span className="font-bold text-green-600">{currentSymbol}{(insuranceCost * currentRate).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-gray-700">Coverage:</span>
+                    <span className="font-bold text-gray-600">All Risk</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-gray-700">Deductible:</span>
+                    <span className="font-bold text-gray-600">{currentSymbol}{(cargoValue * 0.01 * currentRate).toFixed(0)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-100 to-emerald-100 p-6 rounded-lg border-2 border-green-200 shadow-lg">
+                <h3 className="text-xl font-black text-primary-600 mb-4">Customs Information</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-gray-700">Duty Rate:</span>
+                    <span className="font-bold text-purple-600">{((customsData[destination]?.dutyRate || 0.08) * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-gray-700">Estimated Duty:</span>
+                    <span className="font-bold text-purple-600">{currentSymbol}{(customsDuty * currentRate).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-gray-700">Processing:</span>
+                    <span className="font-bold text-gray-600">{customsData[destination]?.processing || '2-4 days'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-100 to-pink-100 p-6 rounded-lg border-2 border-purple-200 shadow-lg">
+                <h3 className="text-xl font-black text-primary-600 mb-4">Documentation</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="font-bold text-gray-700">Required Documents:</div>
+                  <div className="text-gray-600">• Commercial Invoice</div>
+                  <div className="text-gray-600">• Packing List</div>
+                  <div className="text-gray-600">• Bill of Lading</div>
+                  <div className="text-gray-600">• Certificate of Origin</div>
+                  {cargoType === 'hazardous' && <div className="text-red-600">• Dangerous Goods Declaration</div>}
+                  {temperatureControl && <div className="text-blue-600">• Temperature Control Certificate</div>}
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
           <motion.div variants={containerAnimation} className="mt-8">
             <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center">
@@ -668,7 +757,7 @@ function Calculator() {
 
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center overflow-hidden">
             <img
-              src="https://images.pexels.com/photos/1108572/pexels-photo-1108572.jpeg?auto=compress&cs=tinysrgb&w=400"
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
               onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/000000/FFFFFF?text=Image+Load+Error"; }}
               alt="Container Ship"
               className="object-cover w-full h-full rounded-lg"
@@ -726,13 +815,13 @@ function Calculator() {
 
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
                 <img
-                    src="https://images.pexels.com/photos/1117210/pexels-photo-1117210.jpeg?auto=compress&cs=tinysrgb&w=400"
+                    src="https://www.freightnews.co.za/sites/default/files/styles/article-large/public/images/article/202409/4greenshipping.png?itok=QK4nCT9N"
                     onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+1+Load+Error"; }}
                     alt="Green Shipping"
                     className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
                 />
                 <img
-                    src="https://images.pexels.com/photos/906982/pexels-photo-906982.jpeg?auto=compress&cs=tinysrgb&w=400"
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
                     onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+2+Load+Error"; }}
                     alt="Sustainable Logistics"
                     className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
@@ -802,11 +891,19 @@ function Calculator() {
             </motion.div>
           </div>
 
-          <div className="text-center mt-8">
+          <div className="flex justify-center space-x-4 mt-8">
           <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,temperatureControl,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
             {({loading})=>(
               <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
-                {loading?'Generating PDF...':'Download PDF Quote'}
+                {loading?'Generating PDF...':'📄 Download Quote PDF'}
+              </motion.button>
+            )}
+          </PDFDownloadLink>
+
+          <PDFDownloadLink document={<InsuranceComplianceDocument data={{origin,destination,cargoValue,insuranceCost,customsDuty,currentSymbol,cargoType,temperatureControl}} />} fileName={`Insurance_Compliance_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
+            {({loading})=>(
+              <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-purple-600 text-white font-black rounded-lg hover:bg-purple-700 transition-colors shadow-lg text-lg" disabled={loading}>
+                {loading?'Generating PDF...':'🛡️ Download Insurance & Compliance'}
               </motion.button>
             )}
           </PDFDownloadLink>
