@@ -8,6 +8,7 @@ import ImageCarousel from '../components/ImageCarousel';
 import MaritimeQuotes from '../components/MaritimeQuotes';
 import ShippingStats from '../components/ShippingStats';
 import Features from '../components/Features';
+import RegulatoryInfo from '../components/RegulatoryInfo';
 import axios from 'axios';
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
@@ -65,6 +66,17 @@ const conversionRates = {
   GBP: { symbol: '£', name: 'British Pound', rate: 0.790 },
 };
 
+function getDeliveryRange(method, shippingDate) {
+  const match = shippingMethods[method].days.match(/(\d+)-(\d+)/);
+  if (!match || !shippingDate) return '';
+  const [minDays, maxDays] = [parseInt(match[1]), parseInt(match[2])];
+  const minDate = new Date(shippingDate);
+  const maxDate = new Date(shippingDate);
+  minDate.setDate(minDate.getDate() + minDays);
+  maxDate.setDate(maxDate.getDate() + maxDays);
+  return `${minDate.toLocaleDateString()} - ${maxDate.toLocaleDateString()}`;
+}
+
 function Calculator() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [origin, setOrigin] = useState(() => localStorage.getItem('selectedOrigin') || 'Dubai, UAE');
@@ -84,6 +96,10 @@ function Calculator() {
   const [error, setError] = useState(null);
   const [currency, setCurrency] = useState('USD');
   const [carbonFootprint, setCarbonFootprint] = useState(0);
+  const [shippingDate, setShippingDate] = useState(() => {
+    const stored = localStorage.getItem('shippingDate');
+    return stored ? stored : '';
+  });
 
   useEffect(() => {
     localStorage.setItem('selectedOrigin', origin);
@@ -100,6 +116,10 @@ function Calculator() {
   useEffect(() => {
     localStorage.setItem('selectedContainerType', containerType);
   }, [containerType]);
+
+  useEffect(() => {
+    localStorage.setItem('shippingDate', shippingDate);
+  }, [shippingDate]);
 
   const calculateDistance = (origin, destination) => {
     const R = 6371;
@@ -237,12 +257,16 @@ function Calculator() {
             <Text style={pdfStyles.detailValue}>{shippingMethods[quoteData.method].name}</Text>
           </View>
           <View style={pdfStyles.detailRow}>
-            <Text style={pdfStyles.detailLabel}>Temperature Control:</Text>
-            <Text style={pdfStyles.detailValue}>{quoteData.temperatureControl ? 'Yes' : 'No'}</Text>
+            <Text style={pdfStyles.detailLabel}>Preferred Shipping Date:</Text>
+            <Text style={pdfStyles.detailValue}>{quoteData.shippingDate ? new Date(quoteData.shippingDate).toLocaleDateString() : 'N/A'}</Text>
           </View>
           <View style={pdfStyles.detailRow}>
             <Text style={pdfStyles.detailLabel}>Estimated Delivery:</Text>
-            <Text style={pdfStyles.detailValue}>{shippingMethods[quoteData.method].days}</Text>
+            <Text style={pdfStyles.detailValue}>{quoteData.deliveryRange}</Text>
+          </View>
+          <View style={pdfStyles.detailRow}>
+            <Text style={pdfStyles.detailLabel}>Temperature Control:</Text>
+            <Text style={pdfStyles.detailValue}>{quoteData.temperatureControl ? 'Yes' : 'No'}</Text>
           </View>
           <View style={pdfStyles.detailRow}>
             <Text style={pdfStyles.detailLabel}>Carbon Footprint:</Text>
@@ -357,6 +381,17 @@ function Calculator() {
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-lg font-black text-gray-700 mb-2">Preferred Shipping Date</label>
+                  <input
+                    type="date"
+                    value={shippingDate}
+                    onChange={e => setShippingDate(e.target.value)}
+                    className="block w-full pl-3 pr-10 py-3 text-base font-bold border-blue-300 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-green-50 hover:from-blue-100 hover:to-green-100 transition"
+                    min={new Date().toISOString().split('T')[0]}
+                    style={{ fontSize: '1.15rem', borderWidth: '2px' }}
+                  />
+                </div>
                 <div className="flex flex-col space-y-4 pt-4">
                   <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
                   <img src="https://media.istockphoto.com/id/1939500219/photo/singapore-cityscape-at-night-twilight-drone-flight-panorama.jpg?s=612x612&w=0&k=20&c=WzBoQ0MoFPfwXVjICcjSGJHUOWlCvARaDIbhBK7hBig=" alt="Singapore Cityscape" className="rounded-lg object-cover w-full h-40 shadow-md" />
@@ -444,7 +479,6 @@ function Calculator() {
                     </label>
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-lg font-black text-gray-700 mb-2">
                     Weight per Item: {weight} kg
@@ -566,6 +600,8 @@ function Calculator() {
           </motion.div>
         </motion.div>
 
+        <RegulatoryInfo origin={origin} destination={destination} />
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -630,6 +666,14 @@ function Calculator() {
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
                   <span className="text-primary-600 font-black">Distance:</span>
                   <span className="font-bold">{distance.toLocaleString()} km</span>
+                </div>
+                <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
+                  <span className="text-primary-600 font-black">Preferred Shipping Date:</span>
+                  <span className="font-bold">{shippingDate ? new Date(shippingDate).toLocaleDateString() : 'N/A'}</span>
+                </div>
+                <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg">
+                  <span className="text-primary-600 font-black">Estimated Delivery:</span>
+                  <span className="font-bold">{getDeliveryRange(method, shippingDate)}</span>
                 </div>
               </div>
             </motion.div>
@@ -799,7 +843,7 @@ function Calculator() {
           </div>
 
           <div className="text-center mt-8">
-          <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,temperatureControl,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
+          <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,temperatureControl,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods,shippingDate,deliveryRange:getDeliveryRange(method,shippingDate)}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
             {({loading})=>(
               <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
                 {loading?'Generating PDF...':'Download PDF Quote'}
