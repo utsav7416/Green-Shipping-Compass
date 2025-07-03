@@ -209,8 +209,7 @@ function Calculator() {
   ];
 
   const containerAnimation = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 }
   };
 
   const currentEcoRating = shippingMethods[method].ecoRating;
@@ -291,9 +290,6 @@ function Calculator() {
         <View style={pdfStyles.footer}>
           <Text style={pdfStyles.footerText}>
             Green Shipping Compass | Committed to sustainable logistics.
-          </Text>
-          <Text style={pdfStyles.footerText}>
-            Contact: info@greenshippingcompass.com | Website: www.greenshippingcompass.com
           </Text>
         </View>
       </Page>
@@ -432,22 +428,10 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Cargo Type</label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(cargoTypes).map(([type, details]) => (
-                      <motion.button
-                        key={type}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setCargoType(type)}
-                        className={`p-4 rounded-lg text-center transition duration-300 ${
-                          cargoType === type
-                            ? 'bg-blue-100 border-2 border-green-1000 shadow-lg'
-                            : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'
-                        }`}
-                      >
+                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCargoType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${cargoType === type ? 'bg-blue-100 border-2 border-green-1000 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                         <div className="text-2xl mb-2">{details.icon}</div>
                         <div className="font-black">{details.name}</div>
-                        {details.surcharge > 0 && (
-                          <div className="text-sm font-bold text-red-500">+{details.surcharge * 100}% surcharge</div>
-                        )}
+                        {details.surcharge > 0 && <div className="text-sm font-bold text-red-500">+{details.surcharge * 100}% surcharge</div>}
                       </motion.button>
                     ))}
                   </div>
@@ -456,12 +440,7 @@ function Calculator() {
                 <div className="space-y-4">
                   <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
                     <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={temperatureControl}
-                        onChange={(e) => setTemperatureControl(e.target.checked)}
-                        className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                      />
+                      <input type="checkbox" checked={temperatureControl} onChange={(e) => setTemperatureControl(e.target.checked)} className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
                       <div className="flex-1">
                         <div className="text-lg font-black text-gray-700 flex items-center">
                           <span className="mr-2">🌡️</span>
@@ -470,44 +449,24 @@ function Calculator() {
                         <div className="text-sm font-bold text-gray-600 mt-1">
                           For fresh seafood, fruits, vegetables, chilled beverages, dairy products, medical injections, pharmaceuticals, vaccines, frozen foods, ice cream, meat products, and other temperature-sensitive cargo
                         </div>
-                        {temperatureControl && (
-                          <div className="text-sm font-bold text-blue-600 mt-2">
-                            +35% surcharge for refrigerated container service
-                          </div>
-                        )}
+                        {temperatureControl && <div className="text-sm font-bold text-blue-600 mt-2">+35% surcharge for refrigerated container service</div>}
                       </div>
                     </label>
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-lg font-black text-gray-700 mb-2">
-                    Weight per Item: {weight} kg
-                  </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="1000"
-                    value={weight}
-                    onChange={(e) => setWeight(Number(e.target.value))}
-                    className="w-full h-2 bg-primary-200 rounded-lg appearance-none cursor-pointer"
-                  />
+                  <label className="block text-lg font-black text-gray-700 mb-2">Weight per Item: {weight} kg</label>
+                  <input type="range" min="1" max="1000" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="w-full h-2 bg-primary-200 rounded-lg appearance-none cursor-pointer" />
                   <div className="flex justify-between text-sm font-bold text-black mt-1">
-                    <span>1 kg</span>
-                    <span>500 kg</span>
-                    <span>1000 kg</span>
+                    <span>1 kg</span><span>500 kg</span><span>1000 kg</span>
                   </div>
                 </div>
                 <div>
                   <label className="block text-lg font-black text-gray-700 mb-2">Select Quantity</label>
                   <div className="flex items-center space-x-4">
                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">-</button>
-                    <input
-                      type="number"
-                      min="1"
-                      value={quantity === 0 ? '' : quantity}
-                      onChange={handleQuantityChange}
-                      className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg"
-                    />
+                    <input type="number" min="1" value={quantity === 0 ? '' : quantity} onChange={handleQuantityChange} className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg" />
                     <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">+</button>
                   </div>
                 </div>
@@ -646,7 +605,7 @@ function Calculator() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1 w-full">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">🛣️</span> Route Details
               </h3>
@@ -678,7 +637,7 @@ function Calculator() {
               </div>
             </motion.div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1 w-full">
               <h3 className="font-black text-xl mb-4 flex items-center">
                 <span className="mr-2">📊</span> Shipping Details
               </h3>
@@ -706,11 +665,11 @@ function Calculator() {
               </div>
             </motion.div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center overflow-hidden">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center overflow-hidden w-3/4 mx-auto">
             <img
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsl9xvBLyi6SeToiGG_3QcEI7cm-28b_Bgug&s"
+              src="https://media.istockphoto.com/id/1324388948/photo/trade-port-shipping-cargo-to-harbor-aerial-view-from-drone-international-transportation.jpg?s=612x612&w=0&k=20&c=r5oYImtp9EqPTHtsujbwDwzu_0F84TnzVfayfOCa3Hs="
               onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/000000/FFFFFF?text=Image+Load+Error"; }}
-              alt="Image"
+              alt="Trade Port Shipping Cargo"
               className="object-cover w-full h-full"
             />
           </motion.div>
@@ -851,10 +810,8 @@ function Calculator() {
             )}
           </PDFDownloadLink>
         </div>
-
         </motion.div>
       </div>
-
       <Features />
       <MaritimeQuotes />
     </div>
@@ -862,3 +819,4 @@ function Calculator() {
 }
 
 export default Calculator;
+
