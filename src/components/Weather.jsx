@@ -55,36 +55,65 @@ const AnimatedWeatherBackground = ({ weather }) => {
 const AirPollutionInfo = ({ originData, destinationData, origin, destination }) => {
     if (!originData || !destinationData) return null;
 
-    const getAqiInfo = (aqi) => {
-        switch (aqi) {
-            case 1: return { text: 'Good', color: 'bg-green-100 text-green-800', advice: 'Air quality is excellent.' };
-            case 2: return { text: 'Fair', color: 'bg-yellow-100 text-yellow-800', advice: 'Air quality is acceptable.' };
-            case 3: return { text: 'Moderate', color: 'bg-orange-100 text-orange-800', advice: 'May affect sensitive groups.' };
-            case 4: return { text: 'Poor', color: 'bg-red-100 text-red-800', advice: 'Health effects may be felt.' };
-            case 5: return { text: 'Very Poor', color: 'bg-purple-100 text-purple-800', advice: 'Significant health risk.' };
-            default: return { text: 'Unknown', color: 'bg-gray-100 text-gray-800', advice: 'Data not available.' };
+    const calculateUsAqi = (pm25) => {
+        if (pm25 === undefined || pm25 === null) return { aqi: 'N/A', text: 'Unknown', color: 'bg-gray-100 text-gray-800', advice: 'PM2.5 data not available.' };
+    
+        let aqi, text, color, advice;
+    
+        if (pm25 <= 12.0) {
+            aqi = Math.round((50/12.0) * pm25);
+            text = 'Good';
+            color = 'bg-green-100 text-green-800';
+            advice = 'Air quality is considered satisfactory, and air pollution poses little or no risk.';
+        } else if (pm25 <= 35.4) {
+            aqi = Math.round(((100 - 51) / (35.4 - 12.1)) * (pm25 - 12.1) + 51);
+            text = 'Moderate';
+            color = 'bg-yellow-100 text-yellow-800';
+            advice = 'Air quality is acceptable; however, for some pollutants there may be a moderate health concern for a very small number of people who are unusually sensitive to air pollution.';
+        } else if (pm25 <= 55.4) {
+            aqi = Math.round(((150 - 101) / (55.4 - 35.5)) * (pm25 - 35.5) + 101);
+            text = 'Unhealthy for Sensitive Groups';
+            color = 'bg-orange-100 text-orange-800';
+            advice = 'Members of sensitive groups may experience health effects. The general public is not likely to be affected.';
+        } else if (pm25 <= 150.4) {
+            aqi = Math.round(((200 - 151) / (150.4 - 55.5)) * (pm25 - 55.5) + 151);
+            text = 'Unhealthy';
+            color = 'bg-red-100 text-red-800';
+            advice = 'Everyone may begin to experience health effects; members of sensitive groups may experience more serious health effects.';
+        } else if (pm25 <= 250.4) {
+            aqi = Math.round(((300 - 201) / (250.4 - 150.5)) * (pm25 - 150.5) + 201);
+            text = 'Very Unhealthy';
+            color = 'bg-purple-100 text-purple-800';
+            advice = 'Health alert: everyone may experience more serious health effects.';
+        } else {
+            aqi = Math.round(((500 - 301) / (500.4 - 250.5)) * (pm25 - 250.5) + 301);
+            text = 'Hazardous';
+            color = 'bg-maroon-100 text-maroon-800';
+            advice = 'Health warnings of emergency conditions. The entire population is more likely to be affected.';
         }
+        return { aqi, text, color, advice };
     };
 
     const renderPortData = (data, portName) => {
         if (!data || !data.list || !data.list[0]) return null;
-        const aqi = data.list[0].main.aqi;
         const components = data.list[0].components;
-        const aqiInfo = getAqiInfo(aqi);
+        const pm25 = components.pm2_5;
+        const aqiInfo = calculateUsAqi(pm25);
 
         return (
             <div className="bg-white p-4 rounded-lg">
                 <h4 className="font-black text-indigo-600 mb-2">{portName} Port Conditions</h4>
                 <div className="flex items-center space-x-3 mb-3">
                     <span className={`px-3 py-1 text-sm font-bold rounded-full ${aqiInfo.color}`}>
-                        AQI: {aqi} ({aqiInfo.text})
+                        US AQI: {aqiInfo.aqi}
                     </span>
-                    <p className="text-sm font-semibold text-gray-700">{aqiInfo.advice}</p>
+                     <p className="text-sm font-semibold text-gray-700">{aqiInfo.text}</p>
                 </div>
+                <p className="text-xs text-gray-600 mb-3">{aqiInfo.advice}</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                    <p><strong>CO:</strong> {components.co.toFixed(2)} μg/m³</p>
-                    <p><strong>NO₂:</strong> {components.no2.toFixed(2)} μg/m³</p>
+                    <p><strong>PM2.5:</strong> {pm25.toFixed(2)} μg/m³</p>
                     <p><strong>O₃:</strong> {components.o3.toFixed(2)} μg/m³</p>
+                    <p><strong>NO₂:</strong> {components.no2.toFixed(2)} μg/m³</p>
                     <p><strong>SO₂:</strong> {components.so2.toFixed(2)} μg/m³</p>
                 </div>
             </div>
@@ -122,81 +151,80 @@ const Weather = ({ origin, destination }) => {
 
     const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
-    const fetchWeatherData = async () => {
-        if (!API_KEY) {
-            setError('API key not configured. Ensure VITE_OPENWEATHER_API_KEY is set.');
-            setLoading(false);
-            return;
-        }
-
-        try {
-            setLoading(true);
-            setError(null);
-
-            const originCoords = ports[origin];
-            const destinationCoords = ports[destination];
-
-            if (!originCoords || !destinationCoords) {
-                throw new Error('Port coordinates not found');
-            }
-
-            const [
-                originResponse,
-                destinationResponse,
-                originForecastResponse,
-                destinationForecastResponse,
-                originPollutionResponse,
-                destinationPollutionResponse
-            ] = await Promise.all([
-                fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
-                fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
-                fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
-                fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
-                fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}`),
-                fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}`)
-            ]);
-
-            const responses = [originResponse, destinationResponse, originForecastResponse, destinationForecastResponse, originPollutionResponse, destinationPollutionResponse];
-            for (const res of responses) {
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.message || `Failed to fetch data (status: ${res.status})`);
-                }
-            }
-
-            const originData = await originResponse.json();
-            const destinationData = await destinationResponse.json();
-            const originForecastData = await originForecastResponse.json();
-            const destinationForecastData = await destinationForecastResponse.json();
-            const originPollutionData = await originPollutionResponse.json();
-            const destinationPollutionData = await destinationPollutionResponse.json();
-
-            setOriginWeather(originData);
-            setDestinationWeather(destinationData);
-            setOriginForecast(originForecastData);
-            setDestinationForecast(destinationForecastData);
-            setOriginPollution(originPollutionData);
-            setDestinationPollution(destinationPollutionData);
-
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        if (origin && destination) {
-            fetchWeatherData();
-        }
-    }, [origin, destination]);
+        const fetchWeatherData = async () => {
+            if (!API_KEY) {
+                setError('API key not configured. Ensure VITE_OPENWEATHER_API_KEY is set.');
+                setLoading(false);
+                return;
+            }
+            if (!origin || !destination) return;
+
+            try {
+                setLoading(true);
+                setError(null);
+
+                const originCoords = ports[origin];
+                const destinationCoords = ports[destination];
+
+                if (!originCoords || !destinationCoords) {
+                    throw new Error('Port coordinates not found');
+                }
+
+                const [
+                    originResponse,
+                    destinationResponse,
+                    originForecastResponse,
+                    destinationForecastResponse,
+                    originPollutionResponse,
+                    destinationPollutionResponse
+                ] = await Promise.all([
+                    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
+                    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
+                    fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
+                    fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
+                    fetch(`http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}`),
+                    fetch(`http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}`)
+                ]);
+
+                const responses = [originResponse, destinationResponse, originForecastResponse, destinationForecastResponse, originPollutionResponse, destinationPollutionResponse];
+                for (const res of responses) {
+                    if (!res.ok) {
+                        const errorData = await res.json();
+                        throw new Error(errorData.message || `Failed to fetch data (status: ${res.status})`);
+                    }
+                }
+
+                const originData = await originResponse.json();
+                const destinationData = await destinationResponse.json();
+                const originForecastData = await originForecastResponse.json();
+                const destinationForecastData = await destinationForecastResponse.json();
+                const originPollutionData = await originPollutionResponse.json();
+                const destinationPollutionData = await destinationPollutionResponse.json();
+
+                setOriginWeather(originData);
+                setDestinationWeather(destinationData);
+                setOriginForecast(originForecastData);
+                setDestinationForecast(destinationForecastData);
+                setOriginPollution(originPollutionData);
+                setDestinationPollution(destinationPollutionData);
+
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchWeatherData();
+    }, [origin, destination, API_KEY]);
 
     const getWeatherIcon = (condition) => {
-        if (condition.includes('rain') || condition.includes('drizzle')) {
+        const lowerCaseCondition = condition.toLowerCase();
+        if (lowerCaseCondition.includes('rain') || lowerCaseCondition.includes('drizzle')) {
             return <CloudRain className="w-12 h-12 text-blue-500" />;
-        } else if (condition.includes('cloud')) {
+        } else if (lowerCaseCondition.includes('cloud')) {
             return <Cloud className="w-12 h-12 text-gray-500" />;
-        } else if (condition.includes('clear')) {
+        } else if (lowerCaseCondition.includes('clear')) {
             return <Sun className="w-12 h-12 text-yellow-500" />;
         } else {
             return <Cloud className="w-12 h-12 text-gray-400" />;
@@ -211,6 +239,7 @@ const Weather = ({ origin, destination }) => {
     };
 
     const getShippingRecommendation = (weather) => {
+        if (!weather || !weather.weather) return {};
         const windSpeed = Math.round(weather.wind.speed * 3.6);
         const visibility = weather.visibility ? Math.round(weather.visibility / 1000) : 10;
         const condition = weather.weather[0].main;
@@ -230,11 +259,21 @@ const Weather = ({ origin, destination }) => {
     const WeatherGraph = () => {
         if (!originForecast || !destinationForecast || !originPollution || !destinationPollution) return null;
 
+        const calculateAqiFromPm25 = (pm25) => {
+            if (pm25 === undefined || pm25 === null) return 0;
+            if (pm25 <= 12.0) return Math.round((50/12.0) * pm25);
+            if (pm25 <= 35.4) return Math.round(((100 - 51) / (35.4 - 12.1)) * (pm25 - 12.1) + 51);
+            if (pm25 <= 55.4) return Math.round(((150 - 101) / (55.4 - 35.5)) * (pm25 - 35.5) + 101);
+            if (pm25 <= 150.4) return Math.round(((200 - 151) / (150.4 - 55.5)) * (pm25 - 55.5) + 151);
+            if (pm25 <= 250.4) return Math.round(((300 - 201) / (250.4 - 150.5)) * (pm25 - 150.5) + 201);
+            return Math.round(((500 - 301) / (500.4 - 250.5)) * (pm25 - 250.5) + 301);
+        };
+    
         const combinedData = originForecast.list.slice(0, 8).map((item, index) => {
             const destItem = destinationForecast.list[index];
-            const originPollutant = originPollution.list[0]?.components || {};
-            const destPollutant = destinationPollution.list[0]?.components || {};
-
+            const originPollutant = originPollution.list[index];
+            const destPollutant = destinationPollution.list[index];
+    
             return {
                 time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 originTemp: Math.round(item.main.temp),
@@ -247,8 +286,8 @@ const Weather = ({ origin, destination }) => {
                 destinationPressure: destItem ? destItem.main.pressure : 0,
                 originVisibility: item.visibility ? Math.round(item.visibility / 1000) : 10,
                 destinationVisibility: destItem ? (destItem.visibility ? Math.round(destItem.visibility / 1000) : 10) : 0,
-                originAqi: originPollution.list[0]?.main.aqi || 0,
-                destinationAqi: destinationPollution.list[0]?.main.aqi || 0,
+                originAqi: originPollutant ? calculateAqiFromPm25(originPollutant.components.pm2_5) : 0,
+                destinationAqi: destPollutant ? calculateAqiFromPm25(destPollutant.components.pm2_5) : 0,
             };
         });
 
@@ -271,7 +310,7 @@ const Weather = ({ origin, destination }) => {
                     <BarChart3 className="w-6 h-6 mr-3" />
                     Real-Time Weather Analytics
                 </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-gray-800 p-4 rounded-lg shadow-sm">
                         <h4 className="font-black text-blue-400 mb-3">Temperature Trends (°C)</h4>
                         <ResponsiveContainer width="100%" height={200}>
@@ -343,16 +382,16 @@ const Weather = ({ origin, destination }) => {
                         </ResponsiveContainer>
                     </div>
                     <div className="bg-gray-800 p-4 rounded-lg shadow-sm">
-                        <h4 className="font-black text-red-400 mb-3">Air Quality Index (AQI)</h4>
+                        <h4 className="font-black text-red-400 mb-3">US Air Quality Index (AQI)</h4>
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={combinedData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#555" />
                                 <XAxis dataKey="time" {...chartAxisStyle} />
-                                <YAxis domain={[0, 5]} allowDecimals={false} {...chartAxisStyle} />
+                                <YAxis domain={[0, 'dataMax + 20']} {...chartAxisStyle} />
                                 <Tooltip {...chartTooltipStyle} />
                                 <Legend {...chartLegendStyle} />
-                                <Bar dataKey="originAqi" fill="#d946ef" name={`${origin} AQI`} />
-                                <Bar dataKey="destinationAqi" fill="#ec4899" name={`${destination} AQI`} />
+                                <Bar dataKey="originAqi" fill="#d946ef" name={`${origin} US AQI`} />
+                                <Bar dataKey="destinationAqi" fill="#ec4899" name={`${destination} US AQI`} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -366,7 +405,7 @@ const Weather = ({ origin, destination }) => {
 
         const temp = Math.round(weather.main.temp);
         const feelsLike = Math.round(weather.main.feels_like);
-        const condition = weather.weather[0].main.toLowerCase();
+        const condition = weather.weather[0].main;
         const description = weather.weather[0].description;
         const windSpeed = Math.round(weather.wind.speed * 3.6);
         const windDir = weather.wind.deg;
@@ -543,11 +582,20 @@ const Weather = ({ origin, destination }) => {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Loading live weather data...
+                        Loading live weather and pollution data...
                     </div>
                 </div>
             </motion.div>
         );
+    }
+    
+    if (error) {
+        return (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-8" role="alert">
+                <strong className="font-bold">Error: </strong>
+                <span className="block sm:inline">{error}</span>
+            </div>
+        )
     }
 
     return (
@@ -563,7 +611,7 @@ const Weather = ({ origin, destination }) => {
                     Live Weather Conditions
                 </h2>
                 <p className="text-lg font-bold text-gray-700">
-                    Real-time weather data for optimal shipping decisions and cargo protection
+                    Real-time data for optimal shipping decisions and cargo protection
                 </p>
                 <p className="text-sm font-bold text-gray-600 mt-2">
                     Last updated: {new Date().toLocaleString()}
@@ -584,7 +632,7 @@ const Weather = ({ origin, destination }) => {
             </div>
 
             <WeatherGraph />
-
+            
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
