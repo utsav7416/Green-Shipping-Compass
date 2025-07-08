@@ -183,8 +183,8 @@ const Weather = ({ origin, destination }) => {
                     fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
                     fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
                     fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
-                    fetch(`http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}`),
-                    fetch(`http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}`)
+                    fetch(`https://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}`),
+                    fetch(`https://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}`)
                 ]);
 
                 const responses = [originResponse, destinationResponse, originForecastResponse, destinationForecastResponse, originPollutionResponse, destinationPollutionResponse];
