@@ -726,20 +726,26 @@ function Calculator() {
               </div>
             </motion.div>
 
-            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
-                <img
-                    src="https://www.freightnews.co.za/sites/default/files/styles/article-large/public/images/article/202409/4greenshipping.png?itok=QK4nCT9N"
-                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+1+Load+Error"; }}
-                    alt="Green Shipping Image 1"
-                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
-                />
-                <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
-                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+2+Load+Error"; }}
-                    alt="Green Shipping Image 2"
-                    className="rounded-lg object-cover w-full max-w-[250px] h-auto shadow-md"
-                />
-            </motion.div>
+            <motion.div 
+              variants={containerAnimation} 
+              className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md col-span-1 flex flex-col justify-center items-center space-y-4">
+              <div className="w-full max-w-[250px] aspect-square">
+                  <img
+                      src="https://i0.wp.com/www.globaltrademag.com/wp-content/uploads/2025/02/shutterstock_2417610071-scaled.jpg?fit=2560%2C1438&ssl=1"
+                      onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+1+Load+Error"; }}
+                      alt="Green Shipping Image 1"
+                      className="rounded-lg object-cover w-full h-full shadow-md"
+                  />
+              </div>
+              <div className="w-full max-w-[250px] aspect-square">
+                  <img
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQogpd7JAjs7KDbGx_ga_vCQIZS7ALwstspog&s"
+                      onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/000000/FFFFFF?text=Image+2+Load+Error"; }}
+                      alt="Green Shipping Image 2"
+                      className="rounded-lg object-cover w-full h-full shadow-md"
+                  />
+              </div>
+          </motion.div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">

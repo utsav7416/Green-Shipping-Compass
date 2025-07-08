@@ -12,7 +12,7 @@ const Weather = ({ origin, destination }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
+  const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
   const getWeatherIcon = (condition, iconCode) => {
     const hour = new Date().getHours();
@@ -82,7 +82,7 @@ const Weather = ({ origin, destination }) => {
 
   const fetchWeatherData = async () => {
     if (!API_KEY) {
-      setError('API key not configured');
+      setError('API key not configured. Ensure VITE_OPENWEATHER_API_KEY is set.');
       setLoading(false);
       return;
     }
@@ -274,12 +274,6 @@ const Weather = ({ origin, destination }) => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
-
-        <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg">
-          <p className="text-sm font-bold text-blue-800">
-            📊 Live data updates every 3 hours from OpenWeatherMap API. Charts show next 24-hour forecast for both ports with real-time weather parameters including temperature, wind speed, humidity, and atmospheric pressure trends.
-          </p>
         </div>
       </motion.div>
     );
@@ -676,5 +670,3 @@ const Weather = ({ origin, destination }) => {
 };
 
 export default Weather;
-
-
