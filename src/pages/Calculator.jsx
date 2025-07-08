@@ -8,6 +8,7 @@ import ImageCarousel from '../components/ImageCarousel';
 import MaritimeQuotes from '../components/MaritimeQuotes';
 import ShippingStats from '../components/ShippingStats';
 import Features from '../components/Features';
+import Weather from '../components/Weather';
 import RegulatoryInfo from '../components/RegulatoryInfo';
 import axios from 'axios';
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
@@ -559,6 +560,8 @@ function Calculator() {
           </motion.div>
         </motion.div>
 
+        <Weather origin={origin} destination={destination} />
+
         <RegulatoryInfo origin={origin} destination={destination} />
 
         <motion.div
@@ -819,4 +822,3 @@ function Calculator() {
 }
 
 export default Calculator;
-
