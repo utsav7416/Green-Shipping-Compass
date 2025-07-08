@@ -10,7 +10,17 @@ function RegulatoryInfo({ origin, destination }) {
   ];
 
   return (
-    <div className="my-8">
+    <div className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8">
+      <div className="text-center mb-8">
+        <h2 className="text-4xl font-black text-primary-600 mb-4 flex items-center justify-center">
+          <span className="mr-3">📜</span>
+          Port-Specific Regulations
+        </h2>
+        <p className="text-lg font-bold text-gray-700">
+          Restricted items and documentation requirements for your selected ports.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {portList.map(({ label, port }) => (
           port && (

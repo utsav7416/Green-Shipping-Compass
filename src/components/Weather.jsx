@@ -1,23 +1,197 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Cloud, Sun, CloudRain, Wind, Thermometer, Droplets, Eye, Gauge, Sunrise, Sunset, Navigation, Waves, AlertTriangle, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { Cloud, Sun, CloudRain, Wind, Thermometer, Droplets, Eye, Gauge, Sunrise, Sunset, Navigation, Waves, AlertTriangle, TrendingUp, TrendingDown, BarChart3, Leaf } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Legend } from 'recharts';
 import { ports } from '../data/ports';
+
+const AnimatedWeatherBackground = ({ weather }) => {
+  if (!weather) return null;
+
+  const condition = weather.weather[0].main;
+  let animationContent = null;
+
+  switch (condition) {
+    case 'Rain':
+    case 'Drizzle':
+      animationContent = (
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(60)].map((_, i) => (
+            <div
+              key={i}
+              className="raindrop"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${0.5 + Math.random() * 0.5}s`,
+              }}
+            />
+          ))}
+        </div>
+      );
+      break;
+    case 'Clouds':
+      animationContent = (
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="cloud-background cloud-1" />
+          <div className="cloud-background cloud-2" />
+          <div className="cloud-background cloud-3" />
+        </div>
+      );
+      break;
+    case 'Clear':
+       animationContent = (
+        <div className="absolute top-0 right-0 overflow-hidden">
+          <div className="sun-background" />
+        </div>
+      );
+      break;
+    default:
+      animationContent = null;
+  }
+
+  return <div className="absolute inset-0 -z-10">{animationContent}</div>;
+};
+
+const AirPollutionInfo = ({ originData, destinationData, origin, destination }) => {
+  if (!originData || !destinationData) return null;
+
+  const getAqiInfo = (aqi) => {
+    switch (aqi) {
+      case 1: return { text: 'Good', color: 'bg-green-100 text-green-800', advice: 'Air quality is excellent.' };
+      case 2: return { text: 'Fair', color: 'bg-yellow-100 text-yellow-800', advice: 'Air quality is acceptable.' };
+      case 3: return { text: 'Moderate', color: 'bg-orange-100 text-orange-800', advice: 'May affect sensitive groups.' };
+      case 4: return { text: 'Poor', color: 'bg-red-100 text-red-800', advice: 'Health effects may be felt.' };
+      case 5: return { text: 'Very Poor', color: 'bg-purple-100 text-purple-800', advice: 'Significant health risk.' };
+      default: return { text: 'Unknown', color: 'bg-gray-100 text-gray-800', advice: 'Data not available.' };
+    }
+  };
+
+  const renderPortData = (data, portName) => {
+    if (!data || !data.list || !data.list[0]) return null;
+    const aqi = data.list[0].main.aqi;
+    const components = data.list[0].components;
+    const aqiInfo = getAqiInfo(aqi);
+
+    return (
+      <div className="bg-white p-4 rounded-lg">
+        <h4 className="font-black text-indigo-600 mb-2">{portName} Port Conditions</h4>
+        <div className="flex items-center space-x-3 mb-3">
+          <span className={`px-3 py-1 text-sm font-bold rounded-full ${aqiInfo.color}`}>
+            AQI: {aqiInfo.text}
+          </span>
+          <p className="text-sm font-semibold text-gray-700">{aqiInfo.advice}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <p><strong>CO:</strong> {components.co.toFixed(2)} μg/m³</p>
+          <p><strong>NO₂:</strong> {components.no2.toFixed(2)} μg/m³</p>
+          <p><strong>O₃:</strong> {components.o3.toFixed(2)} μg/m³</p>
+          <p><strong>SO₂:</strong> {components.so2.toFixed(2)} μg/m³</p>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.7 }}
+      className="mt-6 bg-gradient-to-r from-indigo-100 to-purple-100 p-6 rounded-lg border-2 border-indigo-200"
+    >
+      <h3 className="text-xl font-black text-primary-600 mb-3 flex items-center">
+        <Leaf className="mr-2" />
+        Air & Sea Conditions Analysis
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {renderPortData(originData, origin)}
+        {renderPortData(destinationData, destination)}
+      </div>
+    </motion.div>
+  );
+};
 
 const Weather = ({ origin, destination }) => {
   const [originWeather, setOriginWeather] = useState(null);
   const [destinationWeather, setDestinationWeather] = useState(null);
   const [originForecast, setOriginForecast] = useState(null);
   const [destinationForecast, setDestinationForecast] = useState(null);
+  const [originPollution, setOriginPollution] = useState(null);
+  const [destinationPollution, setDestinationPollution] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
-  const getWeatherIcon = (condition, iconCode) => {
-    const hour = new Date().getHours();
-    const isNight = hour < 6 || hour > 18;
-    
+  const fetchWeatherData = async () => {
+    if (!API_KEY) {
+      setError('API key not configured. Ensure VITE_OPENWEATHER_API_KEY is set.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const originCoords = ports[origin];
+      const destinationCoords = ports[destination];
+
+      if (!originCoords || !destinationCoords) {
+        throw new Error('Port coordinates not found');
+      }
+
+      const [
+        originResponse, 
+        destinationResponse, 
+        originForecastResponse, 
+        destinationForecastResponse,
+        originPollutionResponse,
+        destinationPollutionResponse
+      ] = await Promise.all([
+        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
+        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
+        fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
+        fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
+        fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}`),
+        fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}`)
+      ]);
+
+      const responses = [originResponse, destinationResponse, originForecastResponse, destinationForecastResponse, originPollutionResponse, destinationPollutionResponse];
+      for (const res of responses) {
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || `Failed to fetch data (status: ${res.status})`);
+        }
+      }
+
+      const originData = await originResponse.json();
+      const destinationData = await destinationResponse.json();
+      const originForecastData = await originForecastResponse.json();
+      const destinationForecastData = await destinationForecastResponse.json();
+      const originPollutionData = await originPollutionResponse.json();
+      const destinationPollutionData = await destinationPollutionResponse.json();
+
+      setOriginWeather(originData);
+      setDestinationWeather(destinationData);
+      setOriginForecast(originForecastData);
+      setDestinationForecast(destinationForecastData);
+      setOriginPollution(originPollutionData);
+      setDestinationPollution(destinationPollutionData);
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (origin && destination) {
+        fetchWeatherData();
+    }
+  }, [origin, destination]);
+  
+  const getWeatherIcon = (condition) => {
     if (condition.includes('rain') || condition.includes('drizzle')) {
       return <CloudRain className="w-12 h-12 text-blue-500" />;
     } else if (condition.includes('cloud')) {
@@ -56,7 +230,7 @@ const Weather = ({ origin, destination }) => {
     return description;
   };
 
-  const getSeaConditions = (windSpeed, weather) => {
+  const getSeaConditions = (windSpeed) => {
     if (windSpeed > 25) return { condition: 'Rough seas', color: 'text-red-600', icon: '🌊', severity: 'high' };
     if (windSpeed > 15) return { condition: 'Moderate seas', color: 'text-yellow-600', icon: '🌊', severity: 'medium' };
     if (windSpeed > 8) return { condition: 'Slight seas', color: 'text-blue-600', icon: '🌊', severity: 'low' };
@@ -79,55 +253,6 @@ const Weather = ({ origin, destination }) => {
     }
     return { text: 'Optimal conditions - Safe for all operations', color: 'bg-green-100 text-green-800', icon: '✅' };
   };
-
-  const fetchWeatherData = async () => {
-    if (!API_KEY) {
-      setError('API key not configured. Ensure VITE_OPENWEATHER_API_KEY is set.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const originCoords = ports[origin];
-      const destinationCoords = ports[destination];
-
-      if (!originCoords || !destinationCoords) {
-        throw new Error('Port coordinates not found');
-      }
-
-      const [originResponse, destinationResponse, originForecastResponse, destinationForecastResponse] = await Promise.all([
-        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
-        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`),
-        fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${originCoords.lat}&lon=${originCoords.lon}&appid=${API_KEY}&units=metric`),
-        fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${destinationCoords.lat}&lon=${destinationCoords.lon}&appid=${API_KEY}&units=metric`)
-      ]);
-
-      if (!originResponse.ok || !destinationResponse.ok || !originForecastResponse.ok || !destinationForecastResponse.ok) {
-        throw new Error('Failed to fetch weather data');
-      }
-
-      const originData = await originResponse.json();
-      const destinationData = await destinationResponse.json();
-      const originForecastData = await originForecastResponse.json();
-      const destinationForecastData = await destinationForecastResponse.json();
-
-      setOriginWeather(originData);
-      setDestinationWeather(destinationData);
-      setOriginForecast(originForecastData);
-      setDestinationForecast(destinationForecastData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchWeatherData();
-  }, [origin, destination]);
 
   const WeatherGraph = () => {
     if (!originForecast || !destinationForecast) return null;
@@ -173,7 +298,6 @@ const Weather = ({ origin, destination }) => {
           <BarChart3 className="w-6 h-6 mr-3" />
           Real-Time Weather Analytics
         </h3>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h4 className="font-black text-blue-600 mb-3">Temperature Trends (°C)</h4>
@@ -184,28 +308,11 @@ const Weather = ({ origin, destination }) => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Area
-                  type="monotone"
-                  dataKey="originTemp"
-                  stackId="1"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.6}
-                  name={`${origin} Temp`}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="destinationTemp"
-                  stackId="2"
-                  stroke="#10b981"
-                  fill="#10b981"
-                  fillOpacity={0.6}
-                  name={`${destination} Temp`}
-                />
+                <Area type="monotone" dataKey="originTemp" stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} name={`${origin} Temp`}/>
+                <Area type="monotone" dataKey="destinationTemp" stackId="2" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name={`${destination} Temp`}/>
               </AreaChart>
             </ResponsiveContainer>
           </div>
-
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h4 className="font-black text-green-600 mb-3">Wind Speed Comparison (km/h)</h4>
             <ResponsiveContainer width="100%" height={200}>
@@ -220,7 +327,6 @@ const Weather = ({ origin, destination }) => {
               </BarChart>
             </ResponsiveContainer>
           </div>
-
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h4 className="font-black text-purple-600 mb-3">Humidity Levels (%)</h4>
             <ResponsiveContainer width="100%" height={200}>
@@ -230,24 +336,11 @@ const Weather = ({ origin, destination }) => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="originHumidity"
-                  stroke="#f59e0b"
-                  strokeWidth={3}
-                  name={`${origin} Humidity`}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="destinationHumidity"
-                  stroke="#ef4444"
-                  strokeWidth={3}
-                  name={`${destination} Humidity`}
-                />
+                <Line type="monotone" dataKey="originHumidity" stroke="#f59e0b" strokeWidth={3} name={`${origin} Humidity`}/>
+                <Line type="monotone" dataKey="destinationHumidity" stroke="#ef4444" strokeWidth={3} name={`${destination} Humidity`}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
-
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h4 className="font-black text-indigo-600 mb-3">Atmospheric Pressure (hPa)</h4>
             <ResponsiveContainer width="100%" height={200}>
@@ -257,20 +350,8 @@ const Weather = ({ origin, destination }) => {
                 <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
                 <Tooltip />
                 <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="originPressure"
-                  stroke="#7c3aed"
-                  strokeWidth={2}
-                  name={`${origin} Pressure`}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="destinationPressure"
-                  stroke="#059669"
-                  strokeWidth={2}
-                  name={`${destination} Pressure`}
-                />
+                <Line type="monotone" dataKey="originPressure" stroke="#7c3aed" strokeWidth={2} name={`${origin} Pressure`}/>
+                <Line type="monotone" dataKey="destinationPressure" stroke="#059669" strokeWidth={2} name={`${destination} Pressure`}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -294,7 +375,7 @@ const Weather = ({ origin, destination }) => {
     const sunrise = new Date(weather.sys.sunrise * 1000);
     const sunset = new Date(weather.sys.sunset * 1000);
     const dewPoint = weather.main.temp - ((100 - weather.main.humidity) / 5);
-    const seaConditions = getSeaConditions(windSpeed, weather);
+    const seaConditions = getSeaConditions(windSpeed);
     const recommendation = getShippingRecommendation(weather);
 
     const getWindDirection = (deg) => {
@@ -321,179 +402,128 @@ const Weather = ({ origin, destination }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-lg shadow-lg border-2 border-blue-200"
+        className="relative overflow-hidden bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-lg shadow-lg border-2 border-blue-200"
       >
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-2xl font-black text-primary-600 flex items-center">
-              {type === 'origin' ? '🚢' : '🏁'} {location}
-            </h3>
-            <p className="text-sm font-bold text-gray-600">{type === 'origin' ? 'Departure Port' : 'Arrival Port'}</p>
-          </div>
-          <div className="text-center">
-            {getWeatherIcon(condition, weather.weather[0].icon)}
-            <p className="text-sm font-bold text-gray-600 mt-1 capitalize">{description}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
-            <Thermometer className="w-5 h-5 text-red-500" />
+        <AnimatedWeatherBackground weather={weather} />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-2xl font-black text-primary-600">{temp}°C</p>
-              <div className="flex items-center text-xs font-bold text-gray-500">
-                <span>Feels {feelsLike}°C</span>
-                {tempTrend && tempTrend.icon && (
-                  <tempTrend.icon className={`w-3 h-3 ml-1 ${tempTrend.color}`} />
-                )}
+              <h3 className="text-2xl font-black text-primary-600 flex items-center">
+                {type === 'origin' ? '🚢' : '🏁'} {location}
+              </h3>
+              <p className="text-sm font-bold text-gray-600">{type === 'origin' ? 'Departure Port' : 'Arrival Port'}</p>
+            </div>
+            <div className="text-center">
+              {getWeatherIcon(condition)}
+              <p className="text-sm font-bold text-gray-600 mt-1 capitalize">{description}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+              <Thermometer className="w-5 h-5 text-red-500" />
+              <div>
+                <p className="text-2xl font-black text-primary-600">{temp}°C</p>
+                <div className="flex items-center text-xs font-bold text-gray-500">
+                  <span>Feels {feelsLike}°C</span>
+                  {tempTrend && tempTrend.icon && (
+                    <tempTrend.icon className={`w-3 h-3 ml-1 ${tempTrend.color}`} />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+              <Wind className="w-5 h-5 text-blue-500" />
+              <div>
+                <p className="text-lg font-black text-primary-600">{windSpeed} km/h</p>
+                <p className="text-xs font-bold text-gray-500">{getWindDirection(windDir)}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+              <Droplets className="w-5 h-5 text-blue-600" />
+              <div>
+                <p className="text-lg font-black text-primary-600">{humidity}%</p>
+                <p className="text-xs font-bold text-gray-500">Humidity</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+              <Gauge className="w-5 h-5 text-purple-500" />
+              <div>
+                <p className="text-lg font-black text-primary-600">{pressure}</p>
+                <p className="text-xs font-bold text-gray-500">hPa</p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
-            <Wind className="w-5 h-5 text-blue-500" />
-            <div>
-              <p className="text-lg font-black text-primary-600">{windSpeed} km/h</p>
-              <p className="text-xs font-bold text-gray-500">{getWindDirection(windDir)}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+              <Eye className="w-5 h-5 text-green-500" />
+              <div>
+                <p className="text-lg font-black text-primary-600">{visibility} km</p>
+                <p className="text-xs font-bold text-gray-500">Visibility</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+              <div className="flex items-center space-x-2 mb-1">
+                <Sunrise className="w-4 h-4 text-orange-500" />
+                <span className="text-xs font-bold text-gray-500">Sunrise</span>
+              </div>
+              <p className="text-sm font-black text-primary-600">{sunrise.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+            </div>
+
+            <div className="p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+              <div className="flex items-center space-x-2 mb-1">
+                <Sunset className="w-4 h-4 text-orange-600" />
+                <span className="text-xs font-bold text-gray-500">Sunset</span>
+              </div>
+              <p className="text-sm font-black text-primary-600">{sunset.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+            </div>
+
+            <div className="p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+              <div className="flex items-center space-x-2 mb-1">
+                <Droplets className="w-4 h-4 text-blue-400" />
+                <span className="text-xs font-bold text-gray-500">Dew Point</span>
+              </div>
+              <p className="text-sm font-black text-primary-600">{dewPoint.toFixed(1)}°C</p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
-            <Droplets className="w-5 h-5 text-blue-600" />
-            <div>
-              <p className="text-lg font-black text-primary-600">{humidity}%</p>
-              <p className="text-xs font-bold text-gray-500">Humidity</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className={`p-3 rounded-lg border-l-4 ${seaConditions.severity === 'high' ? 'border-red-500 bg-red-50' : seaConditions.severity === 'medium' ? 'border-yellow-500 bg-yellow-50' : seaConditions.severity === 'low' ? 'border-blue-500 bg-blue-50' : 'border-green-500 bg-green-50'}`}>
+              <div className="flex items-center space-x-2 mb-1">
+                <Waves className={`w-5 h-5 ${seaConditions.color}`} />
+                <span className="font-black text-gray-700">Sea Conditions</span>
+              </div>
+              <p className={`text-sm font-bold ${seaConditions.color}`}>
+                {seaConditions.icon} {seaConditions.condition}
+              </p>
+              <p className="text-xs text-gray-600 mt-1">
+                Based on {windSpeed} km/h winds
+              </p>
+            </div>
+
+            <div className={`p-3 rounded-lg ${recommendation.color}`}>
+              <div className="flex items-center space-x-2 mb-1">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-black">Shipping Advisory</span>
+              </div>
+              <p className="text-sm font-bold">
+                {recommendation.icon} {recommendation.text}
+              </p>
+              <p className="text-sm font-bold text-gray-600 mt-2">
+                {weather.weather[0].main === 'Clear' && '☀️ Perfect conditions for cargo operations'}
+                {weather.weather[0].main === 'Clouds' && '☁️ Overcast but suitable for shipping'}
+                {weather.weather[0].main === 'Rain' && '🌧️ Wet conditions - extra care needed'}
+                {weather.weather[0].main === 'Thunderstorm' && '⛈️ Severe weather - operations may be delayed'}
+                {weather.weather[0].main === 'Snow' && '❄️ Cold conditions - temperature-sensitive cargo protection required'}
+                {weather.weather[0].main === 'Fog' && '🌫️ Low visibility - potential delays in port operations'}
+              </p>
             </div>
           </div>
-
-          <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
-            <Gauge className="w-5 h-5 text-purple-500" />
-            <div>
-              <p className="text-lg font-black text-primary-600">{pressure}</p>
-              <p className="text-xs font-bold text-gray-500">hPa</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
-            <Eye className="w-5 h-5 text-green-500" />
-            <div>
-              <p className="text-lg font-black text-primary-600">{visibility} km</p>
-              <p className="text-xs font-bold text-gray-500">Visibility</p>
-            </div>
-          </div>
-
-          <div className="p-3 bg-white rounded-lg">
-            <div className="flex items-center space-x-2 mb-1">
-              <Sunrise className="w-4 h-4 text-orange-500" />
-              <span className="text-xs font-bold text-gray-500">Sunrise</span>
-            </div>
-            <p className="text-sm font-black text-primary-600">{sunrise.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-          </div>
-
-          <div className="p-3 bg-white rounded-lg">
-            <div className="flex items-center space-x-2 mb-1">
-              <Sunset className="w-4 h-4 text-orange-600" />
-              <span className="text-xs font-bold text-gray-500">Sunset</span>
-            </div>
-            <p className="text-sm font-black text-primary-600">{sunset.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-          </div>
-
-          <div className="p-3 bg-white rounded-lg">
-            <div className="flex items-center space-x-2 mb-1">
-              <Droplets className="w-4 h-4 text-blue-400" />
-              <span className="text-xs font-bold text-gray-500">Dew Point</span>
-            </div>
-            <p className="text-sm font-black text-primary-600">{dewPoint.toFixed(1)}°C</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className={`p-3 rounded-lg border-l-4 ${seaConditions.severity === 'high' ? 'border-red-500 bg-red-50' : seaConditions.severity === 'medium' ? 'border-yellow-500 bg-yellow-50' : seaConditions.severity === 'low' ? 'border-blue-500 bg-blue-50' : 'border-green-500 bg-green-50'}`}>
-            <div className="flex items-center space-x-2 mb-1">
-              <Waves className={`w-5 h-5 ${seaConditions.color}`} />
-              <span className="font-black text-gray-700">Sea Conditions</span>
-            </div>
-            <p className={`text-sm font-bold ${seaConditions.color}`}>
-              {seaConditions.icon} {seaConditions.condition}
-            </p>
-            <p className="text-xs text-gray-600 mt-1">
-              Based on {windSpeed} km/h winds
-            </p>
-          </div>
-
-          <div className={`p-3 rounded-lg ${recommendation.color}`}>
-            <div className="flex items-center space-x-2 mb-1">
-              <AlertTriangle className="w-5 h-5" />
-              <span className="font-black">Shipping Advisory</span>
-            </div>
-            <p className="text-sm font-bold">
-              {recommendation.icon} {recommendation.text}
-            </p>
-            <p className="text-sm font-bold text-gray-600 mt-2">
-              {weather.weather[0].main === 'Clear' && '☀️ Perfect conditions for cargo operations'}
-              {weather.weather[0].main === 'Clouds' && '☁️ Overcast but suitable for shipping'}
-              {weather.weather[0].main === 'Rain' && '🌧️ Wet conditions - extra care needed'}
-              {weather.weather[0].main === 'Thunderstorm' && '⛈️ Severe weather - operations may be delayed'}
-              {weather.weather[0].main === 'Snow' && '❄️ Cold conditions - temperature-sensitive cargo protection required'}
-              {weather.weather[0].main === 'Fog' && '🌫️ Low visibility - potential delays in port operations'}
-            </p>
-          </div>
-        </div>
-
-        {type === 'origin' && originForecast && (
-          <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-            <h4 className="font-black text-blue-700 mb-3 flex items-center">
-              <Navigation className="w-4 h-4 mr-2" />
-              24-Hour Forecast Trend
-            </h4>
-            <div className="grid grid-cols-4 gap-2">
-              {originForecast.list.slice(0, 4).map((item, index) => {
-                const time = new Date(item.dt * 1000);
-                const temp = Math.round(item.main.temp);
-                const wind = Math.round(item.wind.speed * 3.6);
-                return (
-                  <div key={index} className="text-center p-2 bg-white rounded text-xs">
-                    <div className="font-bold text-gray-600">{time.toLocaleTimeString([], {hour: '2-digit'})}</div>
-                    <div className="text-lg">{getWeatherIcon(item.weather[0].main.toLowerCase())}</div>
-                    <div className="font-bold text-blue-600">{temp}°C</div>
-                    <div className="text-gray-500">{wind} km/h</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {type === 'destination' && destinationForecast && (
-          <div className="mt-4 bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-            <h4 className="font-black text-green-700 mb-3 flex items-center">
-              <Navigation className="w-4 h-4 mr-2" />
-              24-Hour Forecast Trend
-            </h4>
-            <div className="grid grid-cols-4 gap-2">
-              {destinationForecast.list.slice(0, 4).map((item, index) => {
-                const time = new Date(item.dt * 1000);
-                const temp = Math.round(item.main.temp);
-                const wind = Math.round(item.wind.speed * 3.6);
-                return (
-                  <div key={index} className="text-center p-2 bg-white rounded text-xs">
-                    <div className="font-bold text-gray-600">{time.toLocaleTimeString([], {hour: '2-digit'})}</div>
-                    <div className="text-lg">{getWeatherIcon(item.weather[0].main.toLowerCase())}</div>
-                    <div className="font-bold text-green-600">{temp}°C</div>
-                    <div className="text-gray-500">{wind} km/h</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="bg-gradient-to-r from-amber-100 to-orange-100 p-4 rounded-lg border-l-4 border-orange-400">
-          <p className="text-sm font-bold text-orange-800">
-            {getWeatherDescription(weather, location)}
-          </p>
         </div>
       </motion.div>
     );
@@ -514,20 +544,6 @@ const Weather = ({ origin, destination }) => {
             </svg>
             Loading live weather data...
           </div>
-        </div>
-      </motion.div>
-    );
-  }
-
-  if (error) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
-      >
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p className="font-bold">Weather data unavailable: {error}</p>
         </div>
       </motion.div>
     );
@@ -615,58 +631,16 @@ const Weather = ({ origin, destination }) => {
           </div>
         </div>
       </motion.div>
-
-      {originForecast && destinationForecast && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="mt-6 bg-gradient-to-r from-indigo-100 to-purple-100 p-6 rounded-lg border-2 border-indigo-200"
-        >
-          <h3 className="text-xl font-black text-primary-600 mb-3 flex items-center">
-            <span className="mr-2">📊</span>
-            Extended Weather Analysis
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-lg">
-              <h4 className="font-black text-indigo-600 mb-2">Origin Port Trends</h4>
-              <div className="space-y-2 text-sm">
-                {originForecast.list.slice(0, 3).map((item, index) => {
-                  const time = new Date(item.dt * 1000);
-                  const temp = Math.round(item.main.temp);
-                  const wind = Math.round(item.wind.speed * 3.6);
-                  const condition = item.weather[0].description;
-                  return (
-                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                      <span className="font-bold text-gray-600">{time.toLocaleDateString()} {time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                      <span className="text-gray-700">{temp}°C, {wind} km/h, {condition}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="bg-white p-4 rounded-lg">
-              <h4 className="font-black text-green-600 mb-2">Destination Port Trends</h4>
-              <div className="space-y-2 text-sm">
-                {destinationForecast.list.slice(0, 3).map((item, index) => {
-                  const time = new Date(item.dt * 1000);
-                  const temp = Math.round(item.main.temp);
-                  const wind = Math.round(item.wind.speed * 3.6);
-                  const condition = item.weather[0].description;
-                  return (
-                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                      <span className="font-bold text-gray-600">{time.toLocaleDateString()} {time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                      <span className="text-gray-700">{temp}°C, {wind} km/h, {condition}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      
+      <AirPollutionInfo 
+        originData={originPollution} 
+        destinationData={destinationPollution}
+        origin={origin}
+        destination={destination}
+      />
     </motion.div>
   );
 };
 
 export default Weather;
+
