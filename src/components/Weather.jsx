@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Cloud, Sun, CloudRain, Wind, Thermometer, Droplets, Eye, Gauge, Sunrise, Sunset, Waves, AlertTriangle, TrendingUp, TrendingDown, BarChart3, Leaf } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Cloud, Sun, CloudRain, Wind, Thermometer, Droplets, Eye, Gauge, Sunrise, Sunset, Waves, AlertTriangle, TrendingUp, TrendingDown, BarChart3, Leaf, Zap, Snowflake } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Legend } from 'recharts';
 import { ports } from '../data/ports';
 
@@ -8,48 +8,94 @@ const AnimatedWeatherBackground = ({ weather }) => {
     if (!weather) return null;
 
     const condition = weather.weather[0].main;
-    let animationContent = null;
+    
+    const rainVariants = {
+        animate: {
+            y: [0, 100],
+            transition: {
+                duration: 0.5,
+                repeat: Infinity,
+                ease: "linear"
+            }
+        }
+    };
+
+    const cloudVariants = {
+        animate: {
+            x: [-50, 100],
+            transition: {
+                duration: 20,
+                repeat: Infinity,
+                ease: "linear"
+            }
+        }
+    };
+
+    const sunVariants = {
+        animate: {
+            rotate: 360,
+            transition: {
+                duration: 30,
+                repeat: Infinity,
+                ease: "linear"
+            }
+        }
+    };
 
     switch (condition) {
         case 'Rain':
         case 'Drizzle':
-            animationContent = (
-                <div className="absolute inset-0 overflow-hidden">
-                    {[...Array(60)].map((_, i) => (
-                        <div
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {[...Array(40)].map((_, i) => (
+                        <motion.div
                             key={i}
-                            className="raindrop"
+                            className="absolute w-0.5 h-8 bg-blue-400 opacity-60 rounded-full"
                             style={{
                                 left: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 5}s`,
-                                animationDuration: `${0.5 + Math.random() * 0.5}s`,
+                                top: `${Math.random() * -20}%`,
                             }}
+                            variants={rainVariants}
+                            animate="animate"
+                            initial={{ y: -100 }}
                         />
                     ))}
                 </div>
             );
-            break;
         case 'Clouds':
-            animationContent = (
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="cloud-background cloud-1" />
-                    <div className="cloud-background cloud-2" />
-                    <div className="cloud-background cloud-3" />
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {[...Array(3)].map((_, i) => (
+                        <motion.div
+                            key={i}
+                            className="absolute w-20 h-12 bg-gray-200 rounded-full opacity-30"
+                            style={{
+                                top: `${20 + i * 15}%`,
+                                left: `${-10 + i * 30}%`,
+                            }}
+                            variants={cloudVariants}
+                            animate="animate"
+                            initial={{ x: -100 }}
+                        />
+                    ))}
                 </div>
             );
-            break;
         case 'Clear':
-            animationContent = (
-                <div className="absolute top-0 right-0 overflow-hidden">
-                    <div className="sun-background" />
+            return (
+                <div className="absolute top-4 right-4 overflow-hidden pointer-events-none">
+                    <motion.div
+                        className="w-16 h-16 bg-yellow-300 rounded-full opacity-40"
+                        variants={sunVariants}
+                        animate="animate"
+                        style={{
+                            background: 'radial-gradient(circle, rgba(255,255,0,0.4) 0%, rgba(255,255,0,0.1) 70%)',
+                        }}
+                    />
                 </div>
             );
-            break;
         default:
-            animationContent = null;
+            return null;
     }
-
-    return <div className="absolute inset-0 -z-10">{animationContent}</div>;
 };
 
 const AirPollutionInfo = ({ originData, destinationData, origin, destination }) => {
@@ -88,7 +134,7 @@ const AirPollutionInfo = ({ originData, destinationData, origin, destination }) 
         } else {
             aqi = Math.round(((500 - 301) / (500.4 - 250.5)) * (pm25 - 250.5) + 301);
             text = 'Hazardous';
-            color = 'bg-maroon-100 text-maroon-800';
+            color = 'bg-red-200 text-red-900';
             advice = 'Health warnings of emergency conditions. The entire population is more likely to be affected.';
         }
         return { aqi, text, color, advice };
@@ -101,36 +147,75 @@ const AirPollutionInfo = ({ originData, destinationData, origin, destination }) 
         const aqiInfo = calculateUsAqi(pm25);
 
         return (
-            <div className="bg-white p-4 rounded-lg">
-                <h4 className="font-black text-indigo-600 mb-2">{portName} Port Conditions</h4>
-                <div className="flex items-center space-x-3 mb-3">
-                    <span className={`px-3 py-1 text-sm font-bold rounded-full ${aqiInfo.color}`}>
+            <motion.div
+                className="bg-white p-6 rounded-lg shadow-lg border-l-4 border-indigo-500"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                whileHover={{ scale: 1.02 }}
+            >
+                <h4 className="font-black text-indigo-600 mb-3 text-lg">{portName} Port Conditions</h4>
+                <motion.div 
+                    className="flex items-center space-x-3 mb-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <motion.span 
+                        className={`px-3 py-1 text-sm font-bold rounded-full ${aqiInfo.color}`}
+                        whileHover={{ scale: 1.05 }}
+                    >
                         US AQI: {aqiInfo.aqi}
-                    </span>
-                     <p className="text-sm font-semibold text-gray-700">{aqiInfo.text}</p>
-                </div>
-                <p className="text-xs text-gray-600 mb-3">{aqiInfo.advice}</p>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                    <p><strong>PM2.5:</strong> {pm25.toFixed(2)} μg/m³</p>
-                    <p><strong>O₃:</strong> {components.o3.toFixed(2)} μg/m³</p>
-                    <p><strong>NO₂:</strong> {components.no2.toFixed(2)} μg/m³</p>
-                    <p><strong>SO₂:</strong> {components.so2.toFixed(2)} μg/m³</p>
-                </div>
-            </div>
+                    </motion.span>
+                    <p className="text-sm font-semibold text-gray-700">{aqiInfo.text}</p>
+                </motion.div>
+                <motion.p 
+                    className="text-xs text-gray-600 mb-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                >
+                    {aqiInfo.advice}
+                </motion.p>
+                <motion.div 
+                    className="grid grid-cols-2 gap-3 text-sm"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                >
+                    <div className="bg-gray-50 p-2 rounded">
+                        <strong>PM2.5:</strong> {pm25.toFixed(2)} μg/m³
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                        <strong>O₃:</strong> {components.o3.toFixed(2)} μg/m³
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                        <strong>NO₂:</strong> {components.no2.toFixed(2)} μg/m³
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                        <strong>SO₂:</strong> {components.so2.toFixed(2)} μg/m³
+                    </div>
+                </motion.div>
+            </motion.div>
         );
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-6 bg-gradient-to-r from-indigo-100 to-purple-100 p-6 rounded-lg border-2 border-indigo-200"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+            className="mt-6 bg-gradient-to-r from-indigo-100 to-purple-100 p-6 rounded-lg border-2 border-indigo-200 shadow-xl"
         >
-            <h3 className="text-xl font-black text-primary-600 mb-3 flex items-center">
+            <motion.h3 
+                className="text-xl font-black text-indigo-700 mb-4 flex items-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+            >
                 <Leaf className="mr-2" />
                 Air & Sea Conditions Analysis
-            </h3>
+            </motion.h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {renderPortData(originData, origin)}
                 {renderPortData(destinationData, destination)}
@@ -220,14 +305,20 @@ const Weather = ({ origin, destination }) => {
 
     const getWeatherIcon = (condition) => {
         const lowerCaseCondition = condition.toLowerCase();
+        const iconProps = { className: "w-12 h-12" };
+        
         if (lowerCaseCondition.includes('rain') || lowerCaseCondition.includes('drizzle')) {
-            return <CloudRain className="w-12 h-12 text-blue-500" />;
+            return <CloudRain {...iconProps} className="w-12 h-12 text-blue-500" />;
         } else if (lowerCaseCondition.includes('cloud')) {
-            return <Cloud className="w-12 h-12 text-gray-500" />;
+            return <Cloud {...iconProps} className="w-12 h-12 text-gray-500" />;
         } else if (lowerCaseCondition.includes('clear')) {
-            return <Sun className="w-12 h-12 text-yellow-500" />;
+            return <Sun {...iconProps} className="w-12 h-12 text-yellow-500" />;
+        } else if (lowerCaseCondition.includes('snow')) {
+            return <Snowflake {...iconProps} className="w-12 h-12 text-blue-300" />;
+        } else if (lowerCaseCondition.includes('thunderstorm')) {
+            return <Zap {...iconProps} className="w-12 h-12 text-purple-500" />;
         } else {
-            return <Cloud className="w-12 h-12 text-gray-400" />;
+            return <Cloud {...iconProps} className="w-12 h-12 text-gray-400" />;
         }
     };
 
@@ -292,109 +383,82 @@ const Weather = ({ origin, destination }) => {
         });
 
         const chartTooltipStyle = {
-            contentStyle: { backgroundColor: '#333', border: '1px solid #555', color: '#fff' },
-            labelStyle: { color: '#fff' },
+            contentStyle: { backgroundColor: '#1f2937', border: '1px solid #374151', color: '#f3f4f6', borderRadius: '8px' },
+            labelStyle: { color: '#f3f4f6' },
         };
 
-        const chartAxisStyle = { tick: { fill: '#fff' } };
-        const chartLegendStyle = { wrapperStyle: { color: '#fff' } };
+        const chartAxisStyle = { tick: { fill: '#f3f4f6' } };
+        const chartLegendStyle = { wrapperStyle: { color: '#f3f4f6' } };
 
         return (
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
-                className="mt-6 bg-black p-6 rounded-lg border-2 border-gray-700"
+                transition={{ delay: 0.9, duration: 0.8 }}
+                className="mt-6 bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6 rounded-lg border-2 border-gray-700 shadow-2xl"
             >
-                <h3 className="text-2xl font-black text-white mb-6 flex items-center">
+                <motion.h3 
+                    className="text-2xl font-black text-white mb-6 flex items-center"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 1.0 }}
+                >
                     <BarChart3 className="w-6 h-6 mr-3" />
                     Real-Time Weather Analytics
-                </h3>
+                </motion.h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-gray-800 p-4 rounded-lg shadow-sm">
-                        <h4 className="font-black text-blue-400 mb-3">Temperature Trends (°C)</h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                            <AreaChart data={combinedData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-                                <XAxis dataKey="time" {...chartAxisStyle} />
-                                <YAxis {...chartAxisStyle} />
-                                <Tooltip {...chartTooltipStyle} />
-                                <Legend {...chartLegendStyle} />
-                                <Area type="monotone" dataKey="originTemp" stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} name={`${origin} Temp`} />
-                                <Area type="monotone" dataKey="destinationTemp" stackId="2" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name={`${destination} Temp`} />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="bg-gray-800 p-4 rounded-lg shadow-sm">
-                        <h4 className="font-black text-cyan-400 mb-3">Wind Speed Comparison (km/h)</h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                            <BarChart data={combinedData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-                                <XAxis dataKey="time" {...chartAxisStyle} />
-                                <YAxis {...chartAxisStyle} />
-                                <Tooltip {...chartTooltipStyle} />
-                                <Legend {...chartLegendStyle} />
-                                <Bar dataKey="originWind" fill="#06b6d4" name={`${origin} Wind`} />
-                                <Bar dataKey="destinationWind" fill="#8b5cf6" name={`${destination} Wind`} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="bg-gray-800 p-4 rounded-lg shadow-sm">
-                        <h4 className="font-black text-amber-400 mb-3">Humidity Levels (%)</h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                            <LineChart data={combinedData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-                                <XAxis dataKey="time" {...chartAxisStyle} />
-                                <YAxis {...chartAxisStyle} />
-                                <Tooltip {...chartTooltipStyle} />
-                                <Legend {...chartLegendStyle} />
-                                <Line type="monotone" dataKey="originHumidity" stroke="#f59e0b" strokeWidth={3} name={`${origin} Humidity`} />
-                                <Line type="monotone" dataKey="destinationHumidity" stroke="#ef4444" strokeWidth={3} name={`${destination} Humidity`} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="bg-gray-800 p-4 rounded-lg shadow-sm">
-                        <h4 className="font-black text-purple-400 mb-3">Atmospheric Pressure (hPa)</h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                            <LineChart data={combinedData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-                                <XAxis dataKey="time" {...chartAxisStyle} />
-                                <YAxis domain={['dataMin - 5', 'dataMax + 5']} {...chartAxisStyle} />
-                                <Tooltip {...chartTooltipStyle} />
-                                <Legend {...chartLegendStyle} />
-                                <Line type="monotone" dataKey="originPressure" stroke="#7c3aed" strokeWidth={2} name={`${origin} Pressure`} />
-                                <Line type="monotone" dataKey="destinationPressure" stroke="#059669" strokeWidth={2} name={`${destination} Pressure`} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="bg-gray-800 p-4 rounded-lg shadow-sm">
-                        <h4 className="font-black text-green-400 mb-3">Visibility (km)</h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                            <AreaChart data={combinedData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-                                <XAxis dataKey="time" {...chartAxisStyle} />
-                                <YAxis {...chartAxisStyle} />
-                                <Tooltip {...chartTooltipStyle} />
-                                <Legend {...chartLegendStyle} />
-                                <Area type="monotone" dataKey="originVisibility" stackId="1" stroke="#22c55e" fill="#22c55e" fillOpacity={0.6} name={`${origin} Visibility`} />
-                                <Area type="monotone" dataKey="destinationVisibility" stackId="2" stroke="#f97316" fill="#f97316" fillOpacity={0.6} name={`${destination} Visibility`} />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="bg-gray-800 p-4 rounded-lg shadow-sm">
-                        <h4 className="font-black text-red-400 mb-3">US Air Quality Index (AQI)</h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                            <BarChart data={combinedData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-                                <XAxis dataKey="time" {...chartAxisStyle} />
-                                <YAxis domain={[0, 'dataMax + 20']} {...chartAxisStyle} />
-                                <Tooltip {...chartTooltipStyle} />
-                                <Legend {...chartLegendStyle} />
-                                <Bar dataKey="originAqi" fill="#d946ef" name={`${origin} US AQI`} />
-                                <Bar dataKey="destinationAqi" fill="#ec4899" name={`${destination} US AQI`} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                    {[
+                        { key: 'temperature', title: 'Temperature Trends (°C)', color: 'blue', data: 'originTemp', data2: 'destinationTemp' },
+                        { key: 'wind', title: 'Wind Speed Comparison (km/h)', color: 'cyan', data: 'originWind', data2: 'destinationWind' },
+                        { key: 'humidity', title: 'Humidity Levels (%)', color: 'amber', data: 'originHumidity', data2: 'destinationHumidity' },
+                        { key: 'pressure', title: 'Atmospheric Pressure (hPa)', color: 'purple', data: 'originPressure', data2: 'destinationPressure' },
+                        { key: 'visibility', title: 'Visibility (km)', color: 'green', data: 'originVisibility', data2: 'destinationVisibility' },
+                        { key: 'aqi', title: 'US Air Quality Index (AQI)', color: 'red', data: 'originAqi', data2: 'destinationAqi' }
+                    ].map((chart, index) => (
+                        <motion.div
+                            key={chart.key}
+                            className="bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-600"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 1.1 + index * 0.1, duration: 0.5 }}
+                            whileHover={{ scale: 1.02 }}
+                        >
+                            <h4 className={`font-black text-${chart.color}-400 mb-3`}>{chart.title}</h4>
+                            <ResponsiveContainer width="100%" height={200}>
+                                {chart.key === 'temperature' || chart.key === 'visibility' ? (
+                                    <AreaChart data={combinedData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#555" />
+                                        <XAxis dataKey="time" {...chartAxisStyle} />
+                                        <YAxis {...chartAxisStyle} />
+                                        <Tooltip {...chartTooltipStyle} />
+                                        <Legend {...chartLegendStyle} />
+                                        <Area type="monotone" dataKey={chart.data} stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} name={`${origin} ${chart.key}`} />
+                                        <Area type="monotone" dataKey={chart.data2} stackId="2" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name={`${destination} ${chart.key}`} />
+                                    </AreaChart>
+                                ) : chart.key === 'wind' || chart.key === 'aqi' ? (
+                                    <BarChart data={combinedData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#555" />
+                                        <XAxis dataKey="time" {...chartAxisStyle} />
+                                        <YAxis {...chartAxisStyle} />
+                                        <Tooltip {...chartTooltipStyle} />
+                                        <Legend {...chartLegendStyle} />
+                                        <Bar dataKey={chart.data} fill="#06b6d4" name={`${origin} ${chart.key}`} />
+                                        <Bar dataKey={chart.data2} fill="#8b5cf6" name={`${destination} ${chart.key}`} />
+                                    </BarChart>
+                                ) : (
+                                    <LineChart data={combinedData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#555" />
+                                        <XAxis dataKey="time" {...chartAxisStyle} />
+                                        <YAxis {...chartAxisStyle} />
+                                        <Tooltip {...chartTooltipStyle} />
+                                        <Legend {...chartLegendStyle} />
+                                        <Line type="monotone" dataKey={chart.data} stroke="#f59e0b" strokeWidth={3} name={`${origin} ${chart.key}`} />
+                                        <Line type="monotone" dataKey={chart.data2} stroke="#ef4444" strokeWidth={3} name={`${destination} ${chart.key}`} />
+                                    </LineChart>
+                                )}
+                            </ResponsiveContainer>
+                        </motion.div>
+                    ))}
                 </div>
             </motion.div>
         );
@@ -439,31 +503,51 @@ const Weather = ({ origin, destination }) => {
 
         return (
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="relative overflow-hidden bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-lg shadow-lg border-2 border-blue-200"
+                transition={{ duration: 0.6, delay: type === 'origin' ? 0.2 : 0.4 }}
+                className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 rounded-xl shadow-2xl border-2 border-blue-200"
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
             >
                 <AnimatedWeatherBackground weather={weather} />
                 <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
+                    <motion.div 
+                        className="flex items-center justify-between mb-4"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                    >
                         <div>
-                            <h3 className="text-2xl font-black text-primary-600 flex items-center">
+                            <h3 className="text-2xl font-black text-indigo-700 flex items-center">
                                 {type === 'origin' ? '🚢' : '🏁'} {location}
                             </h3>
                             <p className="text-sm font-bold text-gray-600">{type === 'origin' ? 'Departure Port' : 'Arrival Port'}</p>
                         </div>
-                        <div className="text-center">
+                        <motion.div 
+                            className="text-center"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.4 }}
+                            whileHover={{ scale: 1.1 }}
+                        >
                             {getWeatherIcon(condition)}
                             <p className="text-sm font-bold text-gray-600 mt-1 capitalize">{description}</p>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                        <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+                    <motion.div 
+                        className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <motion.div 
+                            className="flex items-center space-x-2 p-3 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm"
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                        >
                             <Thermometer className="w-5 h-5 text-red-500" />
                             <div>
-                                <p className="text-2xl font-black text-primary-600">{temp}°C</p>
+                                <p className="text-2xl font-black text-indigo-700">{temp}°C</p>
                                 <div className="flex items-center text-xs font-bold text-gray-500">
                                     <span>Feels {feelsLike}°C</span>
                                     {tempTrend && tempTrend.icon && (
@@ -471,70 +555,104 @@ const Weather = ({ origin, destination }) => {
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+                        <motion.div 
+                            className="flex items-center space-x-2 p-3 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm"
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                        >
                             <Wind className="w-5 h-5 text-blue-500" />
                             <div>
-                                <p className="text-lg font-black text-primary-600">{windSpeed} km/h</p>
+                                <p className="text-lg font-black text-indigo-700">{windSpeed} km/h</p>
                                 <p className="text-xs font-bold text-gray-500">{getWindDirection(windDir)}</p>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+                        <motion.div 
+                            className="flex items-center space-x-2 p-3 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm"
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                        >
                             <Droplets className="w-5 h-5 text-blue-600" />
                             <div>
-                                <p className="text-lg font-black text-primary-600">{humidity}%</p>
+                                <p className="text-lg font-black text-indigo-700">{humidity}%</p>
                                 <p className="text-xs font-bold text-gray-500">Humidity</p>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+                        <motion.div 
+                            className="flex items-center space-x-2 p-3 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm"
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                        >
                             <Gauge className="w-5 h-5 text-purple-500" />
                             <div>
-                                <p className="text-lg font-black text-primary-600">{pressure}</p>
+                                <p className="text-lg font-black text-indigo-700">{pressure}</p>
                                 <p className="text-xs font-bold text-gray-500">hPa</p>
                             </div>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                        <div className="flex items-center space-x-2 p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+                    <motion.div 
+                        className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                    >
+                        <motion.div 
+                            className="flex items-center space-x-2 p-3 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm"
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                        >
                             <Eye className="w-5 h-5 text-green-500" />
                             <div>
-                                <p className="text-lg font-black text-primary-600">{visibility} km</p>
+                                <p className="text-lg font-black text-indigo-700">{visibility} km</p>
                                 <p className="text-xs font-bold text-gray-500">Visibility</p>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+                        <motion.div 
+                            className="p-3 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm"
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                        >
                             <div className="flex items-center space-x-2 mb-1">
                                 <Sunrise className="w-4 h-4 text-orange-500" />
                                 <span className="text-xs font-bold text-gray-500">Sunrise</span>
                             </div>
-                            <p className="text-sm font-black text-primary-600">{sunrise.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                        </div>
+                            <p className="text-sm font-black text-indigo-700">{sunrise.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </motion.div>
 
-                        <div className="p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+                        <motion.div 
+                            className="p-3 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm"
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                        >
                             <div className="flex items-center space-x-2 mb-1">
                                 <Sunset className="w-4 h-4 text-orange-600" />
                                 <span className="text-xs font-bold text-gray-500">Sunset</span>
                             </div>
-                            <p className="text-sm font-black text-primary-600">{sunset.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                        </div>
+                            <p className="text-sm font-black text-indigo-700">{sunset.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </motion.div>
 
-                        <div className="p-3 bg-white/70 backdrop-blur-sm rounded-lg">
+                        <motion.div 
+                            className="p-3 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm"
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                        >
                             <div className="flex items-center space-x-2 mb-1">
                                 <Droplets className="w-4 h-4 text-blue-400" />
                                 <span className="text-xs font-bold text-gray-500">Dew Point</span>
                             </div>
-                            <p className="text-sm font-black text-primary-600">{dewPoint.toFixed(1)}°C</p>
-                        </div>
-                    </div>
+                            <p className="text-sm font-black text-indigo-700">{dewPoint.toFixed(1)}°C</p>
+                        </motion.div>
+                    </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div className={`p-3 rounded-lg border-l-4 ${seaConditions.severity === 'high' ? 'border-red-500 bg-red-50' : seaConditions.severity === 'medium' ? 'border-yellow-500 bg-yellow-50' : seaConditions.severity === 'low' ? 'border-blue-500 bg-blue-50' : 'border-green-500 bg-green-50'}`}>
-                            <div className="flex items-center space-x-2 mb-1">
+                    <motion.div 
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                    >
+                        <motion.div 
+                            className={`p-4 rounded-lg border-l-4 ${seaConditions.severity === 'high' ? 'border-red-500 bg-red-50' : seaConditions.severity === 'medium' ? 'border-yellow-500 bg-yellow-50' : seaConditions.severity === 'low' ? 'border-blue-500 bg-blue-50' : 'border-green-500 bg-green-50'} shadow-sm`}
+                            whileHover={{ scale: 1.02 }}
+                        >
+                            <div className="flex items-center space-x-2 mb-2">
                                 <Waves className={`w-5 h-5 ${seaConditions.color}`} />
                                 <span className="font-black text-gray-700">Sea Conditions</span>
                             </div>
@@ -544,10 +662,13 @@ const Weather = ({ origin, destination }) => {
                             <p className="text-xs text-gray-600 mt-1">
                                 Based on {windSpeed} km/h winds
                             </p>
-                        </div>
+                        </motion.div>
 
-                        <div className={`p-3 rounded-lg ${recommendation.color}`}>
-                            <div className="flex items-center space-x-2 mb-1">
+                        <motion.div 
+                            className={`p-4 rounded-lg ${recommendation.color} shadow-sm`}
+                            whileHover={{ scale: 1.02 }}
+                        >
+                            <div className="flex items-center space-x-2 mb-2">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="font-black">Shipping Advisory</span>
                             </div>
@@ -562,8 +683,8 @@ const Weather = ({ origin, destination }) => {
                                 {weather.weather[0].main === 'Snow' && '❄️ Cold conditions - temperature-sensitive cargo protection required'}
                                 {weather.weather[0].main === 'Fog' && '🌫️ Low visibility - potential delays in port operations'}
                             </p>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
                 </div>
             </motion.div>
         );
@@ -572,18 +693,41 @@ const Weather = ({ origin, destination }) => {
     if (loading) {
         return (
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
                 className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
             >
                 <div className="text-center">
-                    <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-primary-600 bg-white">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <motion.div
+                        className="inline-flex items-center px-6 py-3 font-semibold leading-6 text-lg shadow-lg rounded-lg text-indigo-700 bg-white"
+                        animate={{ 
+                            scale: [1, 1.05, 1],
+                            boxShadow: [
+                                "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                                "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                                "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                            ]
+                        }}
+                        transition={{ 
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                        }}
+                    >
+                        <motion.svg 
+                            className="w-6 h-6 mr-3 text-indigo-600" 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            fill="none" 
+                            viewBox="0 0 24 24"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        >
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                        </motion.svg>
                         Loading live weather and pollution data...
-                    </div>
+                    </motion.div>
                 </div>
             </motion.div>
         );
@@ -591,25 +735,45 @@ const Weather = ({ origin, destination }) => {
     
     if (error) {
         return (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-8" role="alert">
+            <motion.div 
+                className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg relative mb-8 shadow-lg" 
+                role="alert"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
                 <strong className="font-bold">Error: </strong>
                 <span className="block sm:inline">{error}</span>
-            </div>
+            </motion.div>
         )
     }
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8"
+            className="bg-gradient-to-br from-amber-50 via-amber-100 to-orange-100 p-8 rounded-xl shadow-2xl mb-8 border-2 border-amber-200"
         >
-            <motion.div className="text-center mb-8">
-                <h2 className="text-4xl font-black text-primary-600 mb-4 flex items-center justify-center">
-                    <span className="mr-3">🌤️</span>
+            <motion.div 
+                className="text-center mb-8"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+            >
+                <motion.h2 
+                    className="text-4xl font-black text-indigo-700 mb-4 flex items-center justify-center"
+                    whileHover={{ scale: 1.05 }}
+                >
+                    <motion.span 
+                        className="mr-3"
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        🌤️
+                    </motion.span>
                     Live Weather Conditions
-                </h2>
+                </motion.h2>
                 <p className="text-lg font-bold text-gray-700">
                     Real-time data for optimal shipping decisions and cargo protection
                 </p>
@@ -634,50 +798,45 @@ const Weather = ({ origin, destination }) => {
             <WeatherGraph />
             
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="mt-8 bg-gradient-to-r from-blue-100 to-green-100 p-6 rounded-lg border-2 border-blue-200"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="mt-8 bg-gradient-to-r from-blue-100 to-green-100 p-6 rounded-xl border-2 border-blue-200 shadow-lg"
             >
-                <h3 className="text-xl font-black text-primary-600 mb-3 flex items-center">
-                    <span className="mr-2">⚠️</span>
+                <motion.h3 
+                    className="text-xl font-black text-indigo-700 mb-4 flex items-center"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.9 }}
+                >
+                    <motion.span 
+                        className="mr-2"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        ⚠️
+                    </motion.span>
                     Weather Impact on Shipping
-                </h3>
+                </motion.h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-bold">
-                    <div className="p-3 bg-white rounded-lg">
-                        <h4 className="font-black text-blue-600 mb-1">🌊 Sea Conditions</h4>
-                        <p className="text-gray-700">
-                            {(originWeather?.wind?.speed > 10 || destinationWeather?.wind?.speed > 10)
-                                ? "Moderate to rough seas expected. Secure loading recommended."
-                                : "Calm sea conditions favorable for all cargo types."}
-                        </p>
-                    </div>
-                    <div className="p-3 bg-white rounded-lg">
-                        <h4 className="font-black text-green-600 mb-1">📦 Cargo Protection</h4>
-                        <p className="text-gray-700">
-                            {(originWeather?.weather[0]?.main === 'Rain' || destinationWeather?.weather[0]?.main === 'Rain')
-                                ? "Rain detected. Ensure waterproof covering for sensitive cargo."
-                                : "Dry conditions - minimal weather protection required."}
-                        </p>
-                    </div>
-                    <div className="p-3 bg-white rounded-lg">
-                        <h4 className="font-black text-orange-600 mb-1">⏰ Operations</h4>
-                        <p className="text-gray-700">
-                            {(originWeather?.visibility < 5000 || destinationWeather?.visibility < 5000)
-                                ? "Reduced visibility may cause port operation delays."
-                                : "Clear visibility - normal port operations expected."}
-                        </p>
-                    </div>
-                    <div className="p-3 bg-white rounded-lg">
-                        <h4 className="font-black text-purple-600 mb-1">🌡️ Temperature Impact</h4>
-                        <p className="text-gray-700">
-                            {(originWeather?.main?.temp > 35 || destinationWeather?.main?.temp > 35)
-                                ? "High temperatures - ensure proper cargo ventilation and crew safety."
-                                : (originWeather?.main?.temp < 5 || destinationWeather?.main?.temp < 5)
-                                    ? "Cold conditions - protect temperature-sensitive cargo and equipment."
-                                    : "Moderate temperatures - ideal for most cargo operations."}
-                        </p>
-                    </div>
+                    {[
+                        { title: '🌊 Sea Conditions', content: (originWeather?.wind?.speed > 10 || destinationWeather?.wind?.speed > 10) ? "Moderate to rough seas expected. Secure loading recommended." : "Calm sea conditions favorable for all cargo types.", color: 'blue' },
+                        { title: '📦 Cargo Protection', content: (originWeather?.weather[0]?.main === 'Rain' || destinationWeather?.weather[0]?.main === 'Rain') ? "Rain detected. Ensure waterproof covering for sensitive cargo." : "Dry conditions - minimal weather protection required.", color: 'green' },
+                        { title: '⏰ Operations', content: (originWeather?.visibility < 5000 || destinationWeather?.visibility < 5000) ? "Reduced visibility may cause port operation delays." : "Clear visibility - normal port operations expected.", color: 'orange' },
+                        { title: '🌡️ Temperature Impact', content: (originWeather?.main?.temp > 35 || destinationWeather?.main?.temp > 35) ? "High temperatures - ensure proper cargo ventilation and crew safety." : (originWeather?.main?.temp < 5 || destinationWeather?.main?.temp < 5) ? "Cold conditions - protect temperature-sensitive cargo and equipment." : "Moderate temperatures - ideal for most cargo operations.", color: 'purple' }
+                    ].map((item, index) => (
+                        <motion.div 
+                            key={index}
+                            className="p-4 bg-white rounded-lg shadow-md border-l-4 border-blue-500"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.0 + index * 0.1 }}
+                            whileHover={{ scale: 1.03, y: -2 }}
+                        >
+                            <h4 className={`font-black text-${item.color}-600 mb-2`}>{item.title}</h4>
+                            <p className="text-gray-700">{item.content}</p>
+                        </motion.div>
+                    ))}
                 </div>
             </motion.div>
 
