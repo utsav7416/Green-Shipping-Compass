@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, LineChart, Line, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { ports } from '../data/ports';
@@ -10,6 +10,7 @@ import ShippingStats from '../components/ShippingStats';
 import Features from '../components/Features';
 import Weather from '../components/Weather';
 import RegulatoryInfo from '../components/RegulatoryInfo';
+import QRCode from 'react-qr-code';
 import axios from 'axios';
 import { Document, Page, Text, View, Image, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
@@ -47,7 +48,7 @@ const containerTypes = {
     description: 'High cube container with an extra foot of height, perfect for lightweight but voluminous cargo and specialized equipment.',
     dimensions: '40′ × 8′ × 9′6″',
     maxWeight: '30,480 kg',
-    advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture & textiles', 'Premium cargo solution']
+    advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture &amp; textiles', 'Premium cargo solution']
   },
 };
 
@@ -209,6 +210,54 @@ function Calculator() {
     { name: 'Destination', cost: totalCost * currentRate || 0, label: 'Arrival' }
   ];
 
+  const emissionsComparisonData = [
+    {
+      name: 'Standard',
+      emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 1.0,
+      method: 'Standard',
+      color: '#8884d8'
+    },
+    {
+      name: 'Express',
+      emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 1.8,
+      method: 'Express',
+      color: '#82ca9d'
+    },
+    {
+      name: 'Premium',
+      emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 2.5,
+      method: 'Premium',
+      color: '#ffc658'
+    },
+    {
+      name: 'Eco-friendly',
+      emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 0.6,
+      method: 'Eco-friendly',
+      color: '#22c55e'
+    }
+  ];
+
+  const containerEmissionsData = [
+    {
+      name: '20ft',
+      emissions: (distance * totalWeight * 0.0001) / 20,
+      container: '20ft',
+      color: '#8884d8'
+    },
+    {
+      name: '40ft',
+      emissions: (distance * totalWeight * 0.0001) / 40,
+      container: '40ft',
+      color: '#82ca9d'
+    },
+    {
+      name: '40ft-hc',
+      emissions: (distance * totalWeight * 0.0001) / 45,
+      container: '40ft-hc',
+      color: '#ffc658'
+    }
+  ];
+
   const containerAnimation = {
     hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 }
   };
@@ -222,6 +271,23 @@ function Calculator() {
     } else {
       setQuantity(parseInt(value, 10));
     }
+  };
+
+  const generateQRCodeData = () => {
+    const qrData = {
+      origin,
+      destination,
+      containerType,
+      totalWeight,
+      method,
+      temperatureControl,
+      carbonFootprint: carbonFootprint.toFixed(2),
+      totalCost: convertedTotalCost.toFixed(2),
+      currency,
+      shippingDate,
+      deliveryRange: getDeliveryRange(method, shippingDate)
+    };
+    return JSON.stringify(qrData);
   };
 
   const QuotePdfDocument = ({ quoteData }) => (
@@ -667,6 +733,67 @@ function Calculator() {
           </motion.div>
           </div>
 
+          <motion.div variants={containerAnimation} className="mt-8">
+            <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center">
+              <span className="mr-2">📊</span> Emissions Comparison Charts
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
+                <h3 className="font-black text-xl mb-4 flex items-center">
+                  <span className="mr-2">🚢</span> Shipping Methods Comparison
+                </h3>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={emissionsComparisonData}>
+                      <defs>
+                        <linearGradient id="methodGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                      <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} />
+                      <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                      <Tooltip 
+                        formatter={(value) => [`${value.toFixed(2)} kg CO₂`, 'Emissions']}
+                        labelFormatter={(label) => `Method: ${label}`}
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }}
+                      />
+                      <Bar dataKey="emissions" fill="url(#methodGradient)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
+                <h3 className="font-black text-xl mb-4 flex items-center">
+                  <span className="mr-2">📦</span> Container Types Comparison
+                </h3>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={containerEmissionsData}>
+                      <defs>
+                        <linearGradient id="containerGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                      <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} />
+                      <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
+                      <Tooltip 
+                        formatter={(value) => [`${value.toFixed(2)} kg CO₂`, 'Emissions']}
+                        labelFormatter={(label) => `Container: ${label}`}
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }}
+                      />
+                      <Line type="monotone" dataKey="emissions" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 8, fill: '#3b82f6' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1">
               <h3 className="font-black text-xl mb-4 flex items-center">
@@ -798,16 +925,28 @@ function Calculator() {
               </div>
             </motion.div>
           </div>
-
-          <div className="text-center mt-8">
-          <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,temperatureControl,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods,shippingDate,deliveryRange:getDeliveryRange(method,shippingDate)}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
-            {({loading})=>(
-              <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
-                {loading?'Generating PDF...':'Download PDF Quote'}
-              </motion.button>
-            )}
-          </PDFDownloadLink>
-        </div>
+          <div className="text-center mt-8 flex justify-center gap-4">
+            <PDFDownloadLink document={<QuotePdfDocument quoteData={{origin,destination,containerType,totalWeight,method,temperatureControl,carbonFootprint,costs:convertedCosts,totalCost:convertedTotalCost,currentSymbol,shippingMethods,shippingDate,deliveryRange:getDeliveryRange(method,shippingDate)}} />} fileName={`GreenShippingQuote_${origin}_to_${destination}_${new Date().toISOString().slice(0,10)}.pdf`}>
+              {({loading})=>(
+                <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-lg" disabled={loading}>
+                  {loading?'Generating PDF...':'Download PDF Quote'}
+                </motion.button>
+              )}
+            </PDFDownloadLink>
+            
+            <motion.div whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-green-600 text-white font-black rounded-lg hover:bg-green-700 transition-colors shadow-lg text-lg flex items-center gap-2">
+              <span>Share Quote</span>
+              <div className="bg-white p-2 rounded">
+                <QRCode
+                  value={generateQRCodeData()}
+                  size={40}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="M"
+                />
+              </div>
+            </motion.div>
+          </div>
         </motion.div>
       </div>
       <Features />
