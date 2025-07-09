@@ -6,52 +6,77 @@ import { ports } from '../data/ports';
 
 const AnimatedWeatherBackground = ({ weather }) => {
     if (!weather) return null;
-
     const condition = weather.weather[0].main;
-    let animationContent = null;
-
+    
+    const rain = (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(60)].map((_, i) => (
+                <motion.div
+                    key={i}
+                    className="absolute w-0.5 h-12 bg-gradient-to-b from-blue-300 to-blue-500"
+                    style={{ left: `${Math.random() * 100}%` }}
+                    initial={{ y: '-10vh' }}
+                    animate={{ y: '110vh' }}
+                    transition={{
+                        duration: 1 + Math.random() * 0.5,
+                        repeat: Infinity,
+                        ease: 'linear',
+                        delay: Math.random() * 5,
+                    }}
+                />
+            ))}
+        </div>
+    );
+    
+    const clouds = (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(5)].map((_, i) => (
+                <motion.div
+                    key={i}
+                    className="absolute bg-white/30 rounded-full"
+                    style={{
+                        width: `${120 + Math.random() * 100}px`,
+                        height: `${70 + Math.random() * 50}px`,
+                        top: `${10 + i * 15}%`,
+                    }}
+                    initial={{ x: '-150%' }}
+                    animate={{ x: '150%' }}
+                    transition={{
+                        duration: 30 + Math.random() * 20,
+                        repeat: Infinity,
+                        ease: 'linear',
+                        delay: i * 2,
+                    }}
+                />
+            ))}
+        </div>
+    );
+    
+    const sun = (
+        <div className="absolute top-4 right-4 overflow-hidden pointer-events-none">
+            <motion.div
+                className="w-24 h-24 bg-yellow-400/80 rounded-full shadow-lg"
+                animate={{ rotate: 360, scale: [1, 1.05, 1] }}
+                transition={{
+                    rotate: { duration: 40, repeat: Infinity, ease: 'linear' },
+                    scale: { duration: 3.5, repeat: Infinity, ease: 'easeInOut' },
+                }}
+            />
+        </div>
+    );
+    
     switch (condition) {
         case 'Rain':
         case 'Drizzle':
-            animationContent = (
-                <div className="absolute inset-0 overflow-hidden">
-                    {[...Array(60)].map((_, i) => (
-                        <div
-                            key={i}
-                            className="raindrop"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 5}s`,
-                                animationDuration: `${0.5 + Math.random() * 0.5}s`,
-                            }}
-                        />
-                    ))}
-                </div>
-            );
-            break;
+            return rain;
         case 'Clouds':
-            animationContent = (
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="cloud-background cloud-1" />
-                    <div className="cloud-background cloud-2" />
-                    <div className="cloud-background cloud-3" />
-                </div>
-            );
-            break;
+            return clouds;
         case 'Clear':
-            animationContent = (
-                <div className="absolute top-0 right-0 overflow-hidden">
-                    <div className="sun-background" />
-                </div>
-            );
-            break;
+            return sun;
         default:
-            animationContent = null;
+            return null;
     }
-
-    return <div className="absolute inset-0 -z-10">{animationContent}</div>;
 };
-
 const AirPollutionInfo = ({ originData, destinationData, origin, destination }) => {
     if (!originData || !destinationData) return null;
 
@@ -69,7 +94,7 @@ const AirPollutionInfo = ({ originData, destinationData, origin, destination }) 
             aqi = Math.round(((100 - 51) / (35.4 - 12.1)) * (pm25 - 12.1) + 51);
             text = 'Moderate';
             color = 'bg-yellow-100 text-yellow-800';
-            advice = 'Air quality is acceptable; however, for some pollutants there may be a moderate health concern for a very small number of people who are unusually sensitive to air pollution.';
+            advice = 'Air quality is acceptable; however, for some pollutants there may be a moderate health concern.';
         } else if (pm25 <= 55.4) {
             aqi = Math.round(((150 - 101) / (55.4 - 35.5)) * (pm25 - 35.5) + 101);
             text = 'Unhealthy for Sensitive Groups';
@@ -588,7 +613,7 @@ const Weather = ({ origin, destination }) => {
             </motion.div>
         );
     }
-    
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -621,7 +646,7 @@ const Weather = ({ origin, destination }) => {
                     type="destination"
                 />
             </div>
-
+            
             <WeatherGraph />
 
             <motion.div
@@ -672,52 +697,18 @@ const Weather = ({ origin, destination }) => {
                 </div>
             </motion.div>
             
-            <AirPollutionInfo
-                originData={originPollution}
-                destinationData={destinationPollution}
-                origin={origin}
-                destination={destination}
-            />
-            
+            <AirPollutionInfo originData={originPollution} destinationData={destinationPollution} origin={origin} destination={destination} />
+
             <style>{`
-                .raindrop {
-                    position: absolute;
-                    animation: rainfall linear infinite;
-                    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.8), rgba(59, 130, 246, 0.3));
-                    width: 2px;
-                    height: 15px;
-                    border-radius: 50%;
-                }
-                @keyframes rainfall {
-                    0% { transform: translateY(-100vh); opacity: 1; }
-                    100% { transform: translateY(100vh); opacity: 0; }
-                }
-                .cloud-background {
-                    position: absolute;
-                    background: rgba(156, 163, 175, 0.4);
-                    border-radius: 50px;
-                    animation: cloudFloat ease-in-out infinite;
-                }
-                .cloud-1 { width: 100px; height: 50px; top: 20%; left: 10%; animation-duration: 8s; }
-                .cloud-2 { width: 80px; height: 40px; top: 40%; right: 15%; animation-duration: 12s; animation-delay: -4s; }
-                .cloud-3 { width: 90px; height: 45px; top: 60%; left: 30%; animation-duration: 10s; animation-delay: -2s; }
-                @keyframes cloudFloat {
-                    0%, 100% { transform: translateX(0); }
-                    50% { transform: translateX(30px); }
-                }
-                .sun-background {
-                    width: 80px;
-                    height: 80px;
-                    background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, rgba(251, 191, 36, 0.2) 70%);
-                    border-radius: 50%;
-                    animation: sunPulse ease-in-out infinite 3s;
-                }
-                @keyframes sunPulse {
-                    0%, 100% { transform: scale(1); opacity: 0.6; }
-                    50% { transform: scale(1.2); opacity: 0.8; }
-                }
-                .backdrop-blur-sm { transition: all 0.3s ease; }
-                .backdrop-blur-sm:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+            .raindrop { position: absolute; animation: rainfall linear infinite; background: linear-gradient(to bottom, rgba(59, 130, 246, 0.8), rgba(59, 130, 246, 0.3)); width: 2px; height: 15px; border-radius: 50%; }
+            @keyframes rainfall { 0% { transform: translateY(-100vh); opacity: 1; } 100% { transform: translateY(100vh); opacity: 0; } }
+            .cloud-background { position: absolute; background: rgba(156, 163, 175, 0.4); border-radius: 50px; animation: cloudFloat ease-in-out infinite; }
+            .cloud-1 { width: 100px; height: 50px; top: 20%; left: 10%; animation-duration: 8s; }
+            .cloud-2 { width: 80px; height: 40px; top: 40%; right: 15%; animation-duration: 12s; animation-delay: -4s; }
+            .cloud-3 { width: 90px; height: 45px; top: 60%; left: 30%; animation-duration: 10s; animation-delay: -2s; }
+            @keyframes cloudFloat { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(30px); } }
+            .sun-background { width: 80px; height: 80px; background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, rgba(251, 191, 36, 0.2) 70%); border-radius: 50%; animation: sunPulse ease-in-out infinite 3s; }
+            @keyframes sunPulse { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.2); opacity: 0.8; } }
             `}</style>
         </motion.div>
     );
