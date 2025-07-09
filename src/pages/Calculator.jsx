@@ -210,80 +210,90 @@ function Calculator() {
   const progressData = [
     { name: 'Departure', cost: (costs['Base Container Cost'] || 0) * currentRate, stage: 'Origin Port' },
     { name: 'Processing', cost: totalCost * 0.3 * currentRate || 0, stage: 'Documentation' },
-    { name: 'Clearance', cost: totalCost * 0.6 * currentRate || 0, stage: 'Customs' },
+    { name: 'Customs', cost: totalCost * 0.6 * currentRate || 0, stage: 'Clearance' },
     { name: 'Transit', cost: totalCost * 0.8 * currentRate || 0, stage: 'Shipping' },
     { name: 'Arrival', cost: totalCost * currentRate || 0, stage: 'Destination' }
   ];
 
   const emissionsComparisonData = [
     {
-      name: 'Standard',
+      name: 'Standard Ocean Freight',
       emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 1.0,
       efficiency: 85,
-      cost: 1200
+      cost: 1200,
+      description: 'Traditional container shipping via cargo vessels'
     },
     {
-      name: 'Express',
+      name: 'Express Sea Transport',
       emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 1.8,
       efficiency: 65,
-      cost: 2100
+      cost: 2100,
+      description: 'Faster shipping with higher fuel consumption'
     },
     {
-      name: 'Premium',
+      name: 'Premium Air-Sea',
       emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 2.5,
       efficiency: 50,
-      cost: 3200
+      cost: 3200,
+      description: 'Combined air and sea transport for speed'
     },
     {
-      name: 'Eco-friendly',
+      name: 'Eco-Friendly Green',
       emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 0.6,
       efficiency: 95,
-      cost: 980
+      cost: 980,
+      description: 'Low-emission vessels with renewable energy'
     }
   ];
 
   const containerEmissionsData = [
     {
-      name: '20ft',
+      name: '20ft Standard',
       emissions: (distance * totalWeight * 0.0001) / 20,
       capacity: 33,
       costEfficiency: 90,
-      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 20) / 33
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 20) / 33,
+      description: 'Most common container size for general cargo'
     },
     {
-      name: '40ft',
+      name: '40ft Standard',
       emissions: (distance * totalWeight * 0.0001) / 40,
       capacity: 67,
       costEfficiency: 95,
-      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 40) / 67
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 40) / 67,
+      description: 'High capacity container for bulk shipments'
     },
     {
-      name: '40ft HC',
+      name: '40ft High Cube',
       emissions: (distance * totalWeight * 0.0001) / 45,
       capacity: 76,
       costEfficiency: 92,
-      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 45) / 76
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 45) / 76,
+      description: 'Extra height for lightweight bulky goods'
     },
     {
-      name: '45ft HC',
+      name: '45ft High Cube',
       emissions: (distance * totalWeight * 0.0001) / 50,
       capacity: 86,
       costEfficiency: 88,
-      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 50) / 86
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 50) / 86,
+      description: 'Maximum capacity for large shipments'
     },
     {
       name: 'Reefer 20ft',
       emissions: (distance * totalWeight * 0.0001) / 18,
       capacity: 28,
       costEfficiency: 75,
-      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 18) / 28
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 18) / 28,
+      description: 'Temperature-controlled for perishables'
     },
     {
       name: 'Reefer 40ft',
       emissions: (distance * totalWeight * 0.0001) / 38,
       capacity: 59,
       costEfficiency: 78,
-      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 38) / 59
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 38) / 59,
+      description: 'Large refrigerated container'
     }
   ];
 
@@ -303,26 +313,37 @@ function Calculator() {
   };
 
   const generateQRCodeData = () => {
-    const qrData = {
-      origin,
-      destination,
-      containerType,
-      totalWeight,
-      method,
-      temperatureControl,
-      carbonFootprint: carbonFootprint.toFixed(2),
-      totalCost: convertedTotalCost.toFixed(2),
-      currency,
-      shippingDate,
-      deliveryRange: getDeliveryRange(method, shippingDate),
-      quoteId: `GSC-${Date.now()}`,
-      timestamp: new Date().toISOString()
-    };
-    return JSON.stringify(qrData);
+    const quoteSummary = `Green Shipping Compass Quote
+Route: ${origin} → ${destination}
+Container: ${containerType} (${containerTypes[containerType].capacity}m³)
+Weight: ${totalWeight} kg
+Method: ${shippingMethods[method].name}
+Cost: ${currentSymbol}${convertedTotalCost.toFixed(2)} ${currency}
+Carbon Footprint: ${carbonFootprint.toFixed(2)} kg CO₂e
+${temperatureControl ? 'Temperature Control: Yes' : ''}
+Shipping Date: ${shippingDate ? new Date(shippingDate).toLocaleDateString() : 'TBD'}
+Delivery: ${getDeliveryRange(method, shippingDate)}
+Quote ID: GSC-${Date.now()}
+Generated: ${new Date().toLocaleString()}`;
+    
+    return quoteSummary;
   };
 
   const handleGenerateQR = () => {
     setShowQRCode(!showQRCode);
+  };
+
+  const handleShareQR = () => {
+    const quoteSummary = generateQRCodeData();
+    if (navigator.share) {
+      navigator.share({
+        title: 'Green Shipping Compass Quote',
+        text: quoteSummary
+      });
+    } else {
+      navigator.clipboard.writeText(quoteSummary);
+      alert('Quote summary copied to clipboard!');
+    }
   };
 
   const QuotePdfDocument = ({ quoteData }) => (
@@ -773,115 +794,127 @@ function Calculator() {
               <span className="mr-2">📊</span> Emissions Comparison Charts
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <h3 className="font-bold text-xl mb-4 flex items-center text-gray-800">
-                  <span className="mr-2">🚢</span> Shipping Methods Analysis
-                </h3>
+              <div className="bg-black rounded-lg shadow-lg p-6 border-2 border-green-400">
+                <div className="border-b border-green-400 pb-4 mb-4">
+                  <h3 className="text-xl font-bold text-green-400 flex items-center">
+                    <span className="mr-2">🚢</span> Shipping Methods Carbon Analysis
+                  </h3>
+                  <p className="text-sm text-gray-300 mt-1">CO₂ emissions comparison across different shipping methods for your route</p>
+                </div>
                 <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={emissionsComparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <BarChart data={emissionsComparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis 
                         dataKey="name" 
-                        stroke="#4b5563" 
-                        fontSize={12} 
+                        stroke="#d1d5db" 
+                        fontSize={11} 
                         fontWeight="600"
                         tickLine={false} 
-                        axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }} 
+                        axisLine={{ stroke: '#6b7280', strokeWidth: 1 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
                       />
                       <YAxis 
-                        stroke="#4b5563" 
+                        stroke="#d1d5db" 
                         fontSize={12} 
                         fontWeight="600"
                         tickLine={false} 
-                        axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }} 
-                        label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '12px', fontWeight: '600' } }} 
+                        axisLine={{ stroke: '#6b7280', strokeWidth: 1 }} 
+                        label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#d1d5db', fontSize: '12px', fontWeight: '600' } }} 
                       />
                       <Tooltip 
-                        formatter={(value, name) => [
+                        formatter={(value, name, props) => [
                           `${value.toFixed(2)} kg CO₂`,
-                          name === 'emissions' ? 'Carbon Emissions' : name
+                          'Carbon Emissions'
                         ]}
-                        labelFormatter={(label) => `Method: ${label}`}
+                        labelFormatter={(label, payload) => {
+                          const item = payload?.[0]?.payload;
+                          return item ? `${label}: ${item.description}` : label;
+                        }}
                         contentStyle={{ 
-                          backgroundColor: '#ffffff', 
-                          border: '1px solid #e5e7eb', 
+                          backgroundColor: '#1f2937', 
+                          border: '1px solid #10b981', 
                           borderRadius: '8px', 
                           padding: '12px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.4)',
+                          color: '#ffffff'
                         }}
-                        labelStyle={{ fontWeight: '600', color: '#1f2937' }}
-                        itemStyle={{ color: '#6b7280' }}
+                        labelStyle={{ fontWeight: '600', color: '#10b981' }}
+                        itemStyle={{ color: '#d1d5db' }}
                       />
                       <Bar 
                         dataKey="emissions" 
-                        fill="#3b82f6" 
+                        fill="#10b981" 
                         radius={[4, 4, 0, 0]}
                         name="emissions"
-                      >
-                        <defs>
-                          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                            <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.6}/>
-                          </linearGradient>
-                        </defs>
-                      </Bar>
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <h3 className="font-bold text-xl mb-4 flex items-center text-gray-800">
-                  <span className="mr-2">📦</span> Container Types Comparison
-                </h3>
+              <div className="bg-black rounded-lg shadow-lg p-6 border-2 border-blue-400">
+                <div className="border-b border-blue-400 pb-4 mb-4">
+                  <h3 className="text-xl font-bold text-blue-400 flex items-center">
+                    <span className="mr-2">📦</span> Container Types Environmental Impact
+                  </h3>
+                  <p className="text-sm text-gray-300 mt-1">Carbon efficiency analysis across different container types for your shipment</p>
+                </div>
                 <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={containerEmissionsData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <LineChart data={containerEmissionsData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis 
                         dataKey="name" 
-                        stroke="#4b5563" 
-                        fontSize={11} 
+                        stroke="#d1d5db" 
+                        fontSize={10} 
                         fontWeight="600"
                         tickLine={false} 
-                        axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }}
+                        axisLine={{ stroke: '#6b7280', strokeWidth: 1 }}
                         angle={-45}
                         textAnchor="end"
-                        height={60}
+                        height={80}
+                        interval={0}
                       />
                       <YAxis 
-                        stroke="#4b5563" 
+                        stroke="#d1d5db" 
                         fontSize={12} 
                         fontWeight="600"
                         tickLine={false} 
-                        axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }} 
-                        label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '12px', fontWeight: '600' } }} 
+                        axisLine={{ stroke: '#6b7280', strokeWidth: 1 }} 
+                        label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#d1d5db', fontSize: '12px', fontWeight: '600' } }} 
                       />
                       <Tooltip 
-                        formatter={(value, name) => {
-                          if (name === 'emissions') return [`${value.toFixed(2)} kg CO₂`, 'Carbon Emissions'];
-                          if (name === 'capacity') return [`${value} m³`, 'Capacity'];
-                          if (name === 'costEfficiency') return [`${value}%`, 'Cost Efficiency'];
+                        formatter={(value, name, props) => {
+                          const item = props.payload;
+                          if (name === 'emissions') return [`${value.toFixed(2)} kg CO₂`, 'Total Carbon Emissions'];
+                          if (name === 'carbonPerCubicMeter') return [`${value.toFixed(3)} kg CO₂/m³`, 'Emissions per Cubic Meter'];
                           return [value, name];
                         }}
-                        labelFormatter={(label) => `Container: ${label}`}
+                        labelFormatter={(label, payload) => {
+                          const item = payload?.[0]?.payload;
+                          return item ? `${label}: ${item.description}` : label;
+                        }}
                         contentStyle={{ 
-                          backgroundColor: '#ffffff', 
-                          border: '1px solid #e5e7eb', 
+                          backgroundColor: '#1f2937', 
+                          border: '1px solid #3b82f6', 
                           borderRadius: '8px', 
                           padding: '12px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.4)',
+                          color: '#ffffff'
                         }}
-                        labelStyle={{ fontWeight: '600', color: '#1f2937' }}
-                        itemStyle={{ color: '#6b7280' }}
+                        labelStyle={{ fontWeight: '600', color: '#3b82f6' }}
+                        itemStyle={{ color: '#d1d5db' }}
                       />
                       <Line 
                         type="monotone" 
                         dataKey="emissions" 
                         stroke="#22c55e" 
                         strokeWidth={3} 
-                        activeDot={{ r: 6, fill: '#22c55e', stroke: '#ffffff', strokeWidth: 2 }} 
+                        activeDot={{ r: 6, fill: '#22c55e', stroke: '#000000', strokeWidth: 2 }} 
                         dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
                       />
                       <Line 
@@ -890,7 +923,7 @@ function Calculator() {
                         stroke="#f59e0b" 
                         strokeWidth={2} 
                         strokeDasharray="5 5"
-                        activeDot={{ r: 5, fill: '#f59e0b', stroke: '#ffffff', strokeWidth: 2 }} 
+                        activeDot={{ r: 5, fill: '#f59e0b', stroke: '#000000', strokeWidth: 2 }} 
                         dot={{ fill: '#f59e0b', strokeWidth: 1, r: 3 }}
                       />
                     </LineChart>
@@ -899,11 +932,11 @@ function Calculator() {
                 <div className="mt-4 flex justify-center space-x-6 text-sm">
                   <div className="flex items-center">
                     <div className="w-4 h-0.5 bg-green-500 mr-2"></div>
-                    <span className="text-gray-600 font-medium">Total Emissions</span>
+                    <span className="text-gray-300 font-medium">Total Emissions</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-4 h-0.5 bg-amber-500 border-dashed border-t mr-2"></div>
-                    <span className="text-gray-600 font-medium">Emissions per m³</span>
+                    <span className="text-gray-300 font-medium">Emissions per m³</span>
                   </div>
                 </div>
               </div>
@@ -981,13 +1014,13 @@ function Calculator() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <motion.div variants={containerAnimation} className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+            <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-xl shadow-lg border border-gray-200">
               <h3 className="font-bold text-xl mb-6 flex items-center text-gray-800">
-                <span className="mr-2">📈</span> Cost Progression
+                <span className="mr-2">📈</span> Cost Progression Analysis
               </h3>
               <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <AreaChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 100 }}>
                     <defs>
                       <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
@@ -1002,10 +1035,12 @@ function Calculator() {
                       fontWeight="600"
                       tickLine={false} 
                       axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }}
-                      angle={-45}
+                      angle={-35}
                       textAnchor="end"
-                      height={60}
+                      height={100}
                       interval={0}
+                      dx={-5}
+                      dy={5}
                     />
                     <YAxis 
                       stroke="#4b5563" 
@@ -1013,11 +1048,20 @@ function Calculator() {
                       fontWeight="600"
                       tickLine={false} 
                       axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }} 
-                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", style: { textAnchor: 'middle', fill: '#374151', fontSize: '12px', fontWeight: '600' } }} 
+                      label={{ value: `Cumulative Cost (${currentSymbol})`, angle: -90, position: "insideLeft", style: { textAnchor: 'middle', fill: '#374151', fontSize: '12px', fontWeight: '600' } }} 
                     />
                     <Tooltip 
-                      formatter={(value) => [`${currentSymbol}${value.toFixed(2)}`, 'Cumulative Cost']} 
-                      labelFormatter={(label) => `Stage: ${label}`}
+                      formatter={(value, name, props) => {
+                        const item = props.payload;
+                        return [
+                          `${currentSymbol}${value.toFixed(2)}`, 
+                          `${item.stage} Cost`
+                        ];
+                      }}
+                      labelFormatter={(label, payload) => {
+                        const item = payload?.[0]?.payload;
+                        return item ? `Stage: ${label} (${item.stage})` : `Stage: ${label}`;
+                      }}
                       contentStyle={{ 
                         backgroundColor: '#ffffff', 
                         border: '1px solid #e5e7eb', 
@@ -1085,7 +1129,7 @@ function Calculator() {
               onClick={handleGenerateQR}
               className="py-3 px-8 bg-green-600 text-white font-black rounded-lg hover:bg-green-700 transition-colors shadow-lg text-lg flex items-center gap-2"
             >
-              <span>Generate QR Code</span>
+              <span>Generate QR</span>
             </motion.button>
           </div>
 
@@ -1096,7 +1140,7 @@ function Calculator() {
               className="mt-8 flex justify-center"
             >
               <div className="bg-white p-6 rounded-lg shadow-lg border-2 border-green-200">
-                <h3 className="text-lg font-bold text-center mb-4 text-gray-800">Share Your Quote</h3>
+                <h3 className="text-lg font-bold text-center mb-4 text-gray-800">Share Your Shipping Quote</h3>
                 <div className="flex flex-col items-center space-y-4">
                   <QRCode
                     value={generateQRCodeData()}
@@ -1106,7 +1150,7 @@ function Calculator() {
                     level="M"
                   />
                   <p className="text-sm text-gray-600 text-center max-w-xs">
-                    Scan this QR code to share your shipping quote or save it for later reference.
+                    Scan this QR code to view your complete shipping quote summary with all details.
                   </p>
                   <div className="flex gap-3">
                     <button 
@@ -1124,18 +1168,7 @@ function Calculator() {
                       Download QR
                     </button>
                     <button 
-                      onClick={() => {
-                        if (navigator.share) {
-                          navigator.share({
-                            title: 'Green Shipping Quote',
-                            text: `Shipping quote from ${origin} to ${destination}`,
-                            url: window.location.href
-                          });
-                        } else {
-                          navigator.clipboard.writeText(generateQRCodeData());
-                          alert('Quote data copied to clipboard!');
-                        }
-                      }}
+                      onClick={handleShareQR}
                       className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm font-medium"
                     >
                       Share Quote
@@ -1147,6 +1180,7 @@ function Calculator() {
           )}
         </motion.div>
       </div>
+      
       <Features />
       <MaritimeQuotes />
     </div>
