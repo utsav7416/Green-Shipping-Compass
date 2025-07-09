@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Shield, AlertTriangle, CheckCircle, XCircle, Clock, Globe, Bookmark } from 'lucide-react';
+import { FileText, AlertTriangle, CheckCircle, XCircle, Clock, Globe, Bookmark } from 'lucide-react';
 import { ports } from '../data/ports';
 
 function RegulatoryInfo({ origin, destination }) {
@@ -199,15 +199,6 @@ function RegulatoryInfo({ origin, destination }) {
                       ))}
                     </ul>
                   </div>
-                </motion.div>
-
-                <motion.div
-                  className="mt-6 p-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg border-2 border-green-300"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.8 + index * 0.2 }}
-                  whileHover={{ scale: 1.02 }}
-                >
                 </motion.div>
               </div>
             </motion.div>
