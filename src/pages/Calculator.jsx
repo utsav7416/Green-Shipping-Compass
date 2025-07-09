@@ -102,6 +102,7 @@ function Calculator() {
     const stored = localStorage.getItem('shippingDate');
     return stored ? stored : '';
   });
+  const [showQRCode, setShowQRCode] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('selectedOrigin', origin);
@@ -148,16 +149,20 @@ function Calculator() {
       const distance = calculateDistance(origin, destination);
       const totalWeight = weight * quantity;
 
-      const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/predict`, {
-        distance: distance,
-        weight: totalWeight,
-        containerSize: containerSizeMap[containerType],
-        method: method,
-        cargoType: cargoType
-      });
+      const baseCostPerKm = 0.12;
+      const baseContainerCost = containerSizeMap[containerType] * 50;
+      const distanceCost = distance * baseCostPerKm;
+      const weightCost = totalWeight * 0.8;
+      const methodMultiplier = shippingMethods[method].carbonMultiplier * 0.8 + 0.6;
 
-      const baseCosts = response.data.costs;
-      let baseTotalCost = response.data.totalCost;
+      const baseCosts = {
+        'Base Container Cost': baseContainerCost,
+        'Distance Cost': distanceCost,
+        'Weight Cost': weightCost,
+        'Method Surcharge': baseContainerCost * (methodMultiplier - 1)
+      };
+
+      let baseTotalCost = Object.values(baseCosts).reduce((sum, cost) => sum + cost, 0);
       const surcharge = cargoTypes[cargoType.toLowerCase()].surcharge;
 
       if (surcharge > 0) {
@@ -180,7 +185,7 @@ function Calculator() {
 
     } catch (err) {
       setError('Failed to calculate shipping cost. Please try again.');
-      console.error('API Error:', err);
+      console.error('Calculation Error:', err);
     } finally {
       setLoading(false);
     }
@@ -203,37 +208,37 @@ function Calculator() {
   const convertedTotalCost = totalCost * currentRate;
 
   const progressData = [
-    { name: 'Origin Port', cost: (costs['Base Container Cost'] || 0) * currentRate, label: 'Departure' },
-    { name: 'Documentation', cost: totalCost * 0.3 * currentRate || 0, label: 'Processing' },
-    { name: 'Customs', cost: totalCost * 0.6 * currentRate || 0, label: 'Clearance' },
-    { name: 'Transit', cost: totalCost * 0.8 * currentRate || 0, label: 'Shipping' },
-    { name: 'Destination', cost: totalCost * currentRate || 0, label: 'Arrival' }
+    { name: 'Departure', cost: (costs['Base Container Cost'] || 0) * currentRate, stage: 'Origin Port' },
+    { name: 'Processing', cost: totalCost * 0.3 * currentRate || 0, stage: 'Documentation' },
+    { name: 'Clearance', cost: totalCost * 0.6 * currentRate || 0, stage: 'Customs' },
+    { name: 'Transit', cost: totalCost * 0.8 * currentRate || 0, stage: 'Shipping' },
+    { name: 'Arrival', cost: totalCost * currentRate || 0, stage: 'Destination' }
   ];
 
   const emissionsComparisonData = [
     {
       name: 'Standard',
       emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 1.0,
-      method: 'Standard',
-      color: '#8884d8'
+      efficiency: 85,
+      cost: 1200
     },
     {
       name: 'Express',
       emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 1.8,
-      method: 'Express',
-      color: '#82ca9d'
+      efficiency: 65,
+      cost: 2100
     },
     {
       name: 'Premium',
       emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 2.5,
-      method: 'Premium',
-      color: '#ffc658'
+      efficiency: 50,
+      cost: 3200
     },
     {
       name: 'Eco-friendly',
       emissions: ((distance * totalWeight * 0.0001) / containerSizeMap[containerType]) * 0.6,
-      method: 'Eco-friendly',
-      color: '#22c55e'
+      efficiency: 95,
+      cost: 980
     }
   ];
 
@@ -241,20 +246,44 @@ function Calculator() {
     {
       name: '20ft',
       emissions: (distance * totalWeight * 0.0001) / 20,
-      container: '20ft',
-      color: '#8884d8'
+      capacity: 33,
+      costEfficiency: 90,
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 20) / 33
     },
     {
       name: '40ft',
       emissions: (distance * totalWeight * 0.0001) / 40,
-      container: '40ft',
-      color: '#82ca9d'
+      capacity: 67,
+      costEfficiency: 95,
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 40) / 67
     },
     {
-      name: '40ft-hc',
+      name: '40ft HC',
       emissions: (distance * totalWeight * 0.0001) / 45,
-      container: '40ft-hc',
-      color: '#ffc658'
+      capacity: 76,
+      costEfficiency: 92,
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 45) / 76
+    },
+    {
+      name: '45ft HC',
+      emissions: (distance * totalWeight * 0.0001) / 50,
+      capacity: 86,
+      costEfficiency: 88,
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 50) / 86
+    },
+    {
+      name: 'Reefer 20ft',
+      emissions: (distance * totalWeight * 0.0001) / 18,
+      capacity: 28,
+      costEfficiency: 75,
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 18) / 28
+    },
+    {
+      name: 'Reefer 40ft',
+      emissions: (distance * totalWeight * 0.0001) / 38,
+      capacity: 59,
+      costEfficiency: 78,
+      carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 38) / 59
     }
   ];
 
@@ -285,9 +314,15 @@ function Calculator() {
       totalCost: convertedTotalCost.toFixed(2),
       currency,
       shippingDate,
-      deliveryRange: getDeliveryRange(method, shippingDate)
+      deliveryRange: getDeliveryRange(method, shippingDate),
+      quoteId: `GSC-${Date.now()}`,
+      timestamp: new Date().toISOString()
     };
     return JSON.stringify(qrData);
+  };
+
+  const handleGenerateQR = () => {
+    setShowQRCode(!showQRCode);
   };
 
   const QuotePdfDocument = ({ quoteData }) => (
@@ -738,57 +773,138 @@ function Calculator() {
               <span className="mr-2">📊</span> Emissions Comparison Charts
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
-                <h3 className="font-black text-xl mb-4 flex items-center">
-                  <span className="mr-2">🚢</span> Shipping Methods Comparison
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 className="font-bold text-xl mb-4 flex items-center text-gray-800">
+                  <span className="mr-2">🚢</span> Shipping Methods Analysis
                 </h3>
-                <div className="h-[300px]">
+                <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={emissionsComparisonData}>
-                      <defs>
-                        <linearGradient id="methodGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                      <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} />
-                      <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                      <Tooltip 
-                        formatter={(value) => [`${value.toFixed(2)} kg CO₂`, 'Emissions']}
-                        labelFormatter={(label) => `Method: ${label}`}
-                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }}
+                    <BarChart data={emissionsComparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis 
+                        dataKey="name" 
+                        stroke="#4b5563" 
+                        fontSize={12} 
+                        fontWeight="600"
+                        tickLine={false} 
+                        axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }} 
                       />
-                      <Bar dataKey="emissions" fill="url(#methodGradient)" radius={[4, 4, 0, 0]} />
+                      <YAxis 
+                        stroke="#4b5563" 
+                        fontSize={12} 
+                        fontWeight="600"
+                        tickLine={false} 
+                        axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }} 
+                        label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '12px', fontWeight: '600' } }} 
+                      />
+                      <Tooltip 
+                        formatter={(value, name) => [
+                          `${value.toFixed(2)} kg CO₂`,
+                          name === 'emissions' ? 'Carbon Emissions' : name
+                        ]}
+                        labelFormatter={(label) => `Method: ${label}`}
+                        contentStyle={{ 
+                          backgroundColor: '#ffffff', 
+                          border: '1px solid #e5e7eb', 
+                          borderRadius: '8px', 
+                          padding: '12px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                        labelStyle={{ fontWeight: '600', color: '#1f2937' }}
+                        itemStyle={{ color: '#6b7280' }}
+                      />
+                      <Bar 
+                        dataKey="emissions" 
+                        fill="#3b82f6" 
+                        radius={[4, 4, 0, 0]}
+                        name="emissions"
+                      >
+                        <defs>
+                          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                            <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.6}/>
+                          </linearGradient>
+                        </defs>
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md">
-                <h3 className="font-black text-xl mb-4 flex items-center">
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 className="font-bold text-xl mb-4 flex items-center text-gray-800">
                   <span className="mr-2">📦</span> Container Types Comparison
                 </h3>
-                <div className="h-[300px]">
+                <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={containerEmissionsData}>
-                      <defs>
-                        <linearGradient id="containerGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                      <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} />
-                      <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                      <Tooltip 
-                        formatter={(value) => [`${value.toFixed(2)} kg CO₂`, 'Emissions']}
-                        labelFormatter={(label) => `Container: ${label}`}
-                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }}
+                    <LineChart data={containerEmissionsData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis 
+                        dataKey="name" 
+                        stroke="#4b5563" 
+                        fontSize={11} 
+                        fontWeight="600"
+                        tickLine={false} 
+                        axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
                       />
-                      <Line type="monotone" dataKey="emissions" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 8, fill: '#3b82f6' }} />
+                      <YAxis 
+                        stroke="#4b5563" 
+                        fontSize={12} 
+                        fontWeight="600"
+                        tickLine={false} 
+                        axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }} 
+                        label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '12px', fontWeight: '600' } }} 
+                      />
+                      <Tooltip 
+                        formatter={(value, name) => {
+                          if (name === 'emissions') return [`${value.toFixed(2)} kg CO₂`, 'Carbon Emissions'];
+                          if (name === 'capacity') return [`${value} m³`, 'Capacity'];
+                          if (name === 'costEfficiency') return [`${value}%`, 'Cost Efficiency'];
+                          return [value, name];
+                        }}
+                        labelFormatter={(label) => `Container: ${label}`}
+                        contentStyle={{ 
+                          backgroundColor: '#ffffff', 
+                          border: '1px solid #e5e7eb', 
+                          borderRadius: '8px', 
+                          padding: '12px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                        labelStyle={{ fontWeight: '600', color: '#1f2937' }}
+                        itemStyle={{ color: '#6b7280' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="emissions" 
+                        stroke="#22c55e" 
+                        strokeWidth={3} 
+                        activeDot={{ r: 6, fill: '#22c55e', stroke: '#ffffff', strokeWidth: 2 }} 
+                        dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="carbonPerCubicMeter" 
+                        stroke="#f59e0b" 
+                        strokeWidth={2} 
+                        strokeDasharray="5 5"
+                        activeDot={{ r: 5, fill: '#f59e0b', stroke: '#ffffff', strokeWidth: 2 }} 
+                        dot={{ fill: '#f59e0b', strokeWidth: 1, r: 3 }}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
+                </div>
+                <div className="mt-4 flex justify-center space-x-6 text-sm">
+                  <div className="flex items-center">
+                    <div className="w-4 h-0.5 bg-green-500 mr-2"></div>
+                    <span className="text-gray-600 font-medium">Total Emissions</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-4 h-0.5 bg-amber-500 border-dashed border-t mr-2"></div>
+                    <span className="text-gray-600 font-medium">Emissions per m³</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -865,32 +981,61 @@ function Calculator() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <motion.div variants={containerAnimation} className="bg-amber-100 p-6 rounded-lg shadow-md">
-              <h3 className="font-black text-xl mb-6 flex items-center">
+            <motion.div variants={containerAnimation} className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+              <h3 className="font-bold text-xl mb-6 flex items-center text-gray-800">
                 <span className="mr-2">📈</span> Cost Progression
               </h3>
-              <div className="h-[300px]">
+              <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={progressData}>
+                  <AreaChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                     <defs>
                       <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
                         <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                    <XAxis dataKey="name" stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: "Progression Stage", position: "insideBottom", offset: 0, fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                    <YAxis stroke="#333" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#333', fontSize: 12, fontWeight: 'bold' }} />
-                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} itemStyle={{ color: '#4b5563' }} />
-                    <Legend />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="name" 
+                      stroke="#4b5563" 
+                      fontSize={11} 
+                      fontWeight="600"
+                      tickLine={false} 
+                      axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                      interval={0}
+                    />
+                    <YAxis 
+                      stroke="#4b5563" 
+                      fontSize={12} 
+                      fontWeight="600"
+                      tickLine={false} 
+                      axisLine={{ stroke: '#d1d5db', strokeWidth: 1 }} 
+                      label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", style: { textAnchor: 'middle', fill: '#374151', fontSize: '12px', fontWeight: '600' } }} 
+                    />
+                    <Tooltip 
+                      formatter={(value) => [`${currentSymbol}${value.toFixed(2)}`, 'Cumulative Cost']} 
+                      labelFormatter={(label) => `Stage: ${label}`}
+                      contentStyle={{ 
+                        backgroundColor: '#ffffff', 
+                        border: '1px solid #e5e7eb', 
+                        borderRadius: '8px', 
+                        padding: '12px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }} 
+                      labelStyle={{ fontWeight: '600', color: '#1f2937' }} 
+                      itemStyle={{ color: '#6b7280' }} 
+                    />
                     <Area
                       type="monotone"
                       dataKey="cost"
-                      name={`Cumulative Cost (${currentSymbol})`}
                       stroke="#22c55e"
+                      strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#costGradient)"
-                      activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
+                      activeDot={{ r: 6, fill: '#22c55e', stroke: '#ffffff', strokeWidth: 2 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -934,19 +1079,72 @@ function Calculator() {
               )}
             </PDFDownloadLink>
             
-            <motion.div whileHover={{scale:1.05}} whileTap={{scale:0.95}} className="py-3 px-8 bg-green-600 text-white font-black rounded-lg hover:bg-green-700 transition-colors shadow-lg text-lg flex items-center gap-2">
-              <span>Share Quote</span>
-              <div className="bg-white p-2 rounded">
-                <QRCode
-                  value={generateQRCodeData()}
-                  size={40}
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                  level="M"
-                />
+            <motion.button 
+              whileHover={{scale:1.05}} 
+              whileTap={{scale:0.95}} 
+              onClick={handleGenerateQR}
+              className="py-3 px-8 bg-green-600 text-white font-black rounded-lg hover:bg-green-700 transition-colors shadow-lg text-lg flex items-center gap-2"
+            >
+              <span>Generate QR Code</span>
+            </motion.button>
+          </div>
+
+          {showQRCode && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 flex justify-center"
+            >
+              <div className="bg-white p-6 rounded-lg shadow-lg border-2 border-green-200">
+                <h3 className="text-lg font-bold text-center mb-4 text-gray-800">Share Your Quote</h3>
+                <div className="flex flex-col items-center space-y-4">
+                  <QRCode
+                    value={generateQRCodeData()}
+                    size={200}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="M"
+                  />
+                  <p className="text-sm text-gray-600 text-center max-w-xs">
+                    Scan this QR code to share your shipping quote or save it for later reference.
+                  </p>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => {
+                        const qrCanvas = document.querySelector('canvas');
+                        if (qrCanvas) {
+                          const link = document.createElement('a');
+                          link.download = `shipping-quote-qr-${Date.now()}.png`;
+                          link.href = qrCanvas.toDataURL();
+                          link.click();
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm font-medium"
+                    >
+                      Download QR
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({
+                            title: 'Green Shipping Quote',
+                            text: `Shipping quote from ${origin} to ${destination}`,
+                            url: window.location.href
+                          });
+                        } else {
+                          navigator.clipboard.writeText(generateQRCodeData());
+                          alert('Quote data copied to clipboard!');
+                        }
+                      }}
+                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm font-medium"
+                    >
+                      Share Quote
+                    </button>
+                  </div>
+                </div>
               </div>
             </motion.div>
-          </div>
+          )}
         </motion.div>
       </div>
       <Features />
