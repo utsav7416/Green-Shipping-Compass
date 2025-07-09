@@ -588,7 +588,7 @@ const Weather = ({ origin, destination }) => {
             </motion.div>
         );
     }
-
+    
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -621,6 +621,8 @@ const Weather = ({ origin, destination }) => {
                     type="destination"
                 />
             </div>
+
+            <WeatherGraph />
 
             <motion.div
                 initial={{ opacity: 0 }}
@@ -669,19 +671,21 @@ const Weather = ({ origin, destination }) => {
                     </div>
                 </div>
             </motion.div>
+            
             <AirPollutionInfo
                 originData={originPollution}
                 destinationData={destinationPollution}
                 origin={origin}
                 destination={destination}
             />
+            
             <style>{`
                 .raindrop {
                     position: absolute;
                     animation: rainfall linear infinite;
-                    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.6), rgba(59, 130, 246, 0.2));
+                    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.8), rgba(59, 130, 246, 0.3));
                     width: 2px;
-                    height: 10px;
+                    height: 15px;
                     border-radius: 50%;
                 }
                 @keyframes rainfall {
@@ -690,28 +694,30 @@ const Weather = ({ origin, destination }) => {
                 }
                 .cloud-background {
                     position: absolute;
-                    background: rgba(156, 163, 175, 0.3);
+                    background: rgba(156, 163, 175, 0.4);
                     border-radius: 50px;
                     animation: cloudFloat ease-in-out infinite;
                 }
-                .cloud-1 { width: 80px; height: 40px; top: 20%; left: 10%; animation-duration: 8s; }
-                .cloud-2 { width: 60px; height: 30px; top: 40%; right: 15%; animation-duration: 12s; animation-delay: -4s; }
-                .cloud-3 { width: 70px; height: 35px; top: 60%; left: 30%; animation-duration: 10s; animation-delay: -2s; }
+                .cloud-1 { width: 100px; height: 50px; top: 20%; left: 10%; animation-duration: 8s; }
+                .cloud-2 { width: 80px; height: 40px; top: 40%; right: 15%; animation-duration: 12s; animation-delay: -4s; }
+                .cloud-3 { width: 90px; height: 45px; top: 60%; left: 30%; animation-duration: 10s; animation-delay: -2s; }
                 @keyframes cloudFloat {
                     0%, 100% { transform: translateX(0); }
-                    50% { transform: translateX(20px); }
+                    50% { transform: translateX(30px); }
                 }
                 .sun-background {
-                    width: 60px;
-                    height: 60px;
-                    background: radial-gradient(circle, rgba(251, 191, 36, 0.4) 0%, rgba(251, 191, 36, 0.1) 70%);
+                    width: 80px;
+                    height: 80px;
+                    background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, rgba(251, 191, 36, 0.2) 70%);
                     border-radius: 50%;
                     animation: sunPulse ease-in-out infinite 3s;
                 }
                 @keyframes sunPulse {
-                    0%, 100% { transform: scale(1); opacity: 0.4; }
-                    50% { transform: scale(1.1); opacity: 0.6; }
+                    0%, 100% { transform: scale(1); opacity: 0.6; }
+                    50% { transform: scale(1.2); opacity: 0.8; }
                 }
+                .backdrop-blur-sm { transition: all 0.3s ease; }
+                .backdrop-blur-sm:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
             `}</style>
         </motion.div>
     );
