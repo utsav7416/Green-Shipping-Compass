@@ -208,28 +208,6 @@ function RegulatoryInfo({ origin, destination }) {
                   transition={{ delay: 0.8 + index * 0.2 }}
                   whileHover={{ scale: 1.02 }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <motion.div
-                        className="bg-green-600 p-2 rounded-full mr-3"
-                        whileHover={{ rotate: 360 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <Shield className="w-5 h-5 text-white" />
-                      </motion.div>
-                      <div>
-                        <h5 className="font-black text-green-700">Compliance Status</h5>
-                        <p className="text-sm text-gray-600">Ready for shipping operations</p>
-                      </div>
-                    </div>
-                    <motion.div
-                      className="flex items-center text-green-600"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      <CheckCircle className="w-6 h-6 mr-1" />
-                      <span className="font-bold">Verified</span>
-                    </motion.div>
-                  </div>
                 </motion.div>
               </div>
             </motion.div>

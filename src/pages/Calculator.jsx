@@ -329,17 +329,6 @@ function Calculator() {
           <p className="text-black text-xl font-bold">Calculate eco-friendly shipping costs with real-time container and route optimization.</p>
         </motion.div>
 
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
-            role="alert"
-          >
-            <span className="block sm:inline font-bold">{error}</span>
-          </motion.div>
-        )}
-
         <motion.div
           ref={ref}
           initial="hidden"

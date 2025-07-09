@@ -6,15 +6,14 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+
+cors = CORS(app, resources={
+   r"/predict": {
+       "origins": "https://green-shipping-compass-1.onrender.com"
+   }
+})
 
 CARGO_TYPES = ['normal', 'fragile', 'perishable', 'hazardous']
-CARGO_MULTIPLIERS = {
-   'normal': 1.0,
-   'fragile': 1.15,
-   'perishable': 1.25,
-   'hazardous': 1.4
-}
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'shipping_model.joblib')
 SCALER_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'scaler.joblib')
@@ -75,7 +74,6 @@ def predict():
        })
    
    except Exception as e:
-       
        print(f"Prediction error: {e}", exc_info=True)
        return jsonify({'error': f"An internal server error occurred: {str(e)}"}), 500
 
