@@ -22,7 +22,7 @@ const containerSizeMap = { '20ft': 20, '40ft': 40, '40ft-hc': 45 };
 const containerTypes = {
   '20ft': { capacity: 33.2, base_cost: 1500, icon: '📦', features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'], description: 'Perfect for smaller shipments and general cargo.', dimensions: '20′ × 8′ × 8′6″', maxWeight: '28,230 kg', advantages: ['Lower shipping costs', 'Easier to handle', 'Widely available', 'Perfect for LCL shipments'] },
   '40ft': { capacity: 67.6, base_cost: 2800, icon: '🚛', features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'], description: 'The industry standard for most international shipments.', dimensions: '40′ × 8′ × 8′6″', maxWeight: '30,480 kg', advantages: ['Best value per cubic meter', 'Industry standard', 'Suitable for most cargo types', 'Efficient loading'] },
-  '40ft-hc': { capacity: 76.3, base_cost: 3200, icon: '🏭', features: ['Extra height', 'Maximum space', 'Specialized cargo'], description: 'High cube container with an extra foot of height.', dimensions: '40′ × 8′ × 9′6″', maxWeight: '30,480 kg', advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture & textiles', 'Premium cargo solution'] },
+  '40ft-hc': { capacity: 76.3, base_cost: 3200, icon: '🏭', features: ['Extra height', 'Maximum space', 'Specialized cargo'], description: 'High cube container with an extra foot of height.', dimensions: '40′ × 8′ × 9′6″', maxWeight: '30,480 kg', advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture &amp; textiles', 'Premium cargo solution'] },
 };
 const cargoTypes = {
   normal: { name: 'Normal', surcharge: 0, icon: '📦', description: 'Standard cargo with no special handling requirements' },
@@ -44,109 +44,6 @@ const AnchorIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 
 const ShipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20.5l.394-.394a10.02 10.02 0 00-4.788-12.828L3 4.5m18 0l-4.606 3.286a10.02 10.02 0 00-4.788 12.828L12 20.5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16.5v-2m-8.25-6.5H2m20 0h-1.75M4.93 4.93L3.515 3.515m16.97 16.97l-1.414-1.414M4.93 19.07l-1.414 1.414m16.97-16.97l-1.414 1.414" /></svg>;
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const WarehouseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
-
-function PortCongestionDisplay({ congestionData, portName, portType, isLoading }) {
-  if (isLoading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4"
-      >
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600 font-bold">Scraping congestion data from Seadex.ai...</span>
-        </div>
-      </motion.div>
-    );
-  }
-
-  if (!congestionData) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border-l-4 border-gray-400 mb-4"
-      >
-        <div className="text-center p-4">
-          <h4 className="font-bold text-gray-600 text-lg">{portName} Port Congestion</h4>
-          <p className="text-sm text-gray-500 mt-2">Unable to fetch real-time congestion data</p>
-          <p className="text-xs text-gray-400 mt-1">Using estimated congestion levels</p>
-        </div>
-      </motion.div>
-    );
-  }
-
-  const getCongestionColor = (congestion) => {
-    if (congestion >= 80) return 'text-red-500';
-    if (congestion >= 60) return 'text-orange-500';
-    if (congestion >= 40) return 'text-yellow-500';
-    return 'text-green-500';
-  };
-
-  const getCongestionLevel = (congestion) => {
-    if (congestion >= 80) return 'Critical';
-    if (congestion >= 60) return 'High';
-    if (congestion >= 40) return 'Moderate';
-    return 'Low';
-  };
-
-  const getCongestionIcon = (congestion) => {
-    if (congestion >= 80) return '🚨';
-    if (congestion >= 60) return '⚠️';
-    if (congestion >= 40) return '🟡';
-    return '✅';
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4 shadow-md"
-    >
-      <div className="flex justify-between items-center">
-        <div>
-          <h4 className="font-bold text-gray-800 text-lg flex items-center">
-            <span className="mr-2">{getCongestionIcon(congestionData.congestion)}</span>
-            {portName} Port Congestion
-          </h4>
-          <p className="text-sm text-gray-600">{portType} Port Analysis • Data via Seadex.ai</p>
-        </div>
-        <div className="text-right">
-          <div className={`text-2xl font-black ${getCongestionColor(congestionData.congestion)}`}>
-            {congestionData.congestion.toFixed(1)}%
-          </div>
-          <div className="text-sm font-bold text-gray-600">
-            {getCongestionLevel(congestionData.congestion)} Congestion
-          </div>
-        </div>
-      </div>
-      
-      <div className="mt-4 grid grid-cols-2 gap-4">
-        <div className="bg-white p-3 rounded shadow-sm">
-          <div className="text-sm text-gray-600">vs Average</div>
-          <div className={`font-bold ${congestionData.gapWithMean >= 0 ? 'text-red-500' : 'text-green-500'}`}>
-            {congestionData.gapWithMean >= 0 ? '+' : ''}{congestionData.gapWithMean.toFixed(1)}%
-          </div>
-        </div>
-        <div className="bg-white p-3 rounded shadow-sm">
-          <div className="text-sm text-gray-600">Vessel Type</div>
-          <div className="font-bold text-blue-600 capitalize">{congestionData.vesselType}</div>
-        </div>
-      </div>
-      
-      <div className="mt-3 p-2 bg-blue-100 rounded text-xs">
-        <p className="text-blue-800">
-          <strong>💡 Impact on Costs:</strong> This congestion level may add{' '}
-          {congestionData.congestion >= 80 ? '15-20%' : 
-           congestionData.congestion >= 60 ? '10-15%' : 
-           congestionData.congestion >= 40 ? '5-10%' : '0-5%'} 
-          to your shipping costs due to delays and port surcharges.
-        </p>
-      </div>
-    </motion.div>
-  );
-}
 
 function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard' }) {
     const getDynamicStages = (dist, method) => {
@@ -332,36 +229,6 @@ function Calculator() {
     return Math.round(R * c);
   };
 
-  const fetchPortCongestion = async (portName) => {
-    try {
-      const response = await fetch(`https://green-shipping-compass-1.onrender.com/port-congestion/${encodeURIComponent(portName)}?vesselType=cargo`);
-      if (response.ok) {
-        return await response.json();
-      }
-      return null;
-    } catch (error) {
-      console.error(`Error fetching congestion for ${portName}:`, error);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    const loadCongestionData = async () => {
-      setCongestionLoading(true);
-      const [originData, destData] = await Promise.all([
-        fetchPortCongestion(origin),
-        fetchPortCongestion(destination)
-      ]);
-      setOriginCongestion(originData);
-      setDestinationCongestion(destData);
-      setCongestionLoading(false);
-    };
-
-    if (origin && destination) {
-      loadCongestionData();
-    }
-  }, [origin, destination]);
-
   useEffect(() => {
     const fetchPricing = async () => {
         setLoading(true);
@@ -409,7 +276,6 @@ function Calculator() {
 
             setCosts(finalCosts);
             setTotalCost(finalTotalCost);
-
         } catch (err) {
             setError(`Failed to fetch pricing: ${err.message}`);
             console.error('API Error:', err);
@@ -650,75 +516,12 @@ function Calculator() {
         </motion.div>
 
         <div className="mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-4">2. Live Port Congestion Analysis</h2>
-          <div className="bg-gradient-to-br from-slate-100 to-gray-100 p-8 rounded-lg shadow-xl">
-            <div className="mb-6 p-4 bg-blue-100 rounded-lg border-l-4 border-blue-500">
-              <h3 className="font-black text-blue-800 mb-2">🔍 Real-Time Port Intelligence</h3>
-              <p className="text-blue-700 text-sm">
-                Our system automatically scrapes live port congestion data from Seadex.ai to provide you with the most current port conditions. 
-                This data directly influences our pricing calculations to give you the most accurate shipping costs.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-2xl font-black text-gray-800 mb-4 flex items-center">
-                  <span className="mr-2">🚢</span> Origin Port Status
-                </h3>
-                <PortCongestionDisplay 
-                  congestionData={originCongestion} 
-                  portName={origin} 
-                  portType="Origin"
-                  isLoading={congestionLoading}
-                />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-gray-800 mb-4 flex items-center">
-                  <span className="mr-2">🏁</span> Destination Port Status
-                </h3>
-                <PortCongestionDisplay 
-                  congestionData={destinationCongestion} 
-                  portName={destination} 
-                  portType="Destination"
-                  isLoading={congestionLoading}
-                />
-              </div>
-            </div>
-            
-            <div className="mt-6 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-l-4 border-green-500">
-              <h4 className="font-black text-green-800 mb-3">🤖 Automated Web Scraping Technology</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-white p-4 rounded shadow">
-                  <div className="font-bold text-green-600 mb-2">⚡ Real-Time Data</div>
-                  <div className="text-gray-600">Selenium-powered web scraping fetches live port congestion from Seadex.ai</div>
-                </div>
-                <div className="bg-white p-4 rounded shadow">
-                  <div className="font-bold text-blue-600 mb-2">🎯 Dynamic Pricing</div>
-                  <div className="text-gray-600">Congestion levels automatically adjust shipping costs by 0-25%</div>
-                </div>
-                <div className="bg-white p-4 rounded shadow">
-                  <div className="font-bold text-purple-600 mb-2">🌐 100+ Ports</div>
-                  <div className="text-gray-600">Comprehensive coverage of major global shipping hubs</div>
-                </div>
-              </div>
-              
-              <div className="mt-4 p-3 bg-yellow-100 rounded border-l-4 border-yellow-500">
-                <p className="text-yellow-800 text-sm">
-                  <strong>💡 How it works:</strong> Our backend uses headless Chrome automation to visit the Seadex port congestion tool, 
-                  input port names, and extract real-time congestion percentages. This data is then used to calculate dynamic pricing adjustments.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-4">3. Insurance Selection</h2>
+          <h2 className="text-4xl font-black text-gray-800 mb-4">2. Insurance Selection</h2>
           <InsuranceSection selectedInsurance={selectedInsurance} onChange={handleInsuranceChange} currentSymbol={currentSymbol}/>
         </div>
         
         <div className="mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-4">4. Carbon Emissions Visualization</h2>
+          <h2 className="text-4xl font-black text-gray-800 mb-4">3. Carbon Emissions Visualization</h2>
           <CarbonImpactVisualizer
             carbonFootprint={carbonFootprint}
             ecoFootprint={ecoFootprint}
@@ -728,22 +531,21 @@ function Calculator() {
         </div>
         
         <div className="mb-8">
-            <h2 className="text-4xl font-black text-gray-800 mb-4">5. Weather Reports</h2>
+            <h2 className="text-4xl font-black text-gray-800 mb-4">4. Weather Reports</h2>
             <Weather origin={origin} destination={destination} />
         </div>
 
         <div className="mb-8">
-            <h2 className="text-4xl font-black text-gray-800 mb-4">6. Documentation / Legal</h2>
+            <h2 className="text-4xl font-black text-gray-800 mb-4">5. Documentation / Legal</h2>
             <RegulatoryInfo origin={origin} destination={destination} />
         </div>
 
         <div className="mb-8">
-            <h2 className="text-4xl font-black text-gray-800 mb-4">7. Progress Gantt Chart</h2>
+            <h2 className="text-4xl font-black text-gray-800 mb-4">6. Progress Gantt Chart</h2>
             <AestheticProgressTimeline distance={distance} shippingMethod={method} />
         </div>
-
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-6">8. Final Quote & Cost Breakdown</h2>
+          <h2 className="text-4xl font-black text-gray-800 mb-6">7. Final Quote & Cost Breakdown</h2>
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-black text-primary-600 flex items-center">
               <span className="mr-2">💰</span>
@@ -877,5 +679,3 @@ function Calculator() {
 }
 
 export default Calculator;
-
-
