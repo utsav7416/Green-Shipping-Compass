@@ -251,8 +251,8 @@ function Calculator() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Backend prediction failed');
+                const errorText = await response.text();
+                throw new Error(`API Error: ${response.status} ${response.statusText}. Details: ${errorText || 'The server returned an empty error response.'}`);
             }
 
             const data = await response.json();
@@ -676,3 +676,5 @@ function Calculator() {
 }
 
 export default Calculator;
+
+
