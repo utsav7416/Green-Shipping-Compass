@@ -40,13 +40,9 @@ const conversionRates = {
 };
 
 const TruckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
-
 const AnchorIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.005a11.955 11.955 0 01-8.618 3.979M12 22v-7" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zM12 11a3 3 0 110-6 3 3 0 010 6z" /></svg>;
-
 const ShipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20.5l.394-.394a10.02 10.02 0 00-4.788-12.828L3 4.5m18 0l-4.606 3.286a10.02 10.02 0 00-4.788 12.828L12 20.5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16.5v-2m-8.25-6.5H2m20 0h-1.75M4.93 4.93L3.515 3.515m16.97 16.97l-1.414-1.414M4.93 19.07l-1.414 1.414m16.97-16.97l-1.414 1.414" /></svg>;
-
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-
 const WarehouseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
 
 function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard' }) {
@@ -134,7 +130,6 @@ function getDeliveryRange(method, shippingDate) {
   maxDate.setDate(maxDate.getDate() + maxDays);
   return `${minDate.toLocaleDateString()} - ${maxDate.toLocaleDateString()}`;
 }
-
 function InsuranceSection({ selectedInsurance, onChange, currentSymbol }) {
   const INSURANCE_OPTIONS = [
     { label: 'None', value: 'none', surcharge: 0, description: 'No coverage for your shipment.' },
@@ -214,7 +209,6 @@ function Calculator() {
   useEffect(() => { localStorage.setItem('selectedQuantity', quantity.toString()) }, [quantity]);
   useEffect(() => { localStorage.setItem('selectedContainerType', containerType) }, [containerType]);
   useEffect(() => { localStorage.setItem('shippingDate', shippingDate) }, [shippingDate]);
-
   const calculateDistance = (origin, destination) => {
     const R = 6371;
     const lat1 = ports[origin].lat * Math.PI / 180;
@@ -227,55 +221,63 @@ function Calculator() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   };
+  
   const fetchPricing = async () => {
+    setLoading(true);
+    setError(null);
+    const distance = calculateDistance(origin, destination);
+    const totalWeight = weight * quantity;
+
     try {
-      setLoading(true);
-      setError(null);
-      const distance = calculateDistance(origin, destination);
-      const totalWeight = weight * quantity;
-      const baseCostPerKm = 0.12;
-      const baseContainerCost = containerSizeMap[containerType] * 50;
-      const distanceCost = distance * baseCostPerKm;
-      const weightCost = totalWeight * 0.8;
-      const methodMultiplier = shippingMethods[method].carbonMultiplier * 0.8 + 0.6;
-      let baseCosts = {
-        'Base Container Cost': baseContainerCost,
-        'Distance Cost': distanceCost,
-        'Weight Cost': weightCost,
-        'Method Surcharge': baseContainerCost * (methodMultiplier - 1),
-        'Customs': 120,
-        'Documentation': 60,
-        'Handling Charges': 90,
-      };
-      let baseTotalCost = Object.values(baseCosts).reduce((sum, cost) => sum + cost, 0);
-      const surcharge = cargoTypes[cargoType.toLowerCase()].surcharge;
-      if (surcharge > 0) {
-        baseCosts['Cargo Type Surcharge'] = baseTotalCost * surcharge;
-        baseTotalCost = baseTotalCost * (1 + surcharge);
-      }
-      if (temperatureControl) {
-        const tempSurcharge = baseTotalCost * 0.35;
-        baseCosts['Temperature Control'] = tempSurcharge;
-        baseTotalCost += tempSurcharge;
-      }
-      if (insuranceSurcharge > 0) {
-        baseCosts['Insurance'] = insuranceSurcharge;
-        baseTotalCost += insuranceSurcharge;
-      } else if (baseCosts['Insurance'] !== undefined) {
-        delete baseCosts['Insurance'];
-      }
-      setCosts(baseCosts);
-      setTotalCost(baseTotalCost);
-      const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
-      const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
-      const ecoCarbon = baseCarbon * shippingMethods['eco'].carbonMultiplier;
-      setCarbonFootprint(adjustedCarbon);
-      setEcoFootprint(ecoCarbon);
+        const apiPayload = {
+            distance,
+            weight: totalWeight,
+            containerSize: containerSizeMap[containerType],
+            cargoType,
+            method,
+        };
+
+        const response = await fetch('https://green-shipping-compass-1.onrender.com/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(apiPayload),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API Error: ${response.status} ${response.statusText}. Details: ${errorText || 'The server returned an empty error response.'}`);
+        }
+
+        const data = await response.json();
+        
+        let finalTotalCost = data.totalCost;
+        let finalCosts = data.costs;
+
+        const originalBackendInsurance = data.costs['Insurance'] || 0;
+        if (insuranceSurcharge > 0) {
+            finalCosts['Insurance'] = insuranceSurcharge;
+            finalTotalCost = (finalTotalCost - originalBackendInsurance) + insuranceSurcharge;
+        }
+        
+        if (temperatureControl) {
+            const tempSurcharge = finalTotalCost * 0.35;
+            finalCosts['Temperature Control'] = tempSurcharge;
+            finalTotalCost += tempSurcharge;
+        }
+
+        setCosts(finalCosts);
+        setTotalCost(finalTotalCost);
+
     } catch (err) {
-      setError('Failed to calculate shipping cost. Please try again.');
-      console.error('Calculation Error:', err);
+        setError(`Failed to fetch pricing. Please check your inputs or try again later. Error: ${err.message}`);
+        console.error('API Error:', err);
+        setCosts({});
+        setTotalCost(0);
     } finally {
-      setLoading(false);
+        const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
+        setCarbonFootprint(baseCarbon * shippingMethods[method].carbonMultiplier);
+        setEcoFootprint(baseCarbon * shippingMethods['eco'].carbonMultiplier);
+        setLoading(false);
     }
   };
 
@@ -311,7 +313,6 @@ function Calculator() {
     { name: 'Reefer 40ft', emissions: (distance * totalWeight * 0.0001) / 38, capacity: 59, costEfficiency: 78, carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 38) / 59, description: 'Large refrigerated container' }
   ];
   const containerAnimation = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
-
   const handleQuantityChange = (e) => {
     const value = e.target.value;
     if (value === '' || value === '0') setQuantity(0);
@@ -406,7 +407,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Container Type</label>
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(containerTypes).map(([type, details]) => (
-                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setContainerType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${containerType === type ? 'bg-blue-100 border-2 border-green-1000 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setContainerType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${containerType === type ? 'bg-blue-100 border-2 border-green-600 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                         <div className="text-2xl mb-2">{details.icon}</div>
                         <div className="font-black">{type}</div>
                         <div className="text-sm font-bold text-black">{details.capacity}m³</div>
@@ -418,7 +419,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Cargo Type</label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(cargoTypes).map(([type, details]) => (
-                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCargoType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${cargoType === type ? 'bg-blue-100 border-2 border-green-1000 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCargoType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${cargoType === type ? 'bg-blue-100 border-2 border-green-600 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                         <div className="text-2xl mb-2">{details.icon}</div>
                         <div className="font-black">{details.name}</div>
                         {details.surcharge > 0 && <div className="text-sm font-bold text-red-500">+{details.surcharge * 100}% surcharge</div>}
@@ -447,7 +448,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-2">Select Quantity</label>
                   <div className="flex items-center space-x-4">
                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">-</button>
-                    <input type="number" min="1" value={quantity === 0 ? '' : quantity} onChange={handleQuantityChange} className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg" />
+                    <input type="number" min="1" value={quantity === 0 ? '' : quantity} onChange={handleQuantityChange} className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-600 focus:border-green-600 rounded-lg" />
                     <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">+</button>
                   </div>
                 </div>
@@ -493,7 +494,7 @@ function Calculator() {
             <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span className="mr-2">🚢</span> Shipping Method</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {Object.entries(shippingMethods).map(([key, value]) => (
-                <motion.button key={key} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod(key)} className={`p-6 rounded-lg text-center transition duration-300 ${method === key ? 'bg-indigo-200 border-2 border-green-1000 shadow-lg transform scale-105' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                <motion.button key={key} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod(key)} className={`p-6 rounded-lg text-center transition duration-300 ${method === key ? 'bg-indigo-200 border-2 border-green-600 shadow-lg transform scale-105' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                   <div className="text-3xl mb-2">{value.icon}</div>
                   <div className="font-black text-lg">{value.name}</div>
                   <div className="text-md font-bold text-black mb-2">{value.days}</div>
@@ -533,7 +534,6 @@ function Calculator() {
             <h2 className="text-4xl font-black text-gray-800 mb-4">6. Progress Gantt Chart</h2>
             <AestheticProgressTimeline distance={distance} shippingMethod={method} />
         </div>
-
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8">
           <h2 className="text-4xl font-black text-gray-800 mb-6">7. Final Quote &amp; Cost Breakdown</h2>
           <div className="flex justify-between items-center mb-8">
@@ -549,6 +549,7 @@ function Calculator() {
               </select>
             </div>
           </div>
+          {error && <div className="bg-red-200 text-red-800 p-4 rounded-lg mb-4">{error}</div>}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1 w-full">
               <h3 className="font-black text-xl mb-4 flex items-center"><span className="mr-2">🛣️</span> Route Details</h3>
@@ -661,5 +662,3 @@ function Calculator() {
 }
 
 export default Calculator;
-
-
