@@ -209,12 +209,16 @@ function Calculator() {
   useEffect(() => { localStorage.setItem('selectedQuantity', quantity.toString()) }, [quantity]);
   useEffect(() => { localStorage.setItem('selectedContainerType', containerType) }, [containerType]);
   useEffect(() => { localStorage.setItem('shippingDate', shippingDate) }, [shippingDate]);
+
   const calculateDistance = (origin, destination) => {
-    const R = 6371;
-    const lat1 = ports[origin].lat * Math.PI / 180;
-    const lat2 = ports[destination].lat * Math.PI / 180;
-    const lon1 = ports[origin].lon * Math.PI / 180;
-    const lon2 = ports[destination].lon * Math.PI / 180;
+    const R = 6371; 
+    const p1 = ports[origin];
+    const p2 = ports[destination];
+    if (!p1 || !p2) return 0;
+    const lat1 = p1.lat * Math.PI / 180;
+    const lat2 = p2.lat * Math.PI / 180;
+    const lon1 = p1.lon * Math.PI / 180;
+    const lon2 = p2.lon * Math.PI / 180;
     const dLat = lat2 - lat1;
     const dLon = lon2 - lon1;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -222,67 +226,69 @@ function Calculator() {
     return Math.round(R * c);
   };
   
-  const fetchPricing = async () => {
-    setLoading(true);
-    setError(null);
-    const distance = calculateDistance(origin, destination);
-    const totalWeight = weight * quantity;
-
-    try {
-        const apiPayload = {
-            distance,
-            weight: totalWeight,
-            containerSize: containerSizeMap[containerType],
-            cargoType,
-            method,
-        };
-
-        const response = await fetch('https://green-shipping-compass-1.onrender.com/predict', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(apiPayload),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API Error: ${response.status} ${response.statusText}. Details: ${errorText || 'The server returned an empty error response.'}`);
-        }
-
-        const data = await response.json();
-        
-        let finalTotalCost = data.totalCost;
-        let finalCosts = data.costs;
-
-        const originalBackendInsurance = data.costs['Insurance'] || 0;
-        if (insuranceSurcharge > 0) {
-            finalCosts['Insurance'] = insuranceSurcharge;
-            finalTotalCost = (finalTotalCost - originalBackendInsurance) + insuranceSurcharge;
-        }
-        
-        if (temperatureControl) {
-            const tempSurcharge = finalTotalCost * 0.35;
-            finalCosts['Temperature Control'] = tempSurcharge;
-            finalTotalCost += tempSurcharge;
-        }
-
-        setCosts(finalCosts);
-        setTotalCost(finalTotalCost);
-
-    } catch (err) {
-        setError(`Failed to fetch pricing. Please check your inputs or try again later. Error: ${err.message}`);
-        console.error('API Error:', err);
-        setCosts({});
-        setTotalCost(0);
-    } finally {
-        const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
-        setCarbonFootprint(baseCarbon * shippingMethods[method].carbonMultiplier);
-        setEcoFootprint(baseCarbon * shippingMethods['eco'].carbonMultiplier);
-        setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPricing();
+    const fetchPricing = async () => {
+      setLoading(true);
+      setError(null);
+      const distance = calculateDistance(origin, destination);
+      const totalWeight = weight * quantity;
+  
+      try {
+          const apiPayload = {
+              distance,
+              weight: totalWeight,
+              containerSize: containerSizeMap[containerType],
+              cargoType,
+              method,
+          };
+  
+          const response = await fetch('https://green-shipping-compass.onrender.com/predict', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(apiPayload),
+          });
+  
+          if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`API Error: ${response.status} ${response.statusText}. Details: ${errorText || 'The server returned an empty error response.'}`);
+          }
+  
+          const data = await response.json();
+          
+          let finalTotalCost = data.totalCost;
+          let finalCosts = data.costs;
+  
+          const originalBackendInsurance = data.costs['Insurance'] || 0;
+          if (insuranceSurcharge > 0) {
+              finalCosts['Insurance'] = insuranceSurcharge;
+              finalTotalCost = (finalTotalCost - originalBackendInsurance) + insuranceSurcharge;
+          }
+          
+          if (temperatureControl) {
+              const tempSurcharge = finalTotalCost * 0.35;
+              finalCosts['Temperature Control'] = tempSurcharge;
+              finalTotalCost += tempSurcharge;
+          }
+  
+          setCosts(finalCosts);
+          setTotalCost(finalTotalCost);
+  
+      } catch (err) {
+          setError(`Failed to fetch pricing. Please check your inputs or try again later. Error: ${err.message}`);
+          console.error('API Error:', err);
+          setCosts({});
+          setTotalCost(0);
+      } finally {
+          const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
+          setCarbonFootprint(baseCarbon * shippingMethods[method].carbonMultiplier);
+          setEcoFootprint(baseCarbon * shippingMethods['eco'].carbonMultiplier);
+          setLoading(false);
+      }
+    };
+
+    if (origin && destination && weight > 0 && quantity > 0 && ports[origin] && ports[destination]) {
+      fetchPricing();
+    }
   }, [origin, destination, weight, quantity, method, containerType, cargoType, temperatureControl, insuranceSurcharge]);
 
   const distance = calculateDistance(origin, destination);
@@ -313,6 +319,7 @@ function Calculator() {
     { name: 'Reefer 40ft', emissions: (distance * totalWeight * 0.0001) / 38, capacity: 59, costEfficiency: 78, carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 38) / 59, description: 'Large refrigerated container' }
   ];
   const containerAnimation = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
+
   const handleQuantityChange = (e) => {
     const value = e.target.value;
     if (value === '' || value === '0') setQuantity(0);
@@ -535,11 +542,11 @@ function Calculator() {
             <AestheticProgressTimeline distance={distance} shippingMethod={method} />
         </div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-6">7. Final Quote &amp; Cost Breakdown</h2>
+          <h2 className="text-4xl font-black text-gray-800 mb-6">7. Final Quote & Cost Breakdown</h2>
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-black text-primary-600 flex items-center">
               <span className="mr-2">💰</span>
-              {loading ? (<div className="flex items-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mr-3"></div><span className="font-black">Calculating...</span></div>)
+              {loading ? (<div className="flex items-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mr-3"></div><span className="font-black">Calculating with AI model...</span></div>)
               : (<motion.span key={convertedTotalCost} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="font-black">Estimated Cost: {currentSymbol}{convertedTotalCost.toFixed(2)}</motion.span>)}
             </h2>
             <div>
