@@ -10,7 +10,10 @@ import Features from '../components/Features';
 import Weather from '../components/Weather';
 import RegulatoryInfo from '../components/RegulatoryInfo';
 import CarbonImpactVisualizer from '../components/CarbonImpactVisualizer';
+import VesselTypeExplorer from '../components/VesselTypeExplorer';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+
+const API_BASE = 'https://green-shipping-compass.onrender.com';
 
 const shippingMethods = {
   standard: { name: 'Standard', days: '20-25 days', rate: 1, icon: '🚢', description: 'Reliable and cost-effective shipping solution', carbonMultiplier: 1.0, ecoRating: 3 },
@@ -227,61 +230,68 @@ function Calculator() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   };
+
   const fetchPricing = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
       const distance = calculateDistance(origin, destination);
-      const totalWeight = weight * quantity;
-      const baseCostPerKm = 0.12;
-      const baseContainerCost = containerSizeMap[containerType] * 50;
-      const distanceCost = distance * baseCostPerKm;
-      const weightCost = totalWeight * 0.8;
-      const methodMultiplier = shippingMethods[method].carbonMultiplier * 0.8 + 0.6;
-      let baseCosts = {
-        'Base Container Cost': baseContainerCost,
-        'Distance Cost': distanceCost,
-        'Weight Cost': weightCost,
-        'Method Surcharge': baseContainerCost * (methodMultiplier - 1),
-        'Customs': 120,
-        'Documentation': 60,
-        'Handling Charges': 90,
+      const payload = {
+        distance,
+        weight: weight * quantity,
+        containerSize: containerSizeMap[containerType],
+        cargoType,
+        method,
       };
-      let baseTotalCost = Object.values(baseCosts).reduce((sum, cost) => sum + cost, 0);
-      const surcharge = cargoTypes[cargoType.toLowerCase()].surcharge;
-      if (surcharge > 0) {
-        baseCosts['Cargo Type Surcharge'] = baseTotalCost * surcharge;
-        baseTotalCost = baseTotalCost * (1 + surcharge);
+
+      const res = await fetch(`${API_BASE}/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to fetch shipping quote');
       }
+
+      const data = await res.json();
+      let calculatedCosts = { ...data.costs };
+
       if (temperatureControl) {
-        const tempSurcharge = baseTotalCost * 0.35;
-        baseCosts['Temperature Control'] = tempSurcharge;
-        baseTotalCost += tempSurcharge;
+        const tempSurcharge = data.totalCost * 0.35;
+        calculatedCosts['Temperature Control'] = tempSurcharge;
+        data.totalCost += tempSurcharge;
       }
-      if (insuranceSurcharge > 0) {
-        baseCosts['Insurance'] = insuranceSurcharge;
-        baseTotalCost += insuranceSurcharge;
-      } else if (baseCosts['Insurance'] !== undefined) {
-        delete baseCosts['Insurance'];
+
+      if (selectedInsurance !== 'none' && insuranceSurcharge > 0) {
+        calculatedCosts['Insurance'] = insuranceSurcharge;
+        data.totalCost += insuranceSurcharge;
+      } else if (calculatedCosts['Insurance'] !== undefined) {
+        delete calculatedCosts['Insurance'];
       }
-      setCosts(baseCosts);
-      setTotalCost(baseTotalCost);
-      const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
+
+      setCosts(calculatedCosts);
+      setTotalCost(data.totalCost);
+
+      const baseCarbon = (distance * (weight * quantity) * 0.0001) / containerSizeMap[containerType];
       const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
       const ecoCarbon = baseCarbon * shippingMethods['eco'].carbonMultiplier;
       setCarbonFootprint(adjustedCarbon);
       setEcoFootprint(ecoCarbon);
+
     } catch (err) {
-      setError('Failed to calculate shipping cost. Please try again.');
+      setError(err.message || 'Failed to calculate shipping cost. Please try again.');
       console.error('Calculation Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
+
   useEffect(() => {
     fetchPricing();
-  }, [origin, destination, weight, quantity, method, containerType, cargoType, temperatureControl, insuranceSurcharge]);
+  }, [origin, destination, weight, quantity, method, containerType, cargoType, temperatureControl, selectedInsurance, insuranceSurcharge]);
 
   const distance = calculateDistance(origin, destination);
   const totalWeight = weight * quantity;
@@ -290,7 +300,7 @@ function Calculator() {
   const convertedCosts = Object.fromEntries(Object.entries(costs).map(([key, value]) => [key, value * currentRate]));
   const convertedTotalCost = totalCost * currentRate;
   const progressData = [
-    { name: 'Departure', cost: (costs['Base Container Cost'] || 0) * currentRate, stage: 'Origin Port' },
+    { name: 'Departure', cost: (convertedCosts['Base Container Cost'] || 0), stage: 'Origin Port' },
     { name: 'Processing', cost: convertedTotalCost * 0.3 || 0, stage: 'Documentation' },
     { name: 'Customs', cost: convertedTotalCost * 0.6 || 0, stage: 'Clearance' },
     { name: 'Transit', cost: convertedTotalCost * 0.8 || 0, stage: 'Shipping' },
@@ -311,7 +321,6 @@ function Calculator() {
     { name: 'Reefer 40ft', emissions: (distance * totalWeight * 0.0001) / 38, capacity: 59, costEfficiency: 78, carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 38) / 59, description: 'Large refrigerated container' }
   ];
   const containerAnimation = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
-
   const handleQuantityChange = (e) => {
     const value = e.target.value;
     if (value === '' || value === '0') setQuantity(0);
@@ -393,8 +402,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-2">Preferred Shipping Date</label>
                   <input type="date" value={shippingDate} onChange={e => setShippingDate(e.target.value)} className="block w-full pl-3 pr-10 py-3 text-base font-bold border-blue-300 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-green-50 hover:from-blue-100 hover:to-green-100 transition" min={new Date().toISOString().split('T')[0]} style={{ fontSize: '1.15rem', borderWidth: '2px' }}/>
                 </div>
-                <div className="flex flex-col space-y-4 pt-4">
-                  <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                <div className="flex flex-col space-y-4 pt-4">... <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
                   <img src="https://media.istockphoto.com/id/1939500219/photo/singapore-cityscape-at-night-twilight-drone-flight-panorama.jpg?s=612x612&w=0&k=20&c=WzBoQ0MoFPfwXVjICcjSGJHUOWlCvARaDIbhBK7hBig=" alt="Singapore Cityscape" className="rounded-lg object-cover w-full h-40 shadow-md" />
                   <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrCvLvcDShNz2179ooFCEjiqF_ZefMHkiwCA&s" alt="Shipping Container" className="rounded-lg object-cover w-full h-40 shadow-md" />
                 </div>
@@ -455,16 +463,16 @@ function Calculator() {
             </motion.div>
           </div>
           <motion.div variants={containerAnimation} className="mt-8">
-            <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span className="mr-2">📋</span> Selected Container Information</h2>
+            <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span>📋</span> Selected Container Information</h2>
             <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-lg border-2 border-blue-200 shadow-lg">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-2xl font-black text-primary-600 mb-4 flex items-center">{containerTypes[containerType].icon} {containerType} Container</h3>
                   <p className="text-gray-700 font-bold mb-4">{containerTypes[containerType].description}</p>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-2 bg-white rounded-lg"><span className="font-black text-primary-600">Dimensions:</span><span className="font-bold">{containerTypes[containerType].dimensions}</span></div>
-                    <div className="flex justify-between items-center p-2 bg-white rounded-lg"><span className="font-black text-primary-600">Capacity:</span><span className="font-bold">{containerTypes[containerType].capacity} m³</span></div>
-                    <div className="flex justify-between items-center p-2 bg-white rounded-lg"><span className="font-black text-primary-600">Max Weight:</span><span className="font-bold">{containerTypes[containerType].maxWeight}</span></div>
+                    <div className="flex justify-between items-center p-2 bg-white rounded-lg"><span>Dimensions:</span><span>{containerTypes[containerType].dimensions}</span></div>
+                    <div className="flex justify-between items-center p-2 bg-white rounded-lg"><span>Capacity:</span><span>{containerTypes[containerType].capacity} m³</span></div>
+                    <div className="flex justify-between items-center p-2 bg-white rounded-lg"><span>Max Weight:</span><span>{containerTypes[containerType].maxWeight}</span></div>
                   </div>
                 </div>
                 <div>
@@ -479,8 +487,7 @@ function Calculator() {
                   </div>
                   <div className="mt-4 p-4 bg-amber-100 rounded-lg border-l-4 border-amber-500">
                     <h5 className="font-black text-amber-700 mb-2">Pro Tip:</h5>
-                    <p className="text-amber-700 font-bold text-sm">
-                      {containerType === '20ft' && "Perfect for first-time shippers or smaller businesses. Lowest entry cost with maximum flexibility."}
+                    <p className="text-amber-700 font-bold text-sm"> {containerType === '20ft' && "Perfect for first-time shippers or smaller businesses. Lowest entry cost with maximum flexibility."}
                       {containerType === '40ft' && "The sweet spot for most international shipments. Offers the best balance of cost and capacity."}
                       {containerType === '40ft-hc' && "Ideal for lightweight but bulky items like furniture, textiles, or oversized equipment."}
                     </p>
@@ -490,7 +497,7 @@ function Calculator() {
             </div>
           </motion.div>
           <motion.div variants={containerAnimation} className="mt-8">
-            <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span className="mr-2">🚢</span> Shipping Method</h2>
+            <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span>🚢</span> Shipping Method</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {Object.entries(shippingMethods).map(([key, value]) => (
                 <motion.button key={key} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod(key)} className={`p-6 rounded-lg text-center transition duration-300 ${method === key ? 'bg-indigo-200 border-2 border-green-1000 shadow-lg transform scale-105' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
@@ -534,8 +541,13 @@ function Calculator() {
             <AestheticProgressTimeline distance={distance} shippingMethod={method} />
         </div>
 
+        <div className="mb-8">
+            <h2 className="text-4xl font-black text-gray-800 mb-4">7. Vessel Type Explorer</h2>
+            <VesselTypeExplorer />
+        </div>
+        
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-6">7. Final Quote &amp; Cost Breakdown</h2>
+          <h2 className="text-4xl font-black text-gray-800 mb-6">8. Final Quote & Cost Breakdown</h2>
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-black text-primary-600 flex items-center">
               <span className="mr-2">💰</span>
@@ -551,7 +563,7 @@ function Calculator() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1 w-full">
-              <h3 className="font-black text-xl mb-4 flex items-center"><span className="mr-2">🛣️</span> Route Details</h3>
+              <h3 className="font-black text-xl mb-4 flex items-center"><span>🛣️</span> Route Details</h3>
               <div className="space-y-3 text-md">
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg"><span className="text-primary-600 font-black">From:</span><span className="font-bold">{origin}</span></div>
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg"><span className="text-primary-600 font-black">To:</span><span className="font-bold">{destination}</span></div>
@@ -562,7 +574,7 @@ function Calculator() {
               </div>
             </motion.div>
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1 w-full">
-              <h3 className="font-black text-xl mb-4 flex items-center"><span className="mr-2">📊</span> Shipping Details</h3>
+              <h3 className="font-black text-xl mb-4 flex items-center"><span>📊</span> Shipping Details</h3>
               <div className="space-y-3 text-md">
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg"><span className="text-primary-600 font-black">Method:</span><span className="font-bold">{shippingMethods[method].name}</span></div>
                 <div className="flex items-center justify-between p-2 hover:bg-blue-100 rounded-lg"><span className="text-primary-600 font-black">Cargo Type:</span><span className="font-bold">{cargoTypes[cargoType].name}</span></div>
@@ -576,11 +588,11 @@ function Calculator() {
             </motion.div>
           </div>
           <motion.div variants={containerAnimation} className="mt-8">
-            <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span className="mr-2">📊</span> Emissions Comparison Charts</h2>
+            <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span>📊</span> Emissions Comparison Charts</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-black rounded-lg shadow-lg p-6 border-2 border-green-400">
                 <div className="border-b border-green-400 pb-4 mb-4">
-                  <h3 className="text-xl font-bold text-green-400 flex items-center"><span className="mr-2">🚢</span> Shipping Methods Carbon Analysis</h3>
+                  <h3 className="text-xl font-bold text-green-400 flex items-center"><span>🚢</span> Shipping Methods Carbon Analysis</h3>
                   <p className="text-sm text-gray-300 mt-1">CO₂ emissions comparison across different shipping methods for your route</p>
                 </div>
                 <div className="h-[350px]">
@@ -597,7 +609,7 @@ function Calculator() {
               </div>
               <div className="bg-black rounded-lg shadow-lg p-6 border-2 border-blue-400">
                 <div className="border-b border-blue-400 pb-4 mb-4">
-                  <h3 className="text-xl font-bold text-blue-400 flex items-center"><span className="mr-2">📦</span> Container Types Environmental Impact</h3>
+                  <h3 className="text-xl font-bold text-blue-400 flex items-center"><span>📦</span> Container Types Environmental Impact</h3>
                   <p className="text-sm text-gray-300 mt-1">Carbon efficiency analysis across different container types for your shipment</p>
                 </div>
                 <div className="h-[350px]">
@@ -620,7 +632,7 @@ function Calculator() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 bg-black p-8 rounded-lg">
             <motion.div variants={containerAnimation} className="bg-gray-900 p-6 rounded-lg shadow-lg">
-              <h3 className="font-black text-xl mb-6 flex items-center text-green-400"><span className="mr-2">📈</span> Cost Progression</h3>
+              <h3 className="font-black text-xl mb-6 flex items-center text-green-400"><span>📈</span> Cost Progression</h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={progressData} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
@@ -632,15 +644,14 @@ function Calculator() {
               <p className="mt-4 text-green-300 text-sm max-w-md">This chart shows the progression of cumulative costs over different stages of your shipping process. Each point represents the total cost accumulated up to that stage.</p>
             </motion.div>
             <motion.div variants={containerAnimation} className="bg-gray-900 p-6 rounded-lg shadow-lg">
-              <h3 className="font-black text-xl mb-6 flex items-center text-yellow-400"><span className="mr-2">💵</span> Cost Breakdown</h3>
+              <h3 className="font-black text-xl mb-6 flex items-center text-yellow-400"><span>💵</span> Cost Breakdown</h3>
               <div className="space-y-4">
                 {Object.entries(convertedCosts).map(([key, value], index) => (
                   <motion.div key={key} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="flex justify-between items-center p-3 bg-gradient-to-r from-green-800 to-yellow-800 rounded-lg hover:shadow-lg">
                     <span className="font-black text-green-300">{key}</span>
                     <span className="font-black text-yellow-300">{currentSymbol}{value.toFixed(2)}</span>
                   </motion.div>
-                ))}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-center p-4 bg-blue-900 rounded-lg font-black text-xl text-green-400">
+                ))} <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-center p-4 bg-blue-900 rounded-lg font-black text-xl text-green-400">
                   <span>Total Cost</span>
                   <span>{currentSymbol}{convertedTotalCost.toFixed(2)}</span>
                 </motion.div>
@@ -661,5 +672,3 @@ function Calculator() {
 }
 
 export default Calculator;
-
-
