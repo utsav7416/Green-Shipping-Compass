@@ -21,18 +21,45 @@ const shippingMethods = {
   premium: { name: 'Premium', days: '7-10 days', rate: 2.2, icon: '✨', description: 'Priority handling and guaranteed delivery', carbonMultiplier: 2.5, ecoRating: 1 },
   eco: { name: 'Eco-friendly', days: '25-30 days', rate: 0.85, icon: '🌱', description: 'Reduced carbon footprint shipping option', carbonMultiplier: 0.6, ecoRating: 5 },
 };
-const containerSizeMap = { '20ft': 20, '40ft': 40, '40ft-hc': 45 };
-const containerTypes = {
-  '20ft': { capacity: 33.2, base_cost: 1500, icon: '📦', features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'], description: 'Perfect for smaller shipments and general cargo.', dimensions: '20′ × 8′ × 8′6″', maxWeight: '28,230 kg', advantages: ['Lower shipping costs', 'Easier to handle', 'Widely available', 'Perfect for LCL shipments'] },
-  '40ft': { capacity: 67.6, base_cost: 2800, icon: '🚛', features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'], description: 'The industry standard for most international shipments.', dimensions: '40′ × 8′ × 8′6″', maxWeight: '30,480 kg', advantages: ['Best value per cubic meter', 'Industry standard', 'Suitable for most cargo types', 'Efficient loading'] },
-  '40ft-hc': { capacity: 76.3, base_cost: 3200, icon: '🏭', features: ['Extra height', 'Maximum space', 'Specialized cargo'], description: 'High cube container with an extra foot of height.', dimensions: '40′ × 8′ × 9′6″', maxWeight: '30,480 kg', advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture & textiles', 'Premium cargo solution'] },
+
+const containerSizeMap = {
+  '20ft': 20, '40ft': 40, '40ft-hc': 45
 };
+
+const containerTypes = {
+  '20ft': {
+    capacity: 33.2, base_cost: 1500, icon: '📦',
+    features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'],
+    description: 'Perfect for smaller shipments and general cargo. The 20ft container is the most economical choice for businesses starting their international trade journey.',
+    dimensions: '20′ × 8′ × 8′6″',
+    maxWeight: '28,230 kg',
+    advantages: ['Lower shipping costs', 'Easier to handle', 'Widely available', 'Perfect for LCL shipments']
+  },
+  '40ft': {
+    capacity: 67.6, base_cost: 2800, icon: '🚛',
+    features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'],
+    description: 'The industry standard for most international shipments. Offers excellent value for money with double the capacity of a 20ft container.',
+    dimensions: '40′ × 8′ × 8′6″',
+    maxWeight: '30,480 kg',
+    advantages: ['Best value per cubic meter', 'Industry standard', 'Suitable for most cargo types', 'Efficient loading']
+  },
+  '40ft-hc': {
+    capacity: 76.3, base_cost: 3200, icon: '🏭',
+    features: ['Extra height', 'Maximum space', 'Specialized cargo'],
+    description: 'High cube container with an extra foot of height, perfect for lightweight but voluminous cargo and specialized equipment.',
+    dimensions: '40′ × 8′ × 9′6″',
+    maxWeight: '30,480 kg',
+    advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture & textiles', 'Premium cargo solution']
+  },
+};
+
 const cargoTypes = {
   normal: { name: 'Normal', surcharge: 0, icon: '📦', description: 'Standard cargo with no special handling requirements' },
   fragile: { name: 'Fragile', surcharge: 0.15, icon: '🥚', description: 'Requires careful handling and specialized packaging' },
   perishable: { name: 'Perishable', surcharge: 0.25, icon: '🍎', description: 'Temperature-controlled environment for food and organic goods' },
   hazardous: { name: 'Hazardous', surcharge: 0.4, icon: '⚠️', description: 'Special permits and handling for dangerous materials' }
 };
+
 const conversionRates = {
   USD: { symbol: '$', name: 'US Dollar', rate: 1.000 },
   EUR: { symbol: '€', name: 'Euro', rate: 0.920 },
@@ -43,13 +70,9 @@ const conversionRates = {
 };
 
 const TruckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
-
 const AnchorIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.005a11.955 11.955 0 01-8.618 3.979M12 22v-7" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zM12 11a3 3 0 110-6 3 3 0 010 6z" /></svg>;
-
 const ShipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20.5l.394-.394a10.02 10.02 0 00-4.788-12.828L3 4.5m18 0l-4.606 3.286a10.02 10.02 0 00-4.788 12.828L12 20.5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16.5v-2m-8.25-6.5H2m20 0h-1.75M4.93 4.93L3.515 3.515m16.97 16.97l-1.414-1.414M4.93 19.07l-1.414 1.414m16.97-16.97l-1.414 1.414" /></svg>;
-
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-
 const WarehouseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
 
 function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard' }) {
@@ -58,9 +81,7 @@ function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard
         if (method === 'express') oceanSpeedKmph = 46;
         else if (method === 'premium') oceanSpeedKmph = 55;
         else if (method === 'eco') oceanSpeedKmph = 30;
-
         const oceanDurationDays = Math.max(5, Math.round(dist / (oceanSpeedKmph * 24)));
-
         return [
             { id: 1, name: 'Factory to Port', duration: Math.max(1, Math.round(oceanDurationDays * 0.08)), icon: TruckIcon, description: "Cargo is transported from the factory to the origin port warehouse for consolidation." },
             { id: 2, name: 'Origin Port Handling', duration: Math.max(2, Math.round(oceanDurationDays * 0.1)), icon: AnchorIcon, description: "Includes loading, documentation checks, and export customs clearance at the origin port." },
@@ -70,16 +91,13 @@ function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard
             { id: 6, name: 'Final Mile Delivery', duration: Math.max(1, Math.round(oceanDurationDays * 0.08)), icon: WarehouseIcon, description: "Cargo is transported from the destination port to the final delivery address." },
         ];
     };
-
     const [stages, setStages] = useState([]);
     const [totalDuration, setTotalDuration] = useState(0);
-
     useEffect(() => {
         const newStages = getDynamicStages(distance, shippingMethod);
         setStages(newStages);
         setTotalDuration(newStages.reduce((sum, s) => sum + s.duration, 0));
     }, [distance, shippingMethod]);
-
     let cumulativeStart = 0;
     return (
         <div className="bg-black text-white p-8 rounded-lg shadow-2xl border-2 border-gray-700">
@@ -91,34 +109,17 @@ function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard
                     const StageIcon = stage.icon;
                     const colors = ['from-pink-500 to-rose-500', 'from-rose-500 to-orange-500', 'from-orange-500 to-amber-500', 'from-amber-500 to-lime-500', 'from-lime-500 to-emerald-500', 'from-emerald-500 to-cyan-500'];
                     return (
-                        <motion.div
-                            key={stage.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: index * 0.15 }}
-                            className="flex flex-col md:flex-row gap-6 items-start bg-black p-4 rounded-lg border-l-4 border-cyan-500"
-                        >
+                        <motion.div key={stage.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: index * 0.15 }} className="flex flex-col md:flex-row gap-6 items-start bg-black p-4 rounded-lg border-l-4 border-cyan-500">
                             <div className="w-full md:w-7/12">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center font-bold text-lg"><StageIcon /><span className="ml-3">{stage.name}</span></div>
                                     <div className="text-cyan-300 font-black text-lg">{stage.duration} {stage.duration === 1 ? 'day' : 'days'}</div>
                                 </div>
                                 <div className="w-full bg-gray-700 rounded-full h-2.5">
-                                    <motion.div
-                                        className={`bg-gradient-to-r ${colors[index % colors.length]} h-2.5 rounded-full`}
-                                        style={{
-                                            marginLeft: `${(stageStart / totalDuration) * 100}%`,
-                                            width: `${(stage.duration / totalDuration) * 100}%`
-                                        }}
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${(stage.duration / totalDuration) * 100}%`}}
-                                        transition={{ type: "spring", stiffness: 100, damping: 20, delay: index * 0.2 }}
-                                    />
+                                    <motion.div className={`bg-gradient-to-r ${colors[index % colors.length]} h-2.5 rounded-full`} style={{ marginLeft: `${(stageStart / totalDuration) * 100}%`, width: `${(stage.duration / totalDuration) * 100}%` }} initial={{ width: 0 }} animate={{ width: `${(stage.duration / totalDuration) * 100}%`}} transition={{ type: "spring", stiffness: 100, damping: 20, delay: index * 0.2 }} />
                                 </div>
                             </div>
-                            <div className="w-full md:w-5/12">
-                                <p className="text-gray-300 text-md">{stage.description}</p>
-                            </div>
+                            <div className="w-full md:w-5/12"><p className="text-gray-300 text-md">{stage.description}</p></div>
                         </motion.div>
                     );
                 })}
@@ -219,86 +220,92 @@ function Calculator() {
   useEffect(() => { localStorage.setItem('shippingDate', shippingDate) }, [shippingDate]);
 
   const calculateDistance = (origin, destination) => {
+    if (!ports[origin] || !ports[destination]) return 0;
     const R = 6371;
-    const lat1 = ports[origin].lat * Math.PI / 180;
-    const lat2 = ports[destination].lat * Math.PI / 180;
-    const lon1 = ports[origin].lon * Math.PI / 180;
-    const lon2 = ports[destination].lon * Math.PI / 180;
-    const dLat = lat2 - lat1;
-    const dLon = lon2 - lon1;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return Math.round(R * c);
+    const dLat = (ports[destination].lat - ports[origin].lat) * Math.PI / 180;
+    const dLon = (ports[destination].lon - ports[origin].lon) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(ports[origin].lat * Math.PI / 180) * Math.cos(ports[destination].lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
-
-  const fetchPricing = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const distance = calculateDistance(origin, destination);
-      const payload = {
-        distance,
-        weight: weight * quantity,
-        containerSize: containerSizeMap[containerType],
-        cargoType,
-        method,
-      };
-
-      const res = await fetch(`${API_BASE}/predict`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to fetch shipping quote');
-      }
-
-      const data = await res.json();
-      let calculatedCosts = { ...data.costs };
-
-      if (temperatureControl) {
-        const tempSurcharge = data.totalCost * 0.35;
-        calculatedCosts['Temperature Control'] = tempSurcharge;
-        data.totalCost += tempSurcharge;
-      }
-
-      if (selectedInsurance !== 'none' && insuranceSurcharge > 0) {
-        calculatedCosts['Insurance'] = insuranceSurcharge;
-        data.totalCost += insuranceSurcharge;
-      } else if (calculatedCosts['Insurance'] !== undefined) {
-        delete calculatedCosts['Insurance'];
-      }
-
-      setCosts(calculatedCosts);
-      setTotalCost(data.totalCost);
-
-      const baseCarbon = (distance * (weight * quantity) * 0.0001) / containerSizeMap[containerType];
-      const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
-      const ecoCarbon = baseCarbon * shippingMethods['eco'].carbonMultiplier;
-      setCarbonFootprint(adjustedCarbon);
-      setEcoFootprint(ecoCarbon);
-
-    } catch (err) {
-      setError(err.message || 'Failed to calculate shipping cost. Please try again.');
-      console.error('Calculation Error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-  useEffect(() => {
-    fetchPricing();
-  }, [origin, destination, weight, quantity, method, containerType, cargoType, temperatureControl, selectedInsurance, insuranceSurcharge]);
-
+  
   const distance = calculateDistance(origin, destination);
   const totalWeight = weight * quantity;
+
+  useEffect(() => {
+    if (distance > 0 && totalWeight > 0) {
+      const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
+      const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
+      const ecoCarbon = baseCarbon * shippingMethods['eco'].carbonMultiplier;
+      
+      setCarbonFootprint(adjustedCarbon);
+      setEcoFootprint(ecoCarbon);
+    } else {
+      setCarbonFootprint(0);
+      setEcoFootprint(0);
+    }
+  }, [distance, totalWeight, containerType, method]);
+
+  useEffect(() => {
+    const fetchPricing = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const payload = {
+          distance,
+          weight: totalWeight,
+          containerSize: containerSizeMap[containerType],
+          cargoType,
+          method,
+        };
+
+        const res = await fetch(`${API_BASE}/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || 'Failed to fetch shipping quote');
+        }
+
+        const data = await res.json();
+        let finalCosts = data.costs;
+        let finalTotal = data.totalCost;
+
+        if (temperatureControl) {
+          const tempSurcharge = finalTotal * 0.35;
+          finalCosts['Temperature Control'] = tempSurcharge;
+          finalTotal += tempSurcharge;
+        }
+
+        if (selectedInsurance !== 'none' && insuranceSurcharge > 0) {
+          finalCosts['Insurance'] = insuranceSurcharge;
+          finalTotal += insuranceSurcharge;
+        }
+
+        setCosts(finalCosts);
+        setTotalCost(finalTotal);
+
+      } catch (err) {
+        setError(err.message || 'Failed to calculate shipping cost. Please try again.');
+        console.error('Calculation Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (distance > 0) {
+      fetchPricing();
+    }
+  }, [distance, totalWeight, containerType, cargoType, method, temperatureControl, selectedInsurance, insuranceSurcharge]);
+  
   const currentRate = conversionRates[currency].rate;
   const currentSymbol = conversionRates[currency].symbol;
   const convertedCosts = Object.fromEntries(Object.entries(costs).map(([key, value]) => [key, value * currentRate]));
   const convertedTotalCost = totalCost * currentRate;
+  
   const progressData = [
     { name: 'Departure', cost: (convertedCosts['Base Container Cost'] || 0), stage: 'Origin Port' },
     { name: 'Processing', cost: convertedTotalCost * 0.3 || 0, stage: 'Documentation' },
@@ -321,15 +328,18 @@ function Calculator() {
     { name: 'Reefer 40ft', emissions: (distance * totalWeight * 0.0001) / 38, capacity: 59, costEfficiency: 78, carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 38) / 59, description: 'Large refrigerated container' }
   ];
   const containerAnimation = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
+  
   const handleQuantityChange = (e) => {
     const value = e.target.value;
     if (value === '' || value === '0') setQuantity(0);
     else setQuantity(parseInt(value, 10));
   };
+  
   const handleInsuranceChange = (option) => {
     setSelectedInsurance(option.value);
     setInsuranceSurcharge(option.surcharge);
   };
+  
   const QuotePdfDocument = ({ quoteData }) => (
     <Document>
       <Page size="A4" style={pdfStyles.page}>
@@ -356,11 +366,12 @@ function Calculator() {
       </Page>
     </Document>
   );
+  
   const pdfStyles = StyleSheet.create({
     page: { flexDirection: 'column', backgroundColor: '#f8fafc', padding: 30, fontFamily: 'Helvetica' },
     header: { marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#cbd5e1', paddingBottom: 10 },
     title: { fontSize: 24, textAlign: 'center', color: '#16a34a', fontWeight: 'bold' },
-    section: { marginBottom: 20, padding: 10, backgroundColor: '#ffffff', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+    section: { marginBottom: 20, padding: 10, backgroundColor: '#ffffff', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0' },
     heading: { fontSize: 18, marginBottom: 10, fontWeight: 'bold', color: '#16a34a', borderBottomWidth: 1, borderBottomColor: '#d1d5db', paddingBottom: 5 },
     detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
     detailLabel: { fontSize: 12, color: '#4b5563', fontWeight: 'bold' },
@@ -371,6 +382,7 @@ function Calculator() {
     footer: { position: 'absolute', bottom: 30, left: 30, right: 30, textAlign: 'center', borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 10 },
     footerText: { fontSize: 9, color: '#6b7280', marginBottom: 3 },
   });
+
   return (
     <div className="w-full bg-gradient-to-br from-blue-300 via-green-200 to-amber-200">
       <ImageCarousel />
@@ -402,7 +414,8 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-2">Preferred Shipping Date</label>
                   <input type="date" value={shippingDate} onChange={e => setShippingDate(e.target.value)} className="block w-full pl-3 pr-10 py-3 text-base font-bold border-blue-300 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-green-50 hover:from-blue-100 hover:to-green-100 transition" min={new Date().toISOString().split('T')[0]} style={{ fontSize: '1.15rem', borderWidth: '2px' }}/>
                 </div>
-                <div className="flex flex-col space-y-4 pt-4">... <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
+                <div className="flex flex-col space-y-4 pt-4">
+                  <img src="https://media.istockphoto.com/id/1055169608/photo/aerial-view-of-san-francisco-skyline-with-holiday-city-lights.jpg?s=612x612&w=0&k=20&c=0BB1S1iH4AMR0E2JXsrKxp1b7ZZvblT5NLFoXthOpLo=" alt="San Francisco Skyline" className="rounded-lg object-cover w-full h-40 shadow-md" />
                   <img src="https://media.istockphoto.com/id/1939500219/photo/singapore-cityscape-at-night-twilight-drone-flight-panorama.jpg?s=612x612&w=0&k=20&c=WzBoQ0MoFPfwXVjICcjSGJHUOWlCvARaDIbhBK7hBig=" alt="Singapore Cityscape" className="rounded-lg object-cover w-full h-40 shadow-md" />
                   <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrCvLvcDShNz2179ooFCEjiqF_ZefMHkiwCA&s" alt="Shipping Container" className="rounded-lg object-cover w-full h-40 shadow-md" />
                 </div>
@@ -545,9 +558,17 @@ function Calculator() {
             <h2 className="text-4xl font-black text-gray-800 mb-4">7. Vessel Type Explorer</h2>
             <VesselTypeExplorer />
         </div>
-        
+
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8">
           <h2 className="text-4xl font-black text-gray-800 mb-6">8. Final Quote & Cost Breakdown</h2>
+          
+          {error && (
+            <motion.div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+              <p className="font-bold">Calculation Error</p>
+              <p>{error}</p>
+            </motion.div>
+          )}
+
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-black text-primary-600 flex items-center">
               <span className="mr-2">💰</span>
@@ -651,7 +672,8 @@ function Calculator() {
                     <span className="font-black text-green-300">{key}</span>
                     <span className="font-black text-yellow-300">{currentSymbol}{value.toFixed(2)}</span>
                   </motion.div>
-                ))} <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-center p-4 bg-blue-900 rounded-lg font-black text-xl text-green-400">
+                ))}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-center p-4 bg-blue-900 rounded-lg font-black text-xl text-green-400">
                   <span>Total Cost</span>
                   <span>{currentSymbol}{convertedTotalCost.toFixed(2)}</span>
                 </motion.div>
