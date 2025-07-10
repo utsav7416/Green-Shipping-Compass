@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, LineChart, Line, BarChart, Bar } from 'recharts';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { ports } from '../data/ports';
 import ImageCarousel from '../components/ImageCarousel';
@@ -40,9 +40,13 @@ const conversionRates = {
 };
 
 const TruckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+
 const AnchorIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.005a11.955 11.955 0 01-8.618 3.979M12 22v-7" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zM12 11a3 3 0 110-6 3 3 0 010 6z" /></svg>;
+
 const ShipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20.5l.394-.394a10.02 10.02 0 00-4.788-12.828L3 4.5m18 0l-4.606 3.286a10.02 10.02 0 00-4.788 12.828L12 20.5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16.5v-2m-8.25-6.5H2m20 0h-1.75M4.93 4.93L3.515 3.515m16.97 16.97l-1.414-1.414M4.93 19.07l-1.414 1.414m16.97-16.97l-1.414 1.414" /></svg>;
+
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+
 const WarehouseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
 
 function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard' }) {
@@ -101,6 +105,7 @@ function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard
                                         className={`bg-gradient-to-r ${colors[index % colors.length]} h-2.5 rounded-full`}
                                         style={{
                                             marginLeft: `${(stageStart / totalDuration) * 100}%`,
+                                            width: `${(stage.duration / totalDuration) * 100}%`
                                         }}
                                         initial={{ width: 0 }}
                                         animate={{ width: `${(stage.duration / totalDuration) * 100}%`}}
@@ -212,83 +217,70 @@ function Calculator() {
 
   const calculateDistance = (origin, destination) => {
     const R = 6371;
-    const p1 = ports[origin];
-    const p2 = ports[destination];
-    if (!p1 || !p2) return 0;
-    const lat1 = p1.lat * Math.PI / 180;
-    const lat2 = p2.lat * Math.PI / 180;
-    const lon1 = p1.lon * Math.PI / 180;
-    const lon2 = p2.lon * Math.PI / 180;
+    const lat1 = ports[origin].lat * Math.PI / 180;
+    const lat2 = ports[destination].lat * Math.PI / 180;
+    const lon1 = ports[origin].lon * Math.PI / 180;
+    const lon2 = ports[destination].lon * Math.PI / 180;
     const dLat = lat2 - lat1;
     const dLon = lon2 - lon1;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   };
+  const fetchPricing = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const distance = calculateDistance(origin, destination);
+      const totalWeight = weight * quantity;
+      const baseCostPerKm = 0.12;
+      const baseContainerCost = containerSizeMap[containerType] * 50;
+      const distanceCost = distance * baseCostPerKm;
+      const weightCost = totalWeight * 0.8;
+      const methodMultiplier = shippingMethods[method].carbonMultiplier * 0.8 + 0.6;
+      let baseCosts = {
+        'Base Container Cost': baseContainerCost,
+        'Distance Cost': distanceCost,
+        'Weight Cost': weightCost,
+        'Method Surcharge': baseContainerCost * (methodMultiplier - 1),
+        'Customs': 120,
+        'Documentation': 60,
+        'Handling Charges': 90,
+      };
+      let baseTotalCost = Object.values(baseCosts).reduce((sum, cost) => sum + cost, 0);
+      const surcharge = cargoTypes[cargoType.toLowerCase()].surcharge;
+      if (surcharge > 0) {
+        baseCosts['Cargo Type Surcharge'] = baseTotalCost * surcharge;
+        baseTotalCost = baseTotalCost * (1 + surcharge);
+      }
+      if (temperatureControl) {
+        const tempSurcharge = baseTotalCost * 0.35;
+        baseCosts['Temperature Control'] = tempSurcharge;
+        baseTotalCost += tempSurcharge;
+      }
+      if (insuranceSurcharge > 0) {
+        baseCosts['Insurance'] = insuranceSurcharge;
+        baseTotalCost += insuranceSurcharge;
+      } else if (baseCosts['Insurance'] !== undefined) {
+        delete baseCosts['Insurance'];
+      }
+      setCosts(baseCosts);
+      setTotalCost(baseTotalCost);
+      const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
+      const adjustedCarbon = baseCarbon * shippingMethods[method].carbonMultiplier;
+      const ecoCarbon = baseCarbon * shippingMethods['eco'].carbonMultiplier;
+      setCarbonFootprint(adjustedCarbon);
+      setEcoFootprint(ecoCarbon);
+    } catch (err) {
+      setError('Failed to calculate shipping cost. Please try again.');
+      console.error('Calculation Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPricing = async () => {
-        setLoading(true);
-        setError(null);
-        const distance = calculateDistance(origin, destination);
-        const totalWeight = weight * quantity;
-
-        try {
-            const apiPayload = {
-                distance,
-                weight: totalWeight,
-                containerSize: containerSizeMap[containerType],
-                cargoType,
-                method,
-                originPort: origin,
-                destinationPort: destination,
-            };
-
-            const response = await fetch('https://green-shipping-compass-1.onrender.com/predict', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(apiPayload),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API Error: ${response.status} ${response.statusText}. Details: ${errorText || 'The server returned an empty error response.'}`);
-            }
-
-            const data = await response.json();
-            
-            let finalTotalCost = data.totalCost;
-            let finalCosts = data.costs;
-            
-            if (temperatureControl) {
-                const tempSurcharge = finalTotalCost * 0.35;
-                finalCosts['Temperature Control'] = tempSurcharge;
-                finalTotalCost += tempSurcharge;
-            }
-
-            if (insuranceSurcharge > 0) {
-                finalCosts['Insurance'] = insuranceSurcharge;
-                finalTotalCost += insuranceSurcharge;
-            }
-
-            setCosts(finalCosts);
-            setTotalCost(finalTotalCost);
-        } catch (err) {
-            setError(`Failed to fetch pricing: ${err.message}`);
-            console.error('API Error:', err);
-            setCosts({});
-            setTotalCost(0);
-        } finally {
-            const baseCarbon = (distance * totalWeight * 0.0001) / containerSizeMap[containerType];
-            setCarbonFootprint(baseCarbon * shippingMethods[method].carbonMultiplier);
-            setEcoFootprint(baseCarbon * shippingMethods['eco'].carbonMultiplier);
-            setLoading(false);
-        }
-    };
-    
-    if (origin && destination && weight > 0 && quantity > 0) {
-        fetchPricing();
-    }
+    fetchPricing();
   }, [origin, destination, weight, quantity, method, containerType, cargoType, temperatureControl, insuranceSurcharge]);
 
   const distance = calculateDistance(origin, destination);
@@ -414,7 +406,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Container Type</label>
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(containerTypes).map(([type, details]) => (
-                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setContainerType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${containerType === type ? 'bg-blue-100 border-2 border-green-600 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setContainerType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${containerType === type ? 'bg-blue-100 border-2 border-green-1000 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                         <div className="text-2xl mb-2">{details.icon}</div>
                         <div className="font-black">{type}</div>
                         <div className="text-sm font-bold text-black">{details.capacity}m³</div>
@@ -426,7 +418,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Cargo Type</label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(cargoTypes).map(([type, details]) => (
-                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCargoType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${cargoType === type ? 'bg-blue-100 border-2 border-green-600 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCargoType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${cargoType === type ? 'bg-blue-100 border-2 border-green-1000 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                         <div className="text-2xl mb-2">{details.icon}</div>
                         <div className="font-black">{details.name}</div>
                         {details.surcharge > 0 && <div className="text-sm font-bold text-red-500">+{details.surcharge * 100}% surcharge</div>}
@@ -455,7 +447,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-2">Select Quantity</label>
                   <div className="flex items-center space-x-4">
                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">-</button>
-                    <input type="number" min="1" value={quantity === 0 ? '' : quantity} onChange={handleQuantityChange} className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-600 focus:border-green-600 rounded-lg" />
+                    <input type="number" min="1" value={quantity === 0 ? '' : quantity} onChange={handleQuantityChange} className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg" />
                     <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">+</button>
                   </div>
                 </div>
@@ -501,7 +493,7 @@ function Calculator() {
             <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span className="mr-2">🚢</span> Shipping Method</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {Object.entries(shippingMethods).map(([key, value]) => (
-                <motion.button key={key} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod(key)} className={`p-6 rounded-lg text-center transition duration-300 ${method === key ? 'bg-indigo-200 border-2 border-green-600 shadow-lg transform scale-105' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                <motion.button key={key} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod(key)} className={`p-6 rounded-lg text-center transition duration-300 ${method === key ? 'bg-indigo-200 border-2 border-green-1000 shadow-lg transform scale-105' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                   <div className="text-3xl mb-2">{value.icon}</div>
                   <div className="font-black text-lg">{value.name}</div>
                   <div className="text-md font-bold text-black mb-2">{value.days}</div>
@@ -541,12 +533,13 @@ function Calculator() {
             <h2 className="text-4xl font-black text-gray-800 mb-4">6. Progress Gantt Chart</h2>
             <AestheticProgressTimeline distance={distance} shippingMethod={method} />
         </div>
+
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-6">7. Final Quote & Cost Breakdown</h2>
+          <h2 className="text-4xl font-black text-gray-800 mb-6">7. Final Quote &amp; Cost Breakdown</h2>
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-black text-primary-600 flex items-center">
               <span className="mr-2">💰</span>
-              {loading ? (<div className="flex items-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mr-3"></div><span className="font-black">Calculating with live port data...</span></div>)
+              {loading ? (<div className="flex items-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mr-3"></div><span className="font-black">Calculating...</span></div>)
               : (<motion.span key={convertedTotalCost} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="font-black">Estimated Cost: {currentSymbol}{convertedTotalCost.toFixed(2)}</motion.span>)}
             </h2>
             <div>
@@ -556,7 +549,6 @@ function Calculator() {
               </select>
             </div>
           </div>
-          {error && <div className="bg-red-200 text-red-800 p-4 rounded-lg mb-4">{error}</div>}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <motion.div variants={containerAnimation} className="bg-gradient-to-br from-green-100 to-amber-100 p-6 rounded-lg shadow-md lg:col-span-1 w-full">
               <h3 className="font-black text-xl mb-4 flex items-center"><span className="mr-2">🛣️</span> Route Details</h3>
@@ -615,9 +607,7 @@ function Calculator() {
                       <XAxis dataKey="name" stroke="#d1d5db" fontSize={10} fontWeight="600" tickLine={false} axisLine={{ stroke: '#6b7280', strokeWidth: 1 }} angle={-45} textAnchor="end" height={80} interval={0}/>
                       <YAxis stroke="#d1d5db" fontSize={12} fontWeight="600" tickLine={false} axisLine={{ stroke: '#6b7280', strokeWidth: 1 }} label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#d1d5db', fontSize: '12px', fontWeight: '600' } }} />
                       <Tooltip formatter={(value, name, props) => { const item = props.payload; if (name === 'emissions') return [`${value.toFixed(2)} kg CO₂`, 'Total Carbon Emissions']; if (name === 'carbonPerCubicMeter') return [`${value.toFixed(3)} kg CO₂/m³`, 'Emissions per Cubic Meter']; return [value, name]; }} labelFormatter={(label, payload) => { const item = payload?.[0]?.payload; return item ? `${label}: ${item.description}` : label; }} contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #3b82f6', borderRadius: '8px', padding: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.4)', color: '#ffffff' }} labelStyle={{ fontWeight: '600', color: '#3b82f6' }} itemStyle={{ color: '#d1d5db' }}/>
-                      <Line type="monotone" dataKey="emissions" stroke="#22c55e" strokeWidth={3} activeDot={{ r: 6, fill: '#22c55e', stroke: '#000000', strokeWidth: 2 }} dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}/>
-                      <Line type="monotone" dataKey="carbonPerCubicMeter" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" activeDot={{ r: 5, fill: '#f59e0b', stroke: '#000000', strokeWidth: 2 }} dot={{ fill: '#f59e0b', strokeWidth: 1, r: 3 }}/>
-                    </LineChart>
+                      <Line type="monotone" dataKey="emissions" stroke="#22c55e" strokeWidth={3} activeDot={{ r: 6, fill: '#22c55e', stroke: '#000000', strokeWidth: 2 }} dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}/><Line type="monotone" dataKey="carbonPerCubicMeter" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" activeDot={{ r: 5, fill: '#f59e0b', stroke: '#000000', strokeWidth: 2 }} dot={{ fill: '#f59e0b', strokeWidth: 1, r: 3 }}/></LineChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-4 flex justify-center space-x-6 text-sm">
@@ -636,12 +626,7 @@ function Calculator() {
                   <AreaChart data={progressData} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
                     <defs><linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/><stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/></linearGradient></defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                    <XAxis dataKey="name" stroke="#ccc" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} interval={0} tick={{ fill: '#a3e635', fontWeight: 'bold', fontSize: 12 }} padding={{ left: 10, right: 10 }} label={{ value: "Progression Stage", position: "insideBottom", offset: 40, fill: '#a3e635', fontSize: 14, fontWeight: 'bold' }}/>
-                    <YAxis stroke="#ccc" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#a3e635', fontSize: 14, fontWeight: 'bold' }}/>
-                    <Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#222', border: '1px solid #4ade80', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#a3e635' }} itemStyle={{ color: '#d1fae5' }}/>
-                    <Legend wrapperStyle={{ color: '#a3e635' }} />
-                    <Area type="monotone" dataKey="cost" name={`Cumulative Cost (${currentSymbol})`} stroke="#22c55e" fillOpacity={1} fill="url(#costGradient)" activeDot={{ r: 8, fill: '#22c55e', stroke: '#000', strokeWidth: 2 }}/>
-                  </AreaChart>
+                    <XAxis dataKey="name" stroke="#ccc" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} interval={0} tick={{ fill: '#a3e635', fontWeight: 'bold', fontSize: 12 }} padding={{ left: 10, right: 10 }} label={{ value: "Progression Stage", position: "insideBottom", offset: 40, fill: '#a3e635', fontSize: 14, fontWeight: 'bold' }}/><YAxis stroke="#ccc" tickLine={false} axisLine={{ stroke: '#666', strokeWidth: 1 }} label={{ value: `Cost (${currentSymbol})`, angle: -90, position: "insideLeft", fill: '#a3e635', fontSize: 14, fontWeight: 'bold' }}/><Tooltip formatter={(value) => `${currentSymbol}${value.toFixed(2)}`} contentStyle={{ backgroundColor: '#222', border: '1px solid #4ade80', borderRadius: '8px', padding: '10px' }} labelStyle={{ fontWeight: 'bold', color: '#a3e635' }} itemStyle={{ color: '#d1fae5' }}/><Legend wrapperStyle={{ color: '#a3e635' }} /><Area type="monotone" dataKey="cost" name={`Cumulative Cost (${currentSymbol})`} stroke="#22c55e" fillOpacity={1} fill="url(#costGradient)" activeDot={{ r: 8, fill: '#22c55e', stroke: '#000', strokeWidth: 2 }}/></AreaChart>
                 </ResponsiveContainer>
               </div>
               <p className="mt-4 text-green-300 text-sm max-w-md">This chart shows the progression of cumulative costs over different stages of your shipping process. Each point represents the total cost accumulated up to that stage.</p>
