@@ -22,7 +22,7 @@ const containerSizeMap = { '20ft': 20, '40ft': 40, '40ft-hc': 45 };
 const containerTypes = {
   '20ft': { capacity: 33.2, base_cost: 1500, icon: '📦', features: ['Ideal for small cargo', 'Easy handling', 'Cost-effective'], description: 'Perfect for smaller shipments and general cargo.', dimensions: '20′ × 8′ × 8′6″', maxWeight: '28,230 kg', advantages: ['Lower shipping costs', 'Easier to handle', 'Widely available', 'Perfect for LCL shipments'] },
   '40ft': { capacity: 67.6, base_cost: 2800, icon: '🚛', features: ['Double capacity', 'Perfect for bulk items', 'Better value per m³'], description: 'The industry standard for most international shipments.', dimensions: '40′ × 8′ × 8′6″', maxWeight: '30,480 kg', advantages: ['Best value per cubic meter', 'Industry standard', 'Suitable for most cargo types', 'Efficient loading'] },
-  '40ft-hc': { capacity: 76.3, base_cost: 3200, icon: '🏭', features: ['Extra height', 'Maximum space', 'Specialized cargo'], description: 'High cube container with an extra foot of height.', dimensions: '40′ × 8′ × 9′6″', maxWeight: '30,480 kg', advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture &amp; textiles', 'Premium cargo solution'] },
+  '40ft-hc': { capacity: 76.3, base_cost: 3200, icon: '🏭', features: ['Extra height', 'Maximum space', 'Specialized cargo'], description: 'High cube container with an extra foot of height.', dimensions: '40′ × 8′ × 9′6″', maxWeight: '30,480 kg', advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture & textiles', 'Premium cargo solution'] },
 };
 const cargoTypes = {
   normal: { name: 'Normal', surcharge: 0, icon: '📦', description: 'Standard cargo with no special handling requirements' },
@@ -203,9 +203,6 @@ function Calculator() {
   const [shippingDate, setShippingDate] = useState(() => { const stored = localStorage.getItem('shippingDate'); return stored ? stored : ''; });
   const [selectedInsurance, setSelectedInsurance] = useState('none');
   const [insuranceSurcharge, setInsuranceSurcharge] = useState(0);
-  const [originCongestion, setOriginCongestion] = useState(null);
-  const [destinationCongestion, setDestinationCongestion] = useState(null);
-  const [congestionLoading, setCongestionLoading] = useState(false);
 
   useEffect(() => { localStorage.setItem('selectedOrigin', origin) }, [origin]);
   useEffect(() => { localStorage.setItem('selectedDestination', destination) }, [destination]);
@@ -417,7 +414,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Container Type</label>
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(containerTypes).map(([type, details]) => (
-                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setContainerType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${containerType === type ? 'bg-blue-100 border-2 border-green-1000 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setContainerType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${containerType === type ? 'bg-blue-100 border-2 border-green-600 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                         <div className="text-2xl mb-2">{details.icon}</div>
                         <div className="font-black">{type}</div>
                         <div className="text-sm font-bold text-black">{details.capacity}m³</div>
@@ -429,7 +426,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-4">Cargo Type</label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(cargoTypes).map(([type, details]) => (
-                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCargoType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${cargoType === type ? 'bg-blue-100 border-2 border-green-1000 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                      <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCargoType(type)} className={`p-4 rounded-lg text-center transition duration-300 ${cargoType === type ? 'bg-blue-100 border-2 border-green-600 shadow-lg' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                         <div className="text-2xl mb-2">{details.icon}</div>
                         <div className="font-black">{details.name}</div>
                         {details.surcharge > 0 && <div className="text-sm font-bold text-red-500">+{details.surcharge * 100}% surcharge</div>}
@@ -458,7 +455,7 @@ function Calculator() {
                   <label className="block text-lg font-black text-gray-700 mb-2">Select Quantity</label>
                   <div className="flex items-center space-x-4">
                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">-</button>
-                    <input type="number" min="1" value={quantity === 0 ? '' : quantity} onChange={handleQuantityChange} className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-1000 focus:border-green-1000 rounded-lg" />
+                    <input type="number" min="1" value={quantity === 0 ? '' : quantity} onChange={handleQuantityChange} className="w-24 text-center py-2 text-base font-bold border-green-300 focus:outline-none focus:ring-green-600 focus:border-green-600 rounded-lg" />
                     <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-1 bg-blue-100 rounded-lg hover:bg-primary-200 transition-colors font-bold">+</button>
                   </div>
                 </div>
@@ -504,7 +501,7 @@ function Calculator() {
             <h2 className="text-3xl font-black text-primary-600 mb-6 flex items-center"><span className="mr-2">🚢</span> Shipping Method</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {Object.entries(shippingMethods).map(([key, value]) => (
-                <motion.button key={key} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod(key)} className={`p-6 rounded-lg text-center transition duration-300 ${method === key ? 'bg-indigo-200 border-2 border-green-1000 shadow-lg transform scale-105' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
+                <motion.button key={key} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setMethod(key)} className={`p-6 rounded-lg text-center transition duration-300 ${method === key ? 'bg-indigo-200 border-2 border-green-600 shadow-lg transform scale-105' : 'bg-gray-50 border border-gray-200 hover:bg-amber-100 hover:border-primary-300'}`}>
                   <div className="text-3xl mb-2">{value.icon}</div>
                   <div className="font-black text-lg">{value.name}</div>
                   <div className="text-md font-bold text-black mb-2">{value.days}</div>
