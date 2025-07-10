@@ -2,6 +2,8 @@ import os
 import joblib
 import numpy as np
 import time
+import re
+import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from selenium import webdriver
@@ -151,48 +153,68 @@ def setup_selenium_driver():
     opts.add_argument("--disable-dev-shm-usage")
     opts.add_argument("--disable-gpu")
     opts.add_argument("--window-size=1920,1080")
-    opts.add_argument("user-agent=Mozilla/5.0")
+    opts.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
     try:
         return webdriver.Chrome(options=opts)
-    except:
+    except Exception as e:
+        logging.error(f"Failed to setup selenium driver: {e}")
         return None
 
 def scrape_seadex_port_congestion(port_name):
     driver = setup_selenium_driver()
     if not driver:
         return None
+    
     try:
         driver.get("https://seadex.ai/en/free-tools/port-congestion-tool")
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 25)
+        
         inp = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input[placeholder*='Enter a port']")))
         inp.clear()
         inp.send_keys(port_name)
         time.sleep(1)
+        
         btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
         btn.click()
-        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div[class*='result']")))
+        
+        wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Total vessel count')]")))
+        
         soup = BeautifulSoup(driver.page_source, "html.parser")
         data = {}
-        cont = soup.find(lambda t: t.name == "div" and "congestion" in t.text.lower())
-        if not cont:
+
+        total_vessel_text = soup.find(string=re.compile("Total vessel count", re.I))
+        if total_vessel_text:
+            parent_container = total_vessel_text.find_parent()
+            if parent_container:
+                main_value_tag = parent_container.find(string=re.compile(r"\d+\s*%"))
+                if main_value_tag:
+                    data["congestion"] = float(main_value_tag.strip().replace("%", ""))
+
+        if "congestion" not in data:
+            logging.error(f"Could not extract main congestion percentage for {port_name}")
             return None
-        val = cont.find(lambda t: "%" in t.text)
-        if not val:
-            return None
-        data["congestion"] = float(val.text.replace("%", "").strip())
-        avg = soup.find(lambda t: t.name == "div" and "average" in t.text.lower())
-        if avg:
-            gv = avg.find(lambda t: "%" in t.text)
-            try:
-                data["gapWithMean"] = float(gv.text.replace("%", "").replace("+", "").strip())
-            except:
-                pass
+
+        gap_text_element = soup.find(string=re.compile(r"below average|above average", re.I))
+        if gap_text_element:
+            match = re.search(r"(-?[\d\.]+%?)", gap_text_element)
+            if match:
+                try:
+                    data["gapWithMean"] = float(match.group(1).replace('%', ''))
+                except (ValueError, IndexError):
+                    pass
+        
         data["vesselType"] = "cargo"
         return data
-    except:
+
+    except (TimeoutException, NoSuchElementException) as e:
+        logging.error(f"Selenium timeout or element not found for port '{port_name}': {e}")
+        return None
+    except Exception as e:
+        logging.error(f"An unexpected error occurred scraping '{port_name}': {e}")
         return None
     finally:
-        driver.quit()
+        if driver:
+            driver.quit()
 
 def get_port_congestion(port_name):
     mapped = PORT_NAME_MAPPING.get(port_name, port_name)
@@ -223,10 +245,17 @@ def available_ports():
 def port_congestion(port_name):
     if request.method == "OPTIONS":
         return jsonify({})
+    
     cd = get_port_congestion(port_name)
+    
     if cd:
-        return jsonify(cd)
-    return jsonify({"error": "Congestion data could not be scraped", "port": port_name}), 404
+        return jsonify({"status": "success", "data": cd})
+    else:
+        return jsonify({
+            "status": "error",
+            "message": f"Congestion data could not be scraped for port: {port_name}.",
+            "port": port_name
+        })
 
 @app.route("/predict", methods=["POST", "OPTIONS"])
 def predict():
@@ -245,8 +274,13 @@ def predict():
         mm = {"standard": 1.0, "express": 1.5, "premium": 2.2, "eco": 0.85}
         m = d.get("method", "standard").lower()
         fp = bp * mm.get(m, 1.0)
-        op = calculate_congestion_surcharge(get_port_congestion(d.get("originPort", "")), "origin") if d.get("originPort") else 0.0
-        dp = calculate_congestion_surcharge(get_port_congestion(d.get("destinationPort", "")), "destination") if d.get("destinationPort") else 0.0
+        
+        origin_congestion_data = get_port_congestion(d.get("originPort", "")) if d.get("originPort") else None
+        destination_congestion_data = get_port_congestion(d.get("destinationPort", "")) if d.get("destinationPort") else None
+
+        op = calculate_congestion_surcharge(origin_congestion_data, "origin")
+        dp = calculate_congestion_surcharge(destination_congestion_data, "destination")
+        
         cc = fp * (op + dp)
         fp += cc
         costs = {
@@ -257,8 +291,11 @@ def predict():
         }
         if cc > 0:
             costs["Port Congestion Surcharge"] = round(cc, 2)
-        return jsonify({"totalCost": round(fp, 2), "costs": costs})
-    except:
+        
+        response_data = {"totalCost": round(fp, 2), "costs": costs}
+        return jsonify(response_data)
+    except Exception as e:
+        logging.error(f"Error in /predict endpoint: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == "__main__":
