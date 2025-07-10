@@ -9,20 +9,44 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
+ALLOWED_ORIGINS = [
+    "https://green-shipping-compass-1.onrender.com",
+    "http://localhost:5173"
+]
+
 CORS(
     app,
-    resources={r"/*": {"origins": [
-        "https://green-shipping-compass-1.onrender.com",
-        "http://localhost:5173"
-    ]}},
+    resources={r"/*": {"origins": ALLOWED_ORIGINS}},
     methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
     supports_credentials=True
 )
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get("Origin")
+    if origin in ALLOWED_ORIGINS:
+        response.headers.add("Access-Control-Allow-Origin", origin)
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    return response
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Not Found"}), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"error": "Internal Server Error"}), 500
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({"error": "Bad Request"}), 400
 
 CARGO_TYPES = ["normal", "fragile", "perishable", "hazardous"]
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "shipping_model.joblib")
@@ -148,13 +172,14 @@ def scrape_seadex_port_congestion(port_name):
         btn.click()
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div[class*='result']")))
         soup = BeautifulSoup(driver.page_source, "html.parser")
+        data = {}
         cont = soup.find(lambda t: t.name == "div" and "congestion" in t.text.lower())
         if not cont:
             return None
         val = cont.find(lambda t: "%" in t.text)
         if not val:
             return None
-        data = {"congestion": float(val.text.replace("%", "").strip()), "vesselType": "cargo"}
+        data["congestion"] = float(val.text.replace("%", "").strip())
         avg = soup.find(lambda t: t.name == "div" and "average" in t.text.lower())
         if avg:
             gv = avg.find(lambda t: "%" in t.text)
@@ -162,6 +187,7 @@ def scrape_seadex_port_congestion(port_name):
                 data["gapWithMean"] = float(gv.text.replace("%", "").replace("+", "").strip())
             except:
                 pass
+        data["vesselType"] = "cargo"
         return data
     except:
         return None
@@ -176,17 +202,16 @@ def calculate_congestion_surcharge(cd, port_type="origin"):
     if not cd or "congestion" not in cd:
         return 0.0
     c = cd["congestion"]
+    s = 0.0
     if c >= 80:
-        rate = 0.20
+        s = 0.20
     elif c >= 65:
-        rate = 0.15
+        s = 0.15
     elif c >= 50:
-        rate = 0.10
+        s = 0.10
     elif c >= 35:
-        rate = 0.05
-    else:
-        rate = 0.0
-    return rate * (0.6 if port_type == "origin" else 0.4)
+        s = 0.05
+    return s * (0.6 if port_type == "origin" else 0.4)
 
 @app.route("/available-ports", methods=["GET", "OPTIONS"])
 def available_ports():
@@ -228,7 +253,7 @@ def predict():
             "Base Cost": round(fp * 0.40, 2),
             "Fuel & Distance Surcharge": round(fp * 0.30, 2),
             "Handling & Documentation": round(fp * 0.15, 2),
-            "Service Method Premium": round(fp * 0.15, 2)
+            "Service Method Premium": round(fp * 0.15, 2),
         }
         if cc > 0:
             costs["Port Congestion Surcharge"] = round(cc, 2)
