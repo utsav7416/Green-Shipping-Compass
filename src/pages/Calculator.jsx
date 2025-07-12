@@ -77,33 +77,69 @@ const ShipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const WarehouseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
 
-function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard' }) {
-    const getDynamicStages = (dist, method) => {
-        let oceanSpeedKmph = 37;
-        if (method === 'express') oceanSpeedKmph = 46;
-        else if (method === 'premium') oceanSpeedKmph = 55;
-        else if (method === 'eco') oceanSpeedKmph = 30;
-        const oceanDurationDays = Math.max(5, Math.round(dist / (oceanSpeedKmph * 24)));
-        return [
-            { id: 1, name: 'Factory to Port', duration: Math.max(1, Math.round(oceanDurationDays * 0.08)), icon: TruckIcon, description: "Cargo is transported from the factory to the origin port warehouse for consolidation." },
-            { id: 2, name: 'Origin Port Handling', duration: Math.max(2, Math.round(oceanDurationDays * 0.1)), icon: AnchorIcon, description: "Includes loading, documentation checks, and export customs clearance at the origin port." },
-            { id: 3, name: 'Ocean Transit', duration: oceanDurationDays, icon: ShipIcon, description: "The vessel is at sea, transporting your container to the destination port." },
-            { id: 4, name: 'Destination Port Handling', duration: Math.max(2, Math.round(oceanDurationDays * 0.12)), icon: AnchorIcon, description: "Container is offloaded from the vessel and moved to the port's container yard." },
-            { id: 5, name: 'Customs Clearance', duration: Math.max(2, Math.round(oceanDurationDays * 0.09)), icon: CheckCircleIcon, description: "Documents are submitted to destination customs for import approval and duty assessment." },
-            { id: 6, name: 'Final Mile Delivery', duration: Math.max(1, Math.round(oceanDurationDays * 0.08)), icon: WarehouseIcon, description: "Cargo is transported from the destination port to the final delivery address." },
-        ];
+const getAverageDuration = (daysString) => {
+    const parts = daysString.match(/\d+/g).map(Number);
+    if (parts.length < 2) return (parts[0] || 0);
+    return Math.round((parts[0] + parts[1]) / 2);
+};
+
+const getDynamicStages = (method) => {
+    const totalDuration = getAverageDuration(shippingMethods[method].days);
+
+    const stageWeights = {
+        oceanTransit: 0.55, 
+        originHandling: 0.10,
+        destHandling: 0.12,
+        customs: 0.10,
+        factoryToPort: 0.08,
+        finalMile: 0.05,
     };
+
+    let durations = {
+        oceanTransit: Math.round(totalDuration * stageWeights.oceanTransit),
+        originHandling: Math.round(totalDuration * stageWeights.originHandling),
+        destHandling: Math.round(totalDuration * stageWeights.destHandling),
+        customs: Math.round(totalDuration * stageWeights.customs),
+        factoryToPort: Math.round(totalDuration * stageWeights.factoryToPort),
+        finalMile: Math.round(totalDuration * stageWeights.finalMile),
+    };
+    
+    durations.originHandling = Math.max(2, durations.originHandling);
+    durations.destHandling = Math.max(2, durations.destHandling);
+    durations.customs = Math.max(2, durations.customs);
+    durations.factoryToPort = Math.max(1, durations.factoryToPort);
+    durations.finalMile = Math.max(1, durations.finalMile);
+
+    const currentSum = Object.values(durations).reduce((sum, d) => sum + d, 0);
+    const diff = totalDuration - currentSum;
+    durations.oceanTransit += diff;
+
+    return [
+        { id: 1, name: 'Factory to Port', duration: durations.factoryToPort, icon: TruckIcon, description: "Cargo is transported from the factory to the origin port warehouse for consolidation." },
+        { id: 2, name: 'Origin Port Handling', duration: durations.originHandling, icon: AnchorIcon, description: "Includes loading, documentation checks, and export customs clearance at the origin port." },
+        { id: 3, name: 'Ocean Transit', duration: durations.oceanTransit, icon: ShipIcon, description: "The vessel is at sea, transporting your container to the destination port." },
+        { id: 4, name: 'Destination Port Handling', duration: durations.destHandling, icon: AnchorIcon, description: "Container is offloaded from the vessel and moved to the port's container yard." },
+        { id: 5, name: 'Customs Clearance', duration: durations.customs, icon: CheckCircleIcon, description: "Documents are submitted to destination customs for import approval." },
+        { id: 6, name: 'Final Mile Delivery', duration: durations.finalMile, icon: WarehouseIcon, description: "Cargo is transported from the destination port to the final delivery address." },
+    ];
+};
+
+
+function AestheticProgressTimeline({ shippingMethod = 'standard' }) {
     const [stages, setStages] = useState([]);
     const [totalDuration, setTotalDuration] = useState(0);
+
     useEffect(() => {
-        const newStages = getDynamicStages(distance, shippingMethod);
+        const newStages = getDynamicStages(shippingMethod);
         setStages(newStages);
         setTotalDuration(newStages.reduce((sum, s) => sum + s.duration, 0));
-    }, [distance, shippingMethod]);
+    }, [shippingMethod]);
+
     let cumulativeStart = 0;
+
     return (
         <div className="bg-black text-white p-8 rounded-lg shadow-2xl border-2 border-gray-700">
-            <h3 className="text-2xl font-black mb-6 text-cyan-300">Progress Timeline</h3>
+            <h3 className="text-2xl font-black mb-6 text-cyan-300">Progress Timeline ({totalDuration} days total)</h3>
             <div className="space-y-6">
                 {stages.map((stage, index) => {
                     const stageStart = cumulativeStart;
@@ -129,6 +165,7 @@ function AestheticProgressTimeline({ distance = 8000, shippingMethod = 'standard
         </div>
     );
 }
+
 
 function getDeliveryRange(method, shippingDate) {
   const match = shippingMethods[method].days.match(/(\d+)-(\d+)/);
