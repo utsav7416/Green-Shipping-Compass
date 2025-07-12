@@ -1,7 +1,73 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { FileText, AlertTriangle, CheckCircle, XCircle, Clock, Globe, Bookmark } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FileText, AlertTriangle, CheckCircle, XCircle, Clock, Globe, Bookmark, Anchor } from 'lucide-react';
 import { ports } from '../data/ports';
+
+const RouteVisual = ({ origin, destination }) => (
+  <motion.div
+    className="my-8 relative h-28"
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.4, duration: 0.6 }}
+  >
+    <div className="absolute inset-0 flex items-center justify-between px-4">
+      <motion.div
+        className="text-center"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.6, type: 'spring' }}
+      >
+        <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto border-2 border-green-400 shadow-md">
+          <Anchor className="w-7 h-7 text-green-600"/>
+        </div>
+        <p className="font-black text-green-700 mt-2 text-xs">{origin}</p>
+      </motion.div>
+      <motion.div
+        className="text-center"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.7, type: 'spring' }}
+      >
+        <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto border-2 border-red-400 shadow-md">
+          <Anchor className="w-7 h-7 text-red-600"/>
+        </div>
+        <p className="font-black text-red-700 mt-2 text-xs">{destination}</p>
+      </motion.div>
+    </div>
+
+    <svg className="w-full h-full absolute top-0 left-0" viewBox="0 0 100 25" preserveAspectRatio="none">
+      <motion.path
+        d="M 10 12.5 Q 50 -2.5, 90 12.5"
+        fill="none"
+        strokeWidth="0.5"
+        stroke="rgba(99, 102, 241, 0.6)"
+        strokeDasharray="2 2"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1.5, delay: 0.8, ease: "easeInOut" }}
+      />
+    </svg>
+    
+    <div className="absolute inset-0">
+      <motion.div
+        className="absolute text-2xl"
+        style={{
+          offsetPath: 'path("M 10 12.5 Q 50 -2.5, 90 12.5")',
+          offsetAnchor: 'center',
+          top: 0,
+          left: '8%',
+          width: '84%',
+          height: '100%',
+        }}
+        initial={{ offsetDistance: "0%" }}
+        animate={{ offsetDistance: "100%" }}
+        transition={{ duration: 5, repeat: Infinity, ease: "linear", delay: 1.5 }}
+      >
+        🚢
+      </motion.div>
+    </div>
+  </motion.div>
+);
 
 function RegulatoryInfo({ origin, destination }) {
   if (!origin || !destination) return null;
@@ -55,7 +121,7 @@ function RegulatoryInfo({ origin, destination }) {
       animate="visible"
     >
       <motion.div 
-        className="text-center mb-8"
+        className="text-center mb-4"
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
@@ -82,6 +148,8 @@ function RegulatoryInfo({ origin, destination }) {
           Comprehensive regulatory information, restricted items, and documentation requirements for your selected shipping ports.
         </motion.p>
       </motion.div>
+
+      <RouteVisual origin={origin} destination={destination} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {portList.map(({ label, port }, index) => (
@@ -272,3 +340,7 @@ function RegulatoryInfo({ origin, destination }) {
 }
 
 export default RegulatoryInfo;
+
+
+
+

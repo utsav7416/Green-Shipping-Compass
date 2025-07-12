@@ -11,6 +11,8 @@ import Weather from '../components/Weather';
 import RegulatoryInfo from '../components/RegulatoryInfo';
 import CarbonImpactVisualizer from '../components/CarbonImpactVisualizer';
 import VesselTypeExplorer from '../components/VesselTypeExplorer';
+import Demurrage from '../components/Demurrage';
+import RouteMap from '../components/MapTradeRisk'; 
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
 const API_BASE = 'https://green-shipping-compass.onrender.com';
@@ -49,7 +51,7 @@ const containerTypes = {
     description: 'High cube container with an extra foot of height, perfect for lightweight but voluminous cargo and specialized equipment.',
     dimensions: '40′ × 8′ × 9′6″',
     maxWeight: '30,480 kg',
-    advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture & textiles', 'Premium cargo solution']
+    advantages: ['Maximum cubic capacity', 'Extra height for tall items', 'Perfect for furniture &amp; textiles', 'Premium cargo solution']
   },
 };
 
@@ -156,7 +158,10 @@ function InsuranceSection({ selectedInsurance, onChange, currentSymbol }) {
     <div className="bg-black p-8 rounded-lg shadow-lg">
       <div className="flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-3/5">
-          <p className="text-gray-400 mb-6 text-sm">Select a plan to protect your shipment. The surcharge will be added to your total cost.</p>
+          <div className="mb-6">
+            <h2 className="text-2xl font-black text-white mb-2">Marine Insurance Coverage</h2>
+            <p className="text-gray-400 text-">Select a plan to protect your shipment. The surcharge will be added to your total cost.</p>
+          </div>
           <div className="flex flex-col gap-4">
             {INSURANCE_OPTIONS.map(option => (
               <motion.label key={option.value} whileHover={{ scale: 1.02 }} className={`flex items-start gap-4 p-4 rounded-lg cursor-pointer transition-all duration-300 border-2 ${selectedInsurance === option.value ? 'bg-blue-900 border-blue-500 shadow-lg' : 'border-gray-700 hover:border-blue-600'}`}>
@@ -287,7 +292,6 @@ function Calculator() {
 
         setCosts(finalCosts);
         setTotalCost(finalTotal);
-
       } catch (err) {
         setError(err.message || 'Failed to calculate shipping cost. Please try again.');
         console.error('Calculation Error:', err);
@@ -528,7 +532,7 @@ function Calculator() {
           <h2 className="text-4xl font-black text-gray-800 mb-4">2. Insurance Selection</h2>
           <InsuranceSection selectedInsurance={selectedInsurance} onChange={handleInsuranceChange} currentSymbol={currentSymbol}/>
         </div>
-        
+
         <div className="mb-8">
           <h2 className="text-4xl font-black text-gray-800 mb-4">3. Carbon Emissions Visualization</h2>
           <CarbonImpactVisualizer
@@ -550,17 +554,27 @@ function Calculator() {
         </div>
 
         <div className="mb-8">
-            <h2 className="text-4xl font-black text-gray-800 mb-4">6. Progress Gantt Chart</h2>
+            <h2 className="text-4xl font-black text-gray-800 mb-4">6. Demurrage, Detention & Stakeholders</h2>
+            <Demurrage />
+        </div>
+
+        <div className="mb-8">
+            <h2 className="text-4xl font-black text-gray-800 mb-4">7. Progress Gantt Chart</h2>
             <AestheticProgressTimeline distance={distance} shippingMethod={method} />
         </div>
 
         <div className="mb-8">
-            <h2 className="text-4xl font-black text-gray-800 mb-4">7. Vessel Type Explorer</h2>
+            <h2 className="text-4xl font-black text-gray-800 mb-4">8. Vessel Type Explorer</h2>
             <VesselTypeExplorer />
         </div>
 
+        <div className="mb-8">
+          <h2 className="text-4xl font-black text-gray-800 mb-4">9. Map & Risk Factors</h2>
+          <RouteMap origin={origin} destination={destination} />
+        </div>
+
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-amber-100 p-8 rounded-lg shadow-xl mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-6">8. Final Quote & Cost Breakdown</h2>
+          <h2 className="text-4xl font-black text-gray-800 mb-6">10. Final Quote & Cost Breakdown</h2>
           
           {error && (
             <motion.div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
