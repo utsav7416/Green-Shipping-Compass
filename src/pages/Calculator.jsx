@@ -169,7 +169,7 @@ function InsuranceSection({ selectedInsurance, onChange, currentSymbol }) {
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
                     <span className="font-black text-lg text-gray-100">{option.label}</span>
-                    <span className="font-bold text-lg text-green-400">{option.surcharge > 0 ? `+${currentSymbol}${option.surcharge.toFixed(2)}` : 'No Extra Cost'}</span>
+                    <span className="font-bold text-lg text-green-400">{option.surcharge > 0 ? `+$${option.surcharge.toFixed(2)}` : 'No Extra Cost'}</span>
                   </div>
                   <p className="text-gray-400 text-sm mt-1">{option.description}</p>
                 </div>
@@ -708,3 +708,5 @@ function Calculator() {
 }
 
 export default Calculator;
+
+

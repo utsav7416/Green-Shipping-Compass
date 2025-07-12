@@ -13,20 +13,81 @@ const ImpactCard = ({ icon, value, unit, label, description, color }) => {
 
   return (
     <motion.div
-      className="bg-gray-900 p-5 rounded-lg text-center flex-1 border border-gray-700 flex flex-col"
-      whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)' }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      className="bg-black p-5 rounded-lg text-center flex-1 border border-gray-700 flex flex-col overflow-hidden relative"
+      whileHover={{ 
+        y: -8, 
+        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3), 0 0 0 1px rgba(34, 197, 94, 0.1)',
+        borderColor: '#22c55e'
+      }}
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <div className="flex-grow">
-        <div className={`text-5xl mb-3 ${colorClass}`}>{icon}</div>
-        <p className={`text-4xl font-black text-white`}>{value}</p>
-        <p className={`text-lg font-bold text-gray-300`}>{unit}</p>
-        <p className="text-sm text-gray-400 mt-2">{label}</p>
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-br from-green-900/10 to-transparent opacity-0"
+        whileHover={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      />
+      
+      <div className="flex-grow relative z-10">
+        <motion.div 
+          className={`text-5xl mb-3 ${colorClass}`}
+          initial={{ scale: 0.5, rotate: -10 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          whileHover={{ 
+            scale: 1.2, 
+            rotate: 5,
+            textShadow: '0 0 20px rgba(34, 197, 94, 0.5)'
+          }}
+        >
+          {icon}
+        </motion.div>
+        
+        <motion.p 
+          className={`text-4xl font-black text-white`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          whileHover={{ scale: 1.1, color: '#22c55e' }}
+        >
+          {value}
+        </motion.p>
+        
+        <motion.p 
+          className={`text-lg font-bold text-gray-300`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+        >
+          {unit}
+        </motion.p>
+        
+        <motion.p 
+          className="text-sm text-gray-400 mt-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+        >
+          {label}
+        </motion.p>
       </div>
-      <p className="text-base text-white font-semibold mt-4 pt-4 border-t border-gray-800">{description}</p>
-  </motion.div>
+      
+      <motion.p 
+        className="text-base text-white font-semibold mt-4 pt-4 border-t border-gray-800 relative z-10"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.6 }}
+      >
+        {description}
+      </motion.p>
+      
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-blue-500 opacity-0"
+        whileHover={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      />
+    </motion.div>
   );
 };
 
