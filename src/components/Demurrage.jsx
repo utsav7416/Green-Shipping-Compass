@@ -11,6 +11,7 @@ const mindMapNodes = {
 };
 
 const StakeholderMindMap = () => {
+  
     const [activeNode, setActiveNode] = useState('carrier');
     const nodeKeys = Object.keys(mindMapNodes);
     const angleStep = (2 * Math.PI) / nodeKeys.length;
@@ -45,12 +46,7 @@ const StakeholderMindMap = () => {
                         <motion.button
                             key={key}
                             onMouseEnter={() => setActiveNode(key)}
-                            animate={{
-                                x: x,
-                                y: y,
-                                scale: isActive ? 1.2 : 1,
-                                opacity: isActive || isConnected ? 1 : 0.6
-                            }}
+                            animate={{ x: x, y: y, scale: isActive ? 1.2 : 1, opacity: isActive || isConnected ? 1 : 0.6 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                             className={`absolute px-4 py-2 rounded-full text-sm font-bold shadow-lg transition-colors ${isActive ? 'bg-teal-400 text-slate-900' : 'bg-slate-700 text-slate-300'}`}
                         >
