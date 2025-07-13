@@ -91,6 +91,41 @@ const ImpactCard = ({ icon, value, unit, label, description, color }) => {
   );
 };
 
+const InfoCard = ({ title, description, image, stats, gradient }) => (
+  <motion.div
+    className="bg-black p-6 rounded-lg border border-gray-700 relative overflow-hidden"
+    whileHover={{ 
+      y: -4, 
+      boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)',
+    }}
+    initial={{ opacity: 0, scale: 0.95 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.5 }}
+  >
+    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5`} />
+    <div className="relative z-10">
+      <div className="flex items-center mb-4">
+        <img 
+          src={image} 
+          alt={title}
+          className="w-16 h-16 rounded-lg object-cover mr-4 border-2 border-gray-600"
+        />
+        <div>
+          <h4 className="font-bold text-lg text-white">{title}</h4>
+          <div className="flex space-x-4 mt-1">
+            {stats.map((stat, index) => (
+              <span key={index} className="text-xs text-green-400 font-semibold">
+                {stat}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <p className="text-sm text-gray-300 leading-relaxed">{description}</p>
+    </div>
+  </motion.div>
+);
+
 export default function CarbonImpactVisualizer({ carbonFootprint, ecoFootprint, ecoRating, onSwitchToEco }) {
   const savings = carbonFootprint - ecoFootprint;
   const isEcoSelected = carbonFootprint <= ecoFootprint;
@@ -149,6 +184,30 @@ export default function CarbonImpactVisualizer({ carbonFootprint, ecoFootprint, 
           label="for One Year"
           description={`This many mature trees would be needed for a full year to absorb this amount of CO₂.`}
           color="teal"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <InfoCard
+          title="Ocean Health Impact"
+          description="Ocean acidification from CO₂ emissions affects marine ecosystems. Your carbon choices directly impact coral reefs, fish populations, and ocean biodiversity worldwide."
+          image="https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400&h=300&fit=crop"
+          stats={['pH -0.1 per 100ppm CO₂', '30% coral loss since 1980s']}
+          gradient="from-blue-900 to-teal-900"
+        />
+        <InfoCard
+          title="Forest Conservation"
+          description="Trees are our natural carbon capture systems. Each ton of CO₂ saved helps preserve forest ecosystems and supports biodiversity conservation efforts globally."
+          image="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop"
+          stats={['21kg CO₂/tree/year', '15% forest loss reduction']}
+          gradient="from-green-900 to-emerald-900"
+        />
+        <InfoCard
+          title="Arctic Ice Impact"
+          description="Carbon emissions contribute to global warming, accelerating Arctic ice melt. Your shipping choices affect polar bear habitats and global sea levels."
+          image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1_CPFozh87mlfbIhoxvHt5Acbw9I3HUEYUA&s"
+          stats={['2.5cm/decade sea rise', '13% ice loss/decade']}
+          gradient="from-cyan-900 to-blue-900"
         />
       </div>
 
@@ -231,18 +290,20 @@ export default function CarbonImpactVisualizer({ carbonFootprint, ecoFootprint, 
                 </motion.div>
             )}
         </div>
-        <div className="bg-black p-6 rounded-lg border border-gray-700 flex flex-col">
-            <h4 className="font-bold text-lg text-white mb-1">Savings Breakdown</h4>
-            <p className="text-xs text-gray-400 mb-4">{isEcoSelected ? 'Your shipment is fully optimized.' : 'How your potential savings compare to the new footprint.'}</p>
-            <div className="flex-grow h-64 relative">
+
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="w-full md:w-1/2 bg-black p-4 rounded-lg border border-gray-700 flex flex-col">
+            <h4 className="font-bold text-base text-white mb-1">Savings Breakdown</h4>
+            <p className="text-xs text-gray-400 mb-2">{isEcoSelected ? 'Fully optimized.' : 'Savings vs. new footprint.'}</p>
+            <div className="flex-grow h-40 relative">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
                             data={savingsBreakdownData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={85}
-                            outerRadius={115}
+                            innerRadius={45}
+                            outerRadius={65}
                             fill="#8884d8"
                             paddingAngle={isEcoSelected && savingsBreakdownData.every(d => d.value === 0) ? 0 : 5}
                             dataKey="value"
@@ -259,56 +320,98 @@ export default function CarbonImpactVisualizer({ carbonFootprint, ecoFootprint, 
                 </ResponsiveContainer>
                  {isEcoSelected ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <motion.div
-                            className="text-center"
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <div className="text-5xl text-green-400 mb-2">✓</div>
-                            <div className="text-lg font-bold text-gray-300">
-                                Optimized
-                            </div>
-                            <div className="text-xs text-gray-400 mt-1">
-                                {carbonFootprint.toFixed(1)} kg CO₂e
-                            </div>
-                        </motion.div>
+                        <div className="text-3xl text-green-400 mb-1">✓</div>
+                        <div className="text-sm font-bold text-gray-300">Optimized</div>
                     </div>
                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <motion.div
-                            className="text-center"
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                        >
-                            <motion.div
-                                className="relative"
-                                whileHover={{ scale: 1.05 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <div className="text-4xl font-black text-green-400 mb-1 drop-shadow-lg">
-                                    -{((savings / carbonFootprint) * 100).toFixed(0)}%
-                                </div>
-                                <div className="text-xs font-bold text-green-300 uppercase tracking-wider">
-                                    Reduction
-                                </div>
-                                <div className="text-xs text-gray-400 mt-1">
-                                    {savings.toFixed(1)} kg CO₂e saved
-                                </div>
-                            </motion.div>
-                            <motion.div
-                                className="absolute -top-2 -right-2 w-3 h-3 bg-green-400 rounded-full animate-pulse"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.8 }}
-                            />
-                        </motion.div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                        <div className="text-2xl font-black text-green-400 drop-shadow-lg">
+                            -{((savings / carbonFootprint) * 100).toFixed(0)}%
+                        </div>
+                        <div className="text-xs font-bold text-green-300 uppercase tracking-wider mt-1">
+                            Reduction
+                        </div>
                     </div>
                  )}
             </div>
+          </div>
+          
+          <motion.div
+            className="w-full md:w-1/2 bg-black p-6 rounded-lg border border-gray-700 flex flex-col justify-center items-center text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(34, 197, 94, 0.7)' }}
+          >
+            <h4 className="font-bold text-base text-white mb-3 flex items-center justify-center">
+              <span className="text-2xl mr-3"></span>
+              Maritime Shipping Trivia
+            </h4>
+            <p className="text-md text-gray-300 leading-relaxed max-w-md">
+              Did you know? The global shipping industry accounts for nearly <span className="font-bold text-green-400">2-3%</span> of global CO₂ emissions, making it a critical area for sustainable innovation.
+            </p>
+            <motion.div
+              className="mt-4 text-green-400 text-4xl"
+              animate={{ rotate: [0, 10, -10, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            >
+              ⚓
+            </motion.div>
+          </motion.div>
         </div>
       </div>
+
+      <motion.div
+        className="flex flex-col lg:flex-row items-center gap-6 mt-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+      >
+        <div className="w-full lg:w-3/5 bg-gradient-to-r from-lime-900/30 to-rose-900/30 p-6 rounded-lg border border-green-500/50">
+          <div className="text-center">
+            <h4 className="font-bold text-xl text-white mb-2">🌍 Every Shipment Counts</h4>
+            <p className="text-gray-300">
+              Your shipping decisions create a ripple effect across global supply chains. By choosing eco-friendly options,
+              you're supporting cleaner transportation, efficient logistics, and a sustainable future for commerce.
+            </p>
+            <div className="flex justify-center space-x-8 mt-4">
+              <div className="text-center">
+                <div className="text-2xl">🚚</div>
+                <div className="text-xs text-blue-400">Efficient Routes</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl">📦</div>
+                <div className="text-xs text-green-400">Smart Packaging</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl">⚡</div>
+                <div className="text-xs text-yellow-400">Clean Energy</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl">🌱</div>
+                <div className="text-xs text-purple-400">Carbon Neutral</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full lg:w-2/5 grid grid-cols-2 gap-4">
+          <div className="rounded-lg overflow-hidden border border-white/10">
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTctKJTBVgBWc0GWbsH0FO6nWcisg2yZvnSVw&s"
+              alt="Eco-friendly shipping container"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="rounded-lg overflow-hidden border border-white/10">
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7NS6fMHGS6JqBszC4H3XNz9WqBxB0gqfluQ&s"
+              alt="Sustainable logistics"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

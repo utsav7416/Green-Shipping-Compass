@@ -117,52 +117,22 @@ function Demurrage() {
             <div className="bg-black p-4 rounded-xl border border-teal-500/30">
               <h3 className="text-xl font-bold text-teal-400 mb-3">Demurrage</h3>
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Location:</span>Container remains at port/terminal</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Responsibility:</span>Port authority charges for storage space</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Timeline:</span>Begins after vessel discharge</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Purpose:</span>Compensates port for yard space usage</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Control:</span>Limited shipper/consignee control</p>
-                </div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Location:</span>Container remains at port/terminal</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Responsibility:</span>Port authority charges for storage space</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Timeline:</span>Begins after vessel discharge</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Purpose:</span>Compensates port for yard space usage</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Control:</span>Limited shipper/consignee control</p></div>
               </div>
             </div>
             
             <div className="bg-black p-4 rounded-xl border border-amber-500/30">
               <h3 className="text-xl font-bold text-amber-400 mb-3">Detention</h3>
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Location:</span>Container outside port premises</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Responsibility:</span>Shipping line charges for equipment use</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Timeline:</span>Begins after container pickup from port</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Purpose:</span>Compensates carrier for container usage</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Control:</span>Full shipper/consignee control</p>
-                </div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Location:</span>Container outside port premises</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Responsibility:</span>Shipping line charges for equipment use</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Timeline:</span>Begins after container pickup from port</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Purpose:</span>Compensates carrier for container usage</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Control:</span>Full shipper/consignee control</p></div>
               </div>
             </div>
           </div>
@@ -171,22 +141,10 @@ function Demurrage() {
             <div className="bg-black p-4 rounded-xl border border-slate-600">
               <h3 className="text-lg font-bold text-slate-200 mb-3">Critical Understanding</h3>
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Demurrage:</span>"Parking fee" for containers at port beyond free time</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Detention:</span>"Equipment rental fee" for containers outside port</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-green-400 rounded-full"></div></div>
-                  <p className="text-slate-300 text-sm"><span className="font-bold text-green-400 mr-2">Purpose:</span>Encourage efficient container turnover</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-green-400 rounded-full"></div></div>
-                   <p className="text-slate-300 text-sm"><span className="font-bold text-green-400 mr-2">Impact:</span>Different phases, different entities charging</p>
-                </div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-teal-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-teal-400 mr-2">Demurrage:</span>"Parking fee" for containers at port beyond free time</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-amber-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-amber-400 mr-2">Detention:</span>"Equipment rental fee" for containers outside port</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-green-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-green-400 mr-2">Purpose:</span>Encourage efficient container turnover</p></div>
+                <div className="flex items-center gap-3"><div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-2 h-2 bg-green-400 rounded-full"></div></div><p className="text-slate-300 text-sm"><span className="font-bold text-green-400 mr-2">Impact:</span>Different phases, different entities charging</p></div>
               </div>
             </div>
             
@@ -215,34 +173,10 @@ function Demurrage() {
             >
               <h3 className="text-xl font-bold text-amber-400 mb-3">Cost Comparison</h3>
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <div className="w-3 h-3 bg-teal-400 rounded-full"></div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <div className="font-bold text-teal-400 text-sm">Per day demurrage</div>
-                      <div className="text-teal-400 font-bold text-lg">$50-200</div>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">Port/terminal charges</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <div className="w-3 h-3 bg-amber-400 rounded-full"></div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <div className="font-bold text-amber-400 text-sm">Per day detention</div>
-                      <div className="text-amber-400 font-bold text-lg">$75-300</div>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">Carrier equipment charges</div>
-                  </div>
-                </div>
+                <div className="flex items-center gap-3"><div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-3 h-3 bg-teal-400 rounded-full"></div></div><div className="flex-1"><div className="flex justify-between items-center"><div className="font-bold text-teal-400 text-sm">Per day demurrage</div><div className="text-teal-400 font-bold text-lg">$50-200</div></div><div className="text-xs text-slate-400 mt-1">Port/terminal charges</div></div></div>
+                <div className="flex items-center gap-3"><div className="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-3 h-3 bg-amber-400 rounded-full"></div></div><div className="flex-1"><div className="flex justify-between items-center"><div className="font-bold text-amber-400 text-sm">Per day detention</div><div className="text-amber-400 font-bold text-lg">$75-300</div></div><div className="text-xs text-slate-400 mt-1">Carrier equipment charges</div></div></div>
               </div>
-              <p className="text-xs text-slate-400 mt-3">
-                Costs vary by port location, container type, and shipping line policies
-              </p>
+              <p className="text-xs text-slate-400 mt-3">Costs vary by port location, container type, and shipping line policies</p>
             </motion.div>
 
             <motion.div
@@ -251,44 +185,34 @@ function Demurrage() {
             >
               <h3 className="text-xl font-bold text-green-400 mb-3">Free Time Periods</h3>
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <div className="font-bold text-green-400 text-sm">Import Demurrage</div>
-                      <div className="text-green-400 font-bold text-sm">3-7 days</div>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">After vessel discharge</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <div className="font-bold text-green-400 text-sm">Export Demurrage</div>
-                      <div className="text-green-400 font-bold text-sm">5-10 days</div>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">Before vessel loading</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <div className="font-bold text-green-400 text-sm">Container Detention</div>
-                      <div className="text-green-400 font-bold text-sm">7-14 days</div>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">After port pickup</div>
-                  </div>
-                </div>
+                <div className="flex items-center gap-3"><div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-3 h-3 bg-green-400 rounded-full"></div></div><div className="flex-1"><div className="flex justify-between items-center"><div className="font-bold text-green-400 text-sm">Import Demurrage</div><div className="text-green-400 font-bold text-sm">3-7 days</div></div><div className="text-xs text-slate-400 mt-1">After vessel discharge</div></div></div>
+                <div className="flex items-center gap-3"><div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-3 h-3 bg-green-400 rounded-full"></div></div><div className="flex-1"><div className="flex justify-between items-center"><div className="font-bold text-green-400 text-sm">Export Demurrage</div><div className="text-green-400 font-bold text-sm">5-10 days</div></div><div className="text-xs text-slate-400 mt-1">Before vessel loading</div></div></div>
+                <div className="flex items-center gap-3"><div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0"><div className="w-3 h-3 bg-green-400 rounded-full"></div></div><div className="flex-1"><div className="flex justify-between items-center"><div className="font-bold text-green-400 text-sm">Container Detention</div><div className="text-green-400 font-bold text-sm">7-14 days</div></div><div className="text-xs text-slate-400 mt-1">After port pickup</div></div></div>
               </div>
             </motion.div>
+
+            {/* Added Images Here */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-black p-2 rounded-2xl border border-slate-700 flex items-center justify-center aspect-video"
+            >
+              <img 
+                src="https://www.greenworldwide.com/wp-content/uploads/2020/10/Slide1-2.jpg" 
+                alt="Demurrage vs Detention infographic" 
+                className="object-contain rounded-xl w-full h-full"
+              />
+            </motion.div>
+            <motion.div
+              variants={itemVariants}
+              className="bg-black p-2 rounded-2xl border border-slate-700 flex items-center justify-center aspect-video"
+            >
+              <img 
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQG8T0gILu_wuXm9LPIq4ldUnbGNQ-RHNcUOw&s" 
+                alt="Containers at a shipping port" 
+                className="object-cover rounded-xl w-full h-full"
+              />
+            </motion.div>
+
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { React, useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, LineChart, Line, BarChart, Bar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -124,7 +124,6 @@ const getDynamicStages = (method) => {
     ];
 };
 
-
 function AestheticProgressTimeline({ shippingMethod = 'standard' }) {
     const [stages, setStages] = useState([]);
     const [totalDuration, setTotalDuration] = useState(0);
@@ -166,7 +165,6 @@ function AestheticProgressTimeline({ shippingMethod = 'standard' }) {
     );
 }
 
-
 function getDeliveryRange(method, shippingDate) {
   const match = shippingMethods[method].days.match(/(\d+)-(\d+)/);
   if (!match || !shippingDate) return '';
@@ -178,6 +176,11 @@ function getDeliveryRange(method, shippingDate) {
   return `${minDate.toLocaleDateString()} - ${maxDate.toLocaleDateString()}`;
 }
 
+const NotifyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
+const DocumentIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const PreserveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-1.414 1.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 006.586 13H4" /></svg>;
+const FileClaimIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+
 function InsuranceSection({ selectedInsurance, onChange, currentSymbol }) {
   const INSURANCE_OPTIONS = [
     { label: 'None', value: 'none', surcharge: 0, description: 'No coverage for your shipment.' },
@@ -185,19 +188,37 @@ function InsuranceSection({ selectedInsurance, onChange, currentSymbol }) {
     { label: 'Standard Coverage', value: 'standard', surcharge: 100, description: 'Includes coverage for theft and physical damage.' },
     { label: 'Premium Coverage', value: 'premium', surcharge: 200, description: 'All-risk coverage for maximum protection.' },
   ];
+
   const insuranceBenefits = [
     { title: 'Protection Against Losses', description: 'Offers financial protection against potential losses your shipment may incur, minimizing economic impact.' },
     { title: 'Business Stability', description: 'Proceeds from a policy can help a business regain its footing and provide financial stability after a loss.' },
     { title: 'Legal Compliance', description: 'Many countries mandate marine insurance to comply with maritime laws and regulations.' },
     { title: 'Risk Management', description: 'Effectively manage the various risks associated with transporting cargo across international waters.' }
   ];
+
+  const coverageDetails = [
+      { feature: 'Vessel Sinking / Fire', basic: true, standard: true, premium: true },
+      { feature: 'Collision or Grounding', basic: true, standard: true, premium: true },
+      { feature: 'Theft / Pilferage', basic: false, standard: true, premium: true },
+      { feature: 'Water Damage (Sea/Rain)', basic: false, standard: true, premium: true },
+      { feature: 'Loading/Unloading Damage', basic: false, standard: false, premium: true },
+      { feature: 'Accidental Damage', basic: false, standard: false, premium: true },
+  ];
+  
+  const claimSteps = [
+      { icon: NotifyIcon, title: "Notify Immediately", text: "Contact us and the carrier upon discovery." },
+      { icon: DocumentIcon, title: "Document Damage", text: "Take detailed photos of cargo and packaging." },
+      { icon: PreserveIcon, title: "Preserve Evidence", text: "Do not discard damaged items until advised." },
+      { icon: FileClaimIcon, title: "File Claim", text: "Submit all required documents promptly." }
+  ];
+
   return (
     <div className="bg-black p-8 rounded-lg shadow-lg">
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-8 mb-8">
         <div className="w-full md:w-3/5">
           <div className="mb-6">
             <h2 className="text-2xl font-black text-white mb-2">Marine Insurance Coverage</h2>
-            <p className="text-gray-400 text-">Select a plan to protect your shipment. The surcharge will be added to your total cost.</p>
+            <p className="text-gray-400">Select a plan to protect your shipment. The surcharge will be added to your total cost.</p>
           </div>
           <div className="flex flex-col gap-4">
             {INSURANCE_OPTIONS.map(option => (
@@ -206,29 +227,84 @@ function InsuranceSection({ selectedInsurance, onChange, currentSymbol }) {
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
                     <span className="font-black text-lg text-gray-100">{option.label}</span>
-                    <span className="font-bold text-lg text-green-400">{option.surcharge > 0 ? `+$${option.surcharge.toFixed(2)}` : 'No Extra Cost'}</span>
+                    <span className="font-bold text-lg text-green-400">{option.surcharge > 0 ? `+${currentSymbol}${(option.surcharge).toFixed(2)}` : 'No Extra Cost'}</span>
                   </div>
                   <p className="text-gray-400 text-sm mt-1">{option.description}</p>
                 </div>
               </motion.label>
             ))}
           </div>
+
+          <div className="mt-6 flex gap-4">
+            <img src="https://www.paisabazaar.com/wp-content/uploads/2018/12/Marine-Insurance.jpg" alt="Marine Insurance Coverage" className="w-1/2 h-auto object-cover rounded-lg shadow-lg" />
+            <img src="https://globesecure.co.in/assets/img/newimg/marine.png" alt="Additional Marine Insurance" className="w-1/2 h-auto object-cover rounded-lg shadow-lg" />
+          </div>
         </div>
-        <div className="w-full md:w-2/5 bg-lime-900 p-6 rounded-lg border border-gray-700">
-          <h3 className="font-black text-2xl mb-4 text-green-400">Why It Matters</h3>
-          <p className="text-white mb-6 text-sm">A marine insurance policy is essential for the following reasons:</p>
+
+        <div className="w-full md:w-2/5 bg-lime-900 p-6 rounded-lg border border-lime-700">
+          <h3 className="font-black text-2xl mb-4 text-white">Why It Matters</h3>
+           <img src="https://smcinsurance.com/SocialImages/2024/October/marine-insurance.jpg" alt="Marine Insurance Illustration" className="rounded-lg mb-4 w-full h-40 object-cover" />
+          <p className="text-lime-200 mb-6 text-sm">A marine insurance policy is essential for the following reasons:</p>
           <div className="space-y-4">
             {insuranceBenefits.map((item, index) => (
-              <motion.div key={index} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.15 }} className="flex items-start gap-4 p-3 bg-gray-900 rounded-lg">
-                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-green-800 text-green-300 font-black text-lg rounded-full">{index + 1}</div>
+              <motion.div key={index} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.15 }} className="flex items-start gap-4 p-3 bg-black rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-lime-700 text-white font-black text-md rounded-full">{index + 1}</div>
                 <div>
-                  <h4 className="font-bold text-gray-200">{item.title}</h4>
-                  <p className="text-gray-400 text-sm">{item.description}</p>
+                  <h4 className="font-bold text-white">{item.title}</h4>
+                  <p className="text-lime-200 text-sm">{item.description}</p>
                 </div>
               </motion.div>
             ))}
           </div>
         </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-black p-4 rounded-lg border border-gray-700">
+              <h3 className="font-black text-xl mb-3 text-green-400">Coverage Comparison</h3>
+              <table className="w-full text-left text-sm text-gray-300">
+                  <thead>
+                      <tr className="border-b border-gray-600">
+                          <th className="py-1 px-2">Feature</th>
+                          <th className="py-1 text-center">Basic</th>
+                          <th className="py-1 text-center">Standard</th>
+                          <th className="py-1 text-center">Premium</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {coverageDetails.map(item => (
+                           <tr key={item.feature} className="border-b border-gray-800 hover:bg-gray-700">
+                              <td className="py-2 font-semibold px-2">{item.feature}</td>
+                              <td className="py-2 text-center">{item.basic ? '✔️' : '❌'}</td>
+                              <td className="py-2 text-center">{item.standard ? '✔️' : '❌'}</td>
+                              <td className="py-2 text-center">{item.premium ? '✔️' : '❌'}</td>
+                          </tr>
+                      ))}
+                  </tbody>
+              </table>
+          </div>
+          <div className="bg-black p-4 rounded-lg">
+              <h3 className="font-black text-xl mb-3 text-yellow-400">In Case of a Claim</h3>
+              <div className="space-y-3">
+                  {claimSteps.map((step, index) => {
+                      const StepIcon = step.icon;
+                      return (
+                          <motion.div key={index} whileHover={{ scale: 1.01 }} className="bg-black p-3 rounded-lg flex items-center gap-4 transition-all duration-300 border-2 border-gray-800 hover:border-yellow-600 cursor-pointer">
+                              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-yellow-600 rounded-full">
+                                  <StepIcon className="w-5 h-5 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                  <h4 className="font-bold text-white text-md">{step.title}</h4>
+                                  <p className="text-gray-400 text-sm">{step.text}</p>
+                              </div>
+                              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-yellow-700 text-white font-black text-sm rounded-full">
+                                  {index + 1}
+                              </div>
+                          </motion.div>
+                      );
+                  })}
+              </div>
+          </div>
       </div>
     </div>
   );
@@ -251,7 +327,7 @@ function Calculator() {
   const [currency, setCurrency] = useState('USD');
   const [carbonFootprint, setCarbonFootprint] = useState(0);
   const [ecoFootprint, setEcoFootprint] = useState(0);
-  const [shippingDate, setShippingDate] = useState(() => { const stored = localStorage.getItem('shippingDate'); return stored ? stored : ''; });
+  const [shippingDate, setShippingDate] = useState(() => { const stored = localStorage.getItem('shippingDate'); return stored ? stored : new Date().toISOString().split('T')[0]; });
   const [selectedInsurance, setSelectedInsurance] = useState('none');
   const [insuranceSurcharge, setInsuranceSurcharge] = useState(0);
 
@@ -311,7 +387,6 @@ function Calculator() {
           const errorData = await res.json();
           throw new Error(errorData.error || 'Failed to fetch shipping quote');
         }
-
         const data = await res.json();
         let finalCosts = data.costs;
         let finalTotal = data.totalCost;
@@ -326,7 +401,6 @@ function Calculator() {
           finalCosts['Insurance'] = insuranceSurcharge;
           finalTotal += insuranceSurcharge;
         }
-
         setCosts(finalCosts);
         setTotalCost(finalTotal);
       } catch (err) {
@@ -346,6 +420,17 @@ function Calculator() {
   const currentSymbol = conversionRates[currency].symbol;
   const convertedCosts = Object.fromEntries(Object.entries(costs).map(([key, value]) => [key, value * currentRate]));
   const convertedTotalCost = totalCost * currentRate;
+  
+  const handleQuantityChange = (e) => {
+    const value = e.target.value;
+    if (value === '' || value === '0') setQuantity(0);
+    else setQuantity(parseInt(value, 10));
+  };
+  
+  const handleInsuranceChange = (option) => {
+    setSelectedInsurance(option.value);
+    setInsuranceSurcharge(option.surcharge);
+  };
   
   const progressData = [
     { name: 'Departure', cost: (convertedCosts['Base Container Cost'] || 0), stage: 'Origin Port' },
@@ -369,17 +454,6 @@ function Calculator() {
     { name: 'Reefer 40ft', emissions: (distance * totalWeight * 0.0001) / 38, capacity: 59, costEfficiency: 78, carbonPerCubicMeter: ((distance * totalWeight * 0.0001) / 38) / 59, description: 'Large refrigerated container' }
   ];
   const containerAnimation = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
-  
-  const handleQuantityChange = (e) => {
-    const value = e.target.value;
-    if (value === '' || value === '0') setQuantity(0);
-    else setQuantity(parseInt(value, 10));
-  };
-  
-  const handleInsuranceChange = (option) => {
-    setSelectedInsurance(option.value);
-    setInsuranceSurcharge(option.surcharge);
-  };
   
   const QuotePdfDocument = ({ quoteData }) => (
     <Document>
@@ -567,17 +641,16 @@ function Calculator() {
 
         <div className="mb-8">
           <h2 className="text-4xl font-black text-gray-800 mb-4">2. Insurance Selection</h2>
-          <InsuranceSection selectedInsurance={selectedInsurance} onChange={handleInsuranceChange} currentSymbol={currentSymbol}/>
+          <InsuranceSection 
+            selectedInsurance={selectedInsurance} 
+            onChange={handleInsuranceChange} 
+            currentSymbol={currentSymbol}
+          />
         </div>
 
         <div className="mb-8">
-          <h2 className="text-4xl font-black text-gray-800 mb-4">3. Carbon Emissions Visualization</h2>
-          <CarbonImpactVisualizer
-            carbonFootprint={carbonFootprint}
-            ecoFootprint={ecoFootprint}
-            ecoRating={shippingMethods[method].ecoRating}
-            onSwitchToEco={() => setMethod('eco')}
-          />
+            <h2 className="text-4xl font-black text-gray-800 mb-4">3. Vessel Type Explorer</h2>
+            <VesselTypeExplorer />
         </div>
         
         <div className="mb-8">
@@ -597,12 +670,17 @@ function Calculator() {
 
         <div className="mb-8">
             <h2 className="text-4xl font-black text-gray-800 mb-4">7. Progress Gantt Chart</h2>
-            <AestheticProgressTimeline distance={distance} shippingMethod={method} />
+            <AestheticProgressTimeline shippingMethod={method} />
         </div>
 
         <div className="mb-8">
-            <h2 className="text-4xl font-black text-gray-800 mb-4">8. Vessel Type Explorer</h2>
-            <VesselTypeExplorer />
+          <h2 className="text-4xl font-black text-gray-800 mb-4">8. Carbon Emissions Visualization</h2>
+          <CarbonImpactVisualizer
+            carbonFootprint={carbonFootprint}
+            ecoFootprint={ecoFootprint}
+            ecoRating={shippingMethods[method].ecoRating}
+            onSwitchToEco={() => setMethod('eco')}
+          />
         </div>
 
         <div className="mb-8">
@@ -619,7 +697,6 @@ function Calculator() {
               <p>{error}</p>
             </motion.div>
           )}
-
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-black text-primary-600 flex items-center">
               <span className="mr-2">💰</span>
@@ -745,5 +822,3 @@ function Calculator() {
 }
 
 export default Calculator;
-
-
