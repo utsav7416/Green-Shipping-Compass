@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FileText, AlertTriangle, CheckCircle, XCircle, Clock, Globe, Bookmark, Anchor } from 'lucide-react';
+import { FileText, AlertTriangle, CheckCircle, XCircle, Clock, Globe, Bookmark, Anchor, ShieldCheck } from 'lucide-react';
 import { ports } from '../data/ports';
 
 const RouteVisual = ({ origin, destination }) => (
@@ -48,6 +48,29 @@ function RegulatoryInfo({ origin, destination }) {
     hidden: { opacity: 0, x: -20 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };
+  const additionalInfo = [
+      {
+          img: "https://static.wixstatic.com/media/190f21_bca2a1deb3ab4205af8709ba45555ec9~mv2.png/v1/fill/w_400,h_270,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/190f21_bca2a1deb3ab4205af8709ba45555ec9~mv2.png",
+          title: "Maritime Safety Standards",
+          text: "Compliance with international maritime safety standards is crucial. This includes proper cargo securing, vessel maintenance, and crew training to prevent accidents and ensure smooth passage through international waters.",
+          alt: "Maritime Safety Standards",
+          color: "teal"
+      },
+      {
+          img: "https://oceantg.com/wp-content/uploads/2024/06/Marine-Reg-2.46028456-copy.png",
+          title: "Environmental Regulations",
+          text: "Adherence to marine environmental laws is mandatory. This covers ballast water management, emissions control, and waste disposal to protect ocean ecosystems from pollution and invasive species.",
+          alt: "Environmental Regulations",
+          color: "cyan"
+      }
+  ];
+
+  const pitfalls = [
+    { icon: <FileText className="w-6 h-6 text-yellow-500" />, title: "Incomplete Paperwork", text: "Ensure all customs forms are filled out accurately and completely to prevent hold-ups." },
+    { icon: <XCircle className="w-6 h-6 text-red-500" />, title: "Undeclared Items", text: "Verify your cargo against the restricted items list for both ports to avoid confiscation." },
+    { icon: <Clock className="w-6 h-6 text-blue-500" />, title: "Ignoring Timelines", text: "Customs clearance can take time. Factor in potential delays to your shipping schedule." }
+  ];
+
   return (
     <motion.div className="bg-gradient-to-br from-amber-50 via-amber-100 to-orange-100 p-8 rounded-xl shadow-2xl mb-8 border-2 border-amber-200" variants={containerVariants} initial="hidden" animate="visible">
       <motion.div className="text-center mb-4" initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
@@ -77,10 +100,10 @@ function RegulatoryInfo({ origin, destination }) {
                       <Globe className="w-6 h-6 text-white" />
                     </motion.div>
                     <div>
-                      <h3 className="text-2xl font-black text-indigo-700">{label} Port</h3>
-                      <p className="text-xl font-bold text-gray-700">{port.name}</p>
-                      <p className="text-sm font-bold text-gray-600">Country: {port.country}</p>
-                      <p className="text-sm font-bold text-gray-600">UN/LOCODE: {port.unlocode}</p>
+                      <h3 className="text-3xl font-black text-indigo-800">{label} Port</h3>
+                      <p className="text-2xl font-extrabold text-gray-800">{port.name}</p>
+                      <p className="text-md font-bold text-gray-700 mt-1">Country: <span className="font-extrabold">{port.country}</span></p>
+                      <p className="text-md font-bold text-gray-700">UN/LOCODE: <span className="font-extrabold">{port.unlocode}</span></p>
                     </div>
                   </div>
                   <motion.div className="bg-green-100 p-2 rounded-full" whileHover={{ scale: 1.1 }}>
@@ -89,16 +112,17 @@ function RegulatoryInfo({ origin, destination }) {
                 </motion.div>
                 <motion.div className="mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 + index * 0.2 }}>
                   <div className="flex items-center mb-4">
-                    <motion.div className="bg-red-100 p-2 rounded-full mr-3" whileHover={{ scale: 1.1 }}>
-                      <XCircle className="w-5 h-5 text-red-600" />
+                    <motion.div className="bg-red-200 p-2 rounded-full mr-3" whileHover={{ scale: 1.1 }}>
+                      <XCircle className="w-6 h-6 text-red-700" />
                     </motion.div>
-                    <h4 className="text-lg font-black text-red-700">Restricted Items</h4>
+                    <h4 className="text-xl font-extrabold text-red-800">Restricted Items</h4>
                   </div>
-                  <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
+                  <div className="bg-red-100 p-4 rounded-lg border-2 border-red-500 shadow-inner">
+                    <p className="text-sm text-red-800 mb-3 font-semibold">The following items are strictly prohibited or require special permits for this port. Failure to declare may result in seizure and penalties.</p>
                     <ul className="space-y-2">
                       {port.restrictedItems.map((item, idx) => (
-                        <motion.li key={idx} className="flex items-center text-red-700 font-semibold" variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.5 + index * 0.2 + idx * 0.1 }}>
-                          <motion.div className="w-2 h-2 bg-red-500 rounded-full mr-3 flex-shrink-0" whileHover={{ scale: 1.5 }} />
+                        <motion.li key={idx} className="flex items-center text-red-900 text-lg font-bold" variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.5 + index * 0.2 + idx * 0.1 }}>
+                          <motion.div className="w-2.5 h-2.5 bg-red-600 rounded-full mr-3 flex-shrink-0" whileHover={{ scale: 1.5 }} />
                           <span>{item}</span>
                         </motion.li>
                       ))}
@@ -107,16 +131,17 @@ function RegulatoryInfo({ origin, destination }) {
                 </motion.div>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 + index * 0.2 }}>
                   <div className="flex items-center mb-4">
-                    <motion.div className="bg-blue-100 p-2 rounded-full mr-3" whileHover={{ scale: 1.1 }}>
-                      <FileText className="w-5 h-5 text-blue-600" />
+                    <motion.div className="bg-blue-200 p-2 rounded-full mr-3" whileHover={{ scale: 1.1 }}>
+                      <FileText className="w-6 h-6 text-blue-700" />
                     </motion.div>
-                    <h4 className="text-lg font-black text-blue-700">Required Documentation</h4>
+                    <h4 className="text-xl font-extrabold text-blue-800">Required Documentation</h4>
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                  <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-500 shadow-inner">
+                    <p className="text-sm text-blue-800 mb-3 font-semibold">Ensure the following documents are accurately prepared and submitted to avoid clearance delays. Originals may be required.</p>
                     <ul className="space-y-2">
                       {port.documents.map((doc, idx) => (
-                        <motion.li key={idx} className="flex items-center text-blue-700 font-semibold" variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.7 + index * 0.2 + idx * 0.1 }}>
-                          <motion.div className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0" whileHover={{ scale: 1.5 }} />
+                        <motion.li key={idx} className="flex items-center text-blue-900 text-lg font-bold" variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.7 + index * 0.2 + idx * 0.1 }}>
+                          <motion.div className="w-2.5 h-2.5 bg-blue-600 rounded-full mr-3 flex-shrink-0" whileHover={{ scale: 1.5 }} />
                           <span>{doc}</span>
                         </motion.li>
                       ))}
@@ -128,31 +153,82 @@ function RegulatoryInfo({ origin, destination }) {
           ))
         )}
       </div>
-      <motion.div className="mt-8 bg-gradient-to-r from-indigo-100 to-purple-100 p-6 rounded-xl border-2 border-indigo-200 shadow-lg" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
-        <motion.h3 className="text-xl font-black text-indigo-700 mb-4 flex items-center" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.1 }}>
-          <motion.span className="mr-2" animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-            💡
-          </motion.span>
-          Important Shipping Guidelines
-        </motion.h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-bold">
-          {[
-            { icon: <Clock className="w-5 h-5" />, title: 'Processing Time', content: 'Allow 24-48 hours for documentation review and clearance procedures.', color: 'orange' },
-            { icon: <AlertTriangle className="w-5 h-5" />, title: 'Critical Notice', content: 'Failure to comply with regulations may result in cargo delays or penalties.', color: 'red' },
-            { icon: <Bookmark className="w-5 h-5" />, title: 'Updates', content: 'Regulations change frequently. Verify current requirements before shipping.', color: 'blue' }
-          ].map((item, index) => (
-            <motion.div key={index} className={`p-4 bg-white rounded-lg shadow-md border-l-4 border-${item.color}-500`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 + index * 0.1 }} whileHover={{ scale: 1.05, y: -2 }}>
-              <div className="flex items-center mb-2">
-                <div className={`text-${item.color}-600 mr-2`}>
-                  {item.icon}
+
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+        <motion.div className="lg:col-span-2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.2 }}>
+            <div className="mt-6 bg-black p-4 rounded-xl shadow-lg">
+                <motion.img 
+                    src="https://www.shipuniverse.com/wp-content/uploads/2025/05/compliance-horizon.jpg" 
+                    alt="DNV Regulatory 3 Keys" 
+                    className="w-full rounded-lg"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.6 }}
+                />
+            </div>
+            <div className="mt-6 bg-black p-4 rounded-xl shadow-lg">
+                <motion.img 
+                    src="https://safety4sea.com/wp-content/uploads/2023/09/dnv-regu-3-keys.png" 
+                    alt="DNV Regulatory 3 Keys" 
+                    className="w-full rounded-lg"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.6 }}
+                />
+                <p className="text-gray-400 text-sm mt-2 text-center">DNV's key principles for maritime regulatory compliance.</p>
+            </div>
+        </motion.div>
+
+        <motion.div className="lg:col-span-3 space-y-8" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.2 }}>
+            <div>
+                <h3 className="text-2xl font-black text-indigo-700 mb-4 flex items-center">
+                    <ShieldCheck className="w-6 h-6 mr-3"/>
+                    Compliance Guides
+                </h3>
+                <motion.div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-black rounded-lg shadow-xl" whileHover={{ scale: 1.02, transition: { duration: 0.2 }}}>
+                    <img src={additionalInfo[0].img} alt={additionalInfo[0].alt} className="w-full md:w-2/5 h-40 object-cover rounded-md flex-shrink-0" />
+                    <div className="text-white">
+                        <h4 className={`text-xl font-black text-${additionalInfo[0].color}-400`}>{additionalInfo[0].title}</h4>
+                        <p className="text-md font-semibold text-gray-300 mt-2">{additionalInfo[0].text}</p>
+                    </div>
+                </motion.div>
+                 <motion.div className="flex flex-col md:flex-row-reverse items-center gap-6 p-4 bg-black rounded-lg shadow-xl mt-6" whileHover={{ scale: 1.02, transition: { duration: 0.2 }}}>
+                    <img src={additionalInfo[1].img} alt={additionalInfo[1].alt} className="w-full md:w-2/5 h-40 object-cover rounded-md flex-shrink-0" />
+                    <div className="text-white">
+                        <h4 className={`text-xl font-black text-${additionalInfo[1].color}-400`}>{additionalInfo[1].title}</h4>
+                        <p className="text-md font-semibold text-gray-300 mt-2">{additionalInfo[1].text}</p>
+                    </div>
+                </motion.div>
+            </div>
+            
+            <motion.div className="bg-gradient-to-r from-indigo-100 to-purple-100 p-6 rounded-xl border-2 border-indigo-200 shadow-lg" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.6 }}>
+                <motion.h3 className="text-xl font-black text-indigo-700 mb-4 flex items-center" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.7 }}>
+                  <motion.span className="mr-2" animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
+                    💡
+                  </motion.span>
+                  Important Shipping Guidelines
+                </motion.h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-bold">
+                  {[
+                    { icon: <Clock className="w-5 h-5" />, title: 'Processing Time', content: 'Allow 24-48 hours for documentation review and clearance.', color: 'orange' },
+                    { icon: <AlertTriangle className="w-5 h-5" />, title: 'Critical Notice', content: 'Non-compliance may result in cargo delays or penalties.', color: 'red' },
+                    { icon: <Bookmark className="w-5 h-5" />, title: 'Verify Updates', content: 'Regulations change frequently. Always verify requirements.', color: 'blue' },
+                    { icon: <ShieldCheck className="w-5 h-5" />, title: 'Cargo Insurance', content: 'Ensure your shipment is adequately insured against all risks.', color: 'green' }
+                  ].map((item, index) => (
+                    <motion.div key={index} className={`p-4 bg-white rounded-lg shadow-md border-l-4 border-${item.color}-500`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8 + index * 0.1 }} whileHover={{ scale: 1.05, y: -2 }}>
+                      <div className="flex items-center mb-2">
+                        <div className={`text-${item.color}-600 mr-2`}>
+                          {item.icon}
+                        </div>
+                        <h4 className={`font-black text-${item.color}-700`}>{item.title}</h4>
+                      </div>
+                      <p className="text-gray-700">{item.content}</p>
+                    </motion.div>
+                  ))}
                 </div>
-                <h4 className={`font-black text-${item.color}-700`}>{item.title}</h4>
-              </div>
-              <p className="text-gray-700">{item.content}</p>
             </motion.div>
-          ))}
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </motion.div>
   );
 }

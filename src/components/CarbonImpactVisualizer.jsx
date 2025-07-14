@@ -210,6 +210,44 @@ export default function CarbonImpactVisualizer({ carbonFootprint, ecoFootprint, 
           gradient="from-cyan-900 to-blue-900"
         />
       </div>
+      
+      <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        <div className="w-full lg:w-2/3 rounded-lg overflow-hidden border border-gray-700">
+            <img src="https://transport.ec.europa.eu/sites/default/files/styles/embed_large_2x/public/2024-12/ff55_refueleu_update-april-2023.png?itok=WN_6dHfG" alt="FuelEU Maritime Initiative" className="w-full h-full object-cover" />
+        </div>
+        <motion.div
+            className="w-full lg:w-1/3 bg-gradient-to-r from-lime-900/30 to-rose-900/30 p-6 rounded-lg border border-green-500/50 flex flex-col justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+        >
+            <div className="text-center">
+                <h4 className="font-bold text-xl text-white mb-4">🌍 Every Shipment Counts</h4>
+                <p className="text-gray-300 mb-6">
+                    Your shipping decisions create a ripple effect. By choosing eco-friendly options,
+                    you're supporting cleaner transportation and a sustainable future.
+                </p>
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="text-center">
+                        <div className="text-3xl">🚚</div>
+                        <div className="text-sm font-semibold text-blue-400 mt-1">Efficient Routes</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl">📦</div>
+                        <div className="text-sm font-semibold text-green-400 mt-1">Smart Packaging</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl">⚡</div>
+                        <div className="text-sm font-semibold text-yellow-400 mt-1">Clean Energy</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl">🌱</div>
+                        <div className="text-sm font-semibold text-purple-400 mt-1">Carbon Neutral</div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="bg-black p-4 rounded-lg border border-gray-700 h-80 flex flex-col">
@@ -287,7 +325,7 @@ export default function CarbonImpactVisualizer({ carbonFootprint, ecoFootprint, 
                     <div className="text-5xl text-green-400">✓</div>
                     <h4 className="font-bold text-lg text-white mt-2">Maximum Efficiency</h4>
                     <p className="text-sm text-gray-400 mt-1">You've selected the best option for the planet.</p>
-                </motion.div>
+                 </motion.div>
             )}
         </div>
 
@@ -361,57 +399,29 @@ export default function CarbonImpactVisualizer({ carbonFootprint, ecoFootprint, 
         </div>
       </div>
 
-      <motion.div
-        className="flex flex-col lg:flex-row items-center gap-6 mt-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-      >
-        <div className="w-full lg:w-3/5 bg-gradient-to-r from-lime-900/30 to-rose-900/30 p-6 rounded-lg border border-green-500/50">
-          <div className="text-center">
-            <h4 className="font-bold text-xl text-white mb-2">🌍 Every Shipment Counts</h4>
-            <p className="text-gray-300">
-              Your shipping decisions create a ripple effect across global supply chains. By choosing eco-friendly options,
-              you're supporting cleaner transportation, efficient logistics, and a sustainable future for commerce.
-            </p>
-            <div className="flex justify-center space-x-8 mt-4">
-              <div className="text-center">
-                <div className="text-2xl">🚚</div>
-                <div className="text-xs text-blue-400">Efficient Routes</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl">📦</div>
-                <div className="text-xs text-green-400">Smart Packaging</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl">⚡</div>
-                <div className="text-xs text-yellow-400">Clean Energy</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl">🌱</div>
-                <div className="text-xs text-purple-400">Carbon Neutral</div>
-              </div>
-            </div>
-          </div>
+      <div className="flex flex-col md:flex-row gap-4 mt-8">
+        <div className="w-full md:w-3/5 rounded-lg overflow-hidden border border-white/10">
+          <img
+            src="https://images.squarespace-cdn.com/content/v1/6155b5bdada6ea1708c2c74d/1648471264339-LO9FUYTELUU2HQDEKGQE/Picture3.png"
+            alt="Sustainable logistics infographic"
+            className="w-full h-full object-cover"
+          />
         </div>
-
-        <div className="w-full lg:w-2/5 grid grid-cols-2 gap-4">
-          <div className="rounded-lg overflow-hidden border border-white/10">
-            <img
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTctKJTBVgBWc0GWbsH0FO6nWcisg2yZvnSVw&s"
-              alt="Eco-friendly shipping container"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="rounded-lg overflow-hidden border border-white/10">
-            <img
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7NS6fMHGS6JqBszC4H3XNz9WqBxB0gqfluQ&s"
-              alt="Sustainable logistics"
-              className="w-full h-full object-cover"
-            />
-          </div>
+        <div className="w-full md:w-1/5 rounded-lg overflow-hidden border border-white/10">
+          <img
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTctKJTBVgBWc0GWbsH0FO6nWcisg2yZvnSVw&s"
+            alt="Eco-friendly shipping container"
+            className="w-full h-full object-cover"
+          />
         </div>
-      </motion.div>
+        <div className="w-full md:w-1/5 rounded-lg overflow-hidden border border-white/10">
+          <img
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7NS6fMHGS6JqBszC4H3XNz9WqBxB0gqfluQ&s"
+            alt="Sustainable logistics"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
     </div>
   );
 }
